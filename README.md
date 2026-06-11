@@ -1,9 +1,14 @@
 # DEON — desert portfolio
 
-An interactive portfolio that drops visitors into a low-poly desert at dusk.
-Five raw structures hold the work — **graphic design, music, websites, videos,
-clothing** — plus a campfire (about), a payphone (contact), and a leaning
-signpost (socials). Ambient wind and fire crackle are synthesized live in the
+An interactive portfolio that drops visitors onto a vast surreal desert plain
+at dusk — Filip Hodas × Salvador Dalí. Five monumental objects hold the work:
+a melting gilded frame (**graphic design**), a vinyl record gone soft draped
+over a stone cube (**music**), a giant half-buried CRT still glowing
+(**websites**), a monolithic VHS bleeding film ribbon (**videos**), and a
+floating hanger whose garment melts into the sand (**clothing**). Long-legged
+elephants walk the horizon, a clock melts over a dead tree, stones float.
+A campfire opens about, a decayed payphone opens contact, a leaning signpost
+points to socials. Ambient wind and fire crackle are synthesized live in the
 browser; nothing is streamed.
 
 ## Run it locally

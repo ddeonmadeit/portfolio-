@@ -9,17 +9,21 @@ import { buildInterior } from './interiors.js';
 import { CATEGORIES, SITE } from './data.js';
 import { audio } from './audio.js';
 
-// ---------- renderer (rendered low-res, upscaled = PS1 chunk) ----------
-const RES_SCALE = 0.5;
+// ---------- renderer: full-res, soft shadows, filmic color ----------
 const canvas = document.getElementById('scene');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
 
 const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 500);
 
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
-  renderer.setSize(Math.floor(w * RES_SCALE), Math.floor(h * RES_SCALE), false);
+  renderer.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }

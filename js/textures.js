@@ -172,9 +172,9 @@ export function placeholderArt(title, year, glowHex) {
   return tex;
 }
 
-// Big dusk-gradient sky dome texture.
+// Big dusk-gradient sky dome — smooth, dreamlike, soft clouds.
 export function skyTexture(topHex, midHex, sunHex) {
-  const W = 1024, H = 512;
+  const W = 2048, H = 1024;
   const [c, ctx] = makeCanvas(W, H);
   const top = '#' + topHex.toString(16).padStart(6, '0');
   const mid = '#' + midHex.toString(16).padStart(6, '0');
@@ -182,22 +182,155 @@ export function skyTexture(topHex, midHex, sunHex) {
 
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, top);
-  g.addColorStop(0.55, mid);
+  g.addColorStop(0.52, mid);
+  g.addColorStop(0.78, sun);
   g.addColorStop(1, sun);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  // banded posterization for the retro feel
-  ctx.globalAlpha = 0.06;
-  for (let y = 0; y < H; y += 14) {
-    ctx.fillStyle = y % 28 === 0 ? '#000' : '#fff';
-    ctx.fillRect(0, y, W, 7);
+  // glowing band right at the horizon
+  const hg = ctx.createLinearGradient(0, H * 0.62, 0, H * 0.8);
+  hg.addColorStop(0, 'rgba(255,235,190,0)');
+  hg.addColorStop(1, 'rgba(255,228,170,0.5)');
+  ctx.fillStyle = hg;
+  ctx.fillRect(0, H * 0.62, W, H * 0.18);
+
+  // long soft clouds, lit from below — Dalí skies
+  for (let i = 0; i < 18; i++) {
+    const y = H * (0.18 + Math.random() * 0.42);
+    const x = Math.random() * W;
+    const w = 120 + Math.random() * 420;
+    const h = 6 + Math.random() * 22;
+    ctx.save();
+    ctx.filter = 'blur(' + (6 + Math.random() * 14) + 'px)';
+    ctx.globalAlpha = 0.1 + Math.random() * 0.22;
+    ctx.fillStyle = Math.random() > 0.45 ? '#ffd9a8' : '#8a6a88';
+    ctx.beginPath();
+    ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
   ctx.globalAlpha = 1;
 
-  grainOver(ctx, W, H, 0.05);
+  grainOver(ctx, W, H, 0.02);
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// A draped vinyl record / clock face — alpha-masked disc textures
+// for surfaces that get melted over things.
+export function vinylTexture(label, glowHex) {
+  const S = 1024;
+  const [c, ctx] = makeCanvas(S, S);
+  const glow = '#' + glowHex.toString(16).padStart(6, '0');
+  const cx = S / 2, cy = S / 2, R = S / 2 - 8;
+
+  ctx.clearRect(0, 0, S, S);
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = '#0d0b0c';
+  ctx.fill();
+
+  // grooves
+  for (let r = R * 0.42; r < R * 0.97; r += 5) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.025 + Math.random() * 0.05) + ')';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+  // sheen
+  const sheen = ctx.createLinearGradient(0, 0, S, S);
+  sheen.addColorStop(0.35, 'rgba(255,255,255,0)');
+  sheen.addColorStop(0.5, 'rgba(255,235,200,0.1)');
+  sheen.addColorStop(0.65, 'rgba(255,255,255,0)');
+  ctx.fillStyle = sheen;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fill();
+
+  // center label
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.36, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, R * 0.04, 0, Math.PI * 2);
+  ctx.fillStyle = '#0d0b0c';
+  ctx.fill();
+  ctx.fillStyle = '#14100e';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `900 ${S * 0.09}px 'Anton', 'Arial Black', sans-serif`;
+  ctx.fillText(label, cx, cy - R * 0.14);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
+}
+
+// the sun as a soft radial glow sprite — a hole of light in the sky
+export function makeSunSprite(coreHex = '#fff2d8', glowHex = '#f0a060', size = 150) {
+  const [c, ctx] = makeCanvas(512, 512);
+  const g = ctx.createRadialGradient(256, 256, 0, 256, 256, 256);
+  g.addColorStop(0, coreHex);
+  g.addColorStop(0.16, coreHex);
+  g.addColorStop(0.24, glowHex + 'cc');
+  g.addColorStop(0.5, glowHex + '44');
+  g.addColorStop(1, glowHex + '00');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, blending: THREE.AdditiveBlending,
+    depthWrite: false, fog: false, transparent: true,
+  }));
+  sprite.scale.setScalar(size);
+  return sprite;
+}
+
+export function clockTexture() {
+  const S = 1024;
+  const [c, ctx] = makeCanvas(S, S);
+  const cx = S / 2, cy = S / 2, R = S / 2 - 10;
+
+  ctx.clearRect(0, 0, S, S);
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = '#e8ddc2';
+  ctx.fill();
+  ctx.lineWidth = 26;
+  ctx.strokeStyle = '#b89a4e';
+  ctx.stroke();
+
+  ctx.fillStyle = '#241c12';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `700 ${S * 0.11}px Georgia, serif`;
+  for (let h = 1; h <= 12; h++) {
+    const a = (h / 12) * Math.PI * 2 - Math.PI / 2;
+    ctx.fillText(String(h), cx + Math.cos(a) * R * 0.78, cy + Math.sin(a) * R * 0.78);
+  }
+  // hands — frozen at a quarter past six, why not
+  ctx.strokeStyle = '#241c12';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 22;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + R * 0.42, cy + R * 0.12);
+  ctx.stroke();
+  ctx.lineWidth = 14;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx - R * 0.12, cy + R * 0.6);
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
   return tex;
 }

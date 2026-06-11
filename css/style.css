@@ -145,14 +145,45 @@ body.pointing #cursor {
 }
 .top-right { top: 14px; right: 20px; }
 .bottom-center {
-  bottom: 22px;
+  bottom: 64px;
   left: 50%;
   transform: translateX(-50%);
   opacity: 0.85;
   text-align: center;
   max-width: 90vw;
+  font-size: clamp(15px, 1.8vw, 20px);
 }
 .bottom-left { bottom: 18px; left: 20px; }
+
+/* ---------- the trail (category nav) ---------- */
+#nav {
+  position: fixed;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 52;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 96vw;
+}
+#nav button {
+  font-family: var(--mono);
+  font-size: clamp(15px, 2vw, 21px);
+  letter-spacing: 0.08em;
+  color: var(--paper);
+  background: rgba(20, 12, 8, 0.45);
+  border: 1px solid rgba(232, 223, 202, 0.4);
+  padding: 3px 12px;
+  backdrop-filter: blur(2px);
+}
+#nav button:hover { border-color: var(--accent); color: var(--accent); }
+#nav button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1b140f;
+}
 
 .rec-dot {
   width: 11px;
@@ -363,4 +394,19 @@ body.pointing #cursor {
   font-size: 18px;
   opacity: 0.5;
   letter-spacing: 0.12em;
+}
+
+/* ---------- small screens ---------- */
+@media (max-width: 700px) {
+  .bottom-center {
+    bottom: 104px;
+    font-size: 14px;
+    max-width: 86vw;
+  }
+  #nav { bottom: 10px; gap: 5px; }
+  #nav button { font-size: 14px; padding: 2px 8px; }
+  .top-center { display: none; } /* section name lives in the nav highlight */
+  .top-left { font-size: 15px; }
+  #mute-btn { font-size: 15px; }
+  #back-btn { bottom: 60px; }
 }

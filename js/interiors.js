@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import { placeholderArt, signTexture, skyTexture, makeSunSprite } from './textures.js';
+import { SHADOW_SIZE } from './quality.js';
 
 function smoothMat(color, { rough = 0.85, metal = 0 } = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
@@ -49,7 +50,7 @@ export function buildInterior(key, cat) {
   const dir = new THREE.DirectionalLight(0xffe0b8, 1.5);
   dir.position.set(25, 14, -30);
   dir.castShadow = true;
-  dir.shadow.mapSize.set(2048, 2048);
+  dir.shadow.mapSize.set(SHADOW_SIZE, SHADOW_SIZE);
   dir.shadow.camera.left = -25;
   dir.shadow.camera.right = 25;
   dir.shadow.camera.top = 25;

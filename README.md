@@ -1,15 +1,16 @@
 # DEON — desert portfolio
 
-An interactive portfolio that drops visitors onto a vast surreal desert plain
-at dusk — Filip Hodas × Salvador Dalí. Five monumental objects hold the work:
-a melting gilded frame (**graphic design**), a vinyl record gone soft draped
-over a stone cube (**music**), a giant half-buried CRT still glowing
-(**websites**), a monolithic VHS bleeding film ribbon (**videos**), and a
-floating hanger whose garment melts into the sand (**clothing**). Long-legged
-elephants walk the horizon, a clock melts over a dead tree, stones float.
-A campfire opens about, a decayed payphone opens contact, a leaning signpost
-points to socials. Ambient wind and fire crackle are synthesized live in the
-browser; nothing is streamed.
+An interactive portfolio set in a sea of rolling dunes at golden hour.
+Five ancient ruins lie far apart across the sand, one per category:
+a collapsed fresco wall (**graphic design**), a half-buried amphitheatre
+(**music**), an eroded ziggurat (**websites**), a theatre wall whose empty
+windows frame the sky (**videos**), and a weavers' colonnade with one
+ancient cloth still hanging (**clothing**). Click a ruin — or its name on
+the trail menu — and the camera glides low over the dunes to it, then
+steps through the doorway into that category's dream-plain where the work
+floats. A small camp on the starting ridge holds about (campfire),
+contact (payphone) and socials (signpost). Ambient wind and fire crackle
+are synthesized live in the browser; nothing is streamed.
 
 ## Run it locally
 
@@ -43,10 +44,15 @@ controls the mood inside its structure — tweak freely.
 ## Controls
 
 - **Look around** — move the mouse (desktop) or drag (touch).
-- **Enter** — click/tap a structure, the campfire, the payphone, or the signpost.
-- **Open a work** — click a piece hanging on the wall.
+- **Travel** — click a ruin in the distance, or use the trail menu at the
+  bottom (CAMP / DESIGN / MUSIC / WEB / VIDEO / CLOTHING). The camera
+  glides over the dunes and enters automatically.
+- **Open a work** — click a floating piece inside.
 - **Leave** — click the doorway, the `← OUT` button, or press `Esc`.
 - **Sound** — toggle top right.
+
+Mobile gets a wider field of view, lower shadow resolution and a capped
+pixel ratio automatically (see `js/quality.js`).
 
 ## Deploy
 

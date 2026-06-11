@@ -1,698 +1,816 @@
 // ============================================================
-//  WORLD — a vast surreal plain at dusk. Hodas × Dalí:
-//  monumental half-buried objects, melting forms, long shadows,
-//  a long-legged elephant on the horizon.
+//  WORLD — a sea of rolling dunes at golden hour. Five ancient
+//  ruins, far apart, half-swallowed by the sand. A small camp
+//  on the starting ridge. Nothing else.
 // ============================================================
 
 import * as THREE from 'three';
 import { CATEGORIES, SITE } from './data.js';
-import { signTexture, skyTexture, vinylTexture, clockTexture, makeSunSprite } from './textures.js';
+import {
+  signTexture, skyTexture, makeSunSprite,
+  rippleBump, frescoTexture, glyphTexture, wovenClothTexture,
+} from './textures.js';
+import { TERRAIN_SEGS, SHADOW_SIZE } from './quality.js';
 
-const DUSK = {
-  skyTop: 0x1d2a44,   // deep dusk blue
-  skyMid: 0x8a4a5e,   // dusty rose
-  skySun: 0xe8a868,   // glowing amber horizon
-  fog: 0xb07a62,
-  sand: 0xc29270,
-  sun: 0xffd9a0,
+const GOLD = {
+  skyTop: 0x6e7ba8,   // cool lavender blue overhead
+  skyMid: 0xd9919a,   // soft pink
+  skySun: 0xffd9a0,   // warm gold at the horizon
+  fog: 0xe8b88e,      // golden haze
+  sandLit: 0xd9aa7c,
+  sandShade: 0x9a6e54,
 };
 
-function smoothMat(color, { rough = 0.85, metal = 0.0, emissive = 0x000000, ei = 0 } = {}) {
-  return new THREE.MeshStandardMaterial({
-    color, roughness: rough, metalness: metal,
-    emissive, emissiveIntensity: ei,
-  });
-}
+// ------------------------------------------------------------
+//  TERRAIN — analytic dune height, shared by everything that
+//  needs to sit on (or fly over) the sand
+// ------------------------------------------------------------
 
-function shadowify(root) {
-  root.traverse((m) => {
-    if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; }
-  });
-  return root;
+function hash2(ix, iz) {
+  const h = Math.sin(ix * 127.1 + iz * 311.7) * 43758.5453;
+  return h - Math.floor(h);
 }
-
-// fold everything past `edge` (local +x) around a cylinder of
-// radius r — the universal "melt over an edge" move
-function drape(geo, edge, r, maxAngle = Math.PI * 0.92) {
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    if (x <= edge) continue;
-    const s = x - edge;
-    const a = Math.min(s / r, maxAngle);
-    const extra = Math.max(0, s - r * maxAngle);
-    const nx = edge + Math.sin(a) * r + Math.cos(a) * extra;
-    const ny = y - (1 - Math.cos(a)) * r - Math.sin(a) * extra;
-    pos.setXYZ(i, nx, ny, z);
+function vnoise(x, z) {
+  const ix = Math.floor(x), iz = Math.floor(z);
+  const fx = x - ix, fz = z - iz;
+  const sx = fx * fx * (3 - 2 * fx), sz = fz * fz * (3 - 2 * fz);
+  const a = hash2(ix, iz), b = hash2(ix + 1, iz);
+  const c = hash2(ix, iz + 1), d = hash2(ix + 1, iz + 1);
+  return a + (b - a) * sx + (c - a) * sz + (a - b - c + d) * sx * sz;
+}
+function fbm(x, z, oct = 4) {
+  let v = 0, amp = 0.5, f = 1;
+  for (let i = 0; i < oct; i++) {
+    v += amp * vnoise(x * f + i * 13.7, z * f - i * 7.3);
+    amp *= 0.5;
+    f *= 2;
   }
-  geo.computeVertexNormals();
-  return geo;
+  return v;
 }
 
-// drooping melt-drips along the bottom of something
-function addDrips(group, { y, xSpread, z, color, count = 6, scale = 1 }) {
-  for (let i = 0; i < count; i++) {
-    const len = (0.5 + Math.random() * 1.6) * scale;
-    const drip = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02 * scale, (0.1 + Math.random() * 0.12) * scale, len, 10, 1),
-      smoothMat(color, { rough: 0.6 })
+// raw dune field: long wind-aligned crests riding on broad swells
+function duneBase(x, z) {
+  const ca = Math.cos(0.55), sa = Math.sin(0.55);
+  const u = x * ca - z * sa;
+  const v = x * sa + z * ca;
+  const r = fbm(u * 0.011, v * 0.03, 4);
+  const crest = 1 - Math.abs(2 * r - 1);          // sharp dune ridges
+  const swell = fbm(x * 0.0048 + 7.3, z * 0.0048 - 2.1, 3); // rolling heights
+  const detail = fbm(x * 0.05, z * 0.05, 2) * 0.9;
+  return crest * crest * 10 * (0.35 + swell) + swell * 16 + detail - 10;
+}
+
+// flat pads where ruins / the camp sit, blended into the dunes
+const PADS = [
+  { key: 'camp', x: 0, z: 8, r: 16 },
+  { key: 'gate', x: 0, z: 30, r: 8 },
+  { key: 'design', x: -78, z: -48, r: 15 },
+  { key: 'music', x: -30, z: -102, r: 16 },
+  { key: 'web', x: 42, z: -116, r: 15 },
+  { key: 'video', x: 92, z: -52, r: 15 },
+  { key: 'clothing', x: 64, z: 22, r: 14 },
+];
+for (const p of PADS) p.y = duneBase(p.x, p.z);
+
+export function duneHeight(x, z) {
+  let h = duneBase(x, z);
+  for (const p of PADS) {
+    const d = Math.hypot(x - p.x, z - p.z);
+    if (d < p.r * 2.4) {
+      const k = THREE.MathUtils.smoothstep(d, p.r * 0.55, p.r * 2.4);
+      h = p.y * (1 - k) + h * k;
+    }
+  }
+  return h;
+}
+
+// ------------------------------------------------------------
+//  STONE KIT — every ruin is many blocks merged into one mesh
+// ------------------------------------------------------------
+
+function mulberry32(seed) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const STONE = new THREE.Color(0xb29b80);
+
+class StoneKit {
+  constructor(seed = 1) {
+    this.parts = [];
+    this.rand = mulberry32(seed);
+  }
+  // add a jittered box (or any geometry) at pos/rot, with a shade offset
+  block(geo, pos, rot = [0, 0, 0], shade = 0) {
+    const g = geo.toNonIndexed();
+    const posAttr = g.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      posAttr.setXYZ(
+        i,
+        posAttr.getX(i) + (this.rand() - 0.5) * 0.12,
+        posAttr.getY(i) + (this.rand() - 0.5) * 0.12,
+        posAttr.getZ(i) + (this.rand() - 0.5) * 0.12
+      );
+    }
+    g.computeVertexNormals();
+    const m = new THREE.Matrix4()
+      .makeRotationFromEuler(new THREE.Euler(...rot))
+      .setPosition(...pos);
+    g.applyMatrix4(m);
+    const col = STONE.clone().offsetHSL(0, (this.rand() - 0.5) * 0.015, shade + (this.rand() - 0.5) * 0.025);
+    this.parts.push({ g, col });
+  }
+  box(w, h, d, pos, rot, shade) {
+    this.block(new THREE.BoxGeometry(w, h, d), pos, rot, shade);
+  }
+  // a column built from drums, optionally broken at a fraction of height
+  column(x, z, height, radius = 0.55, brokenAt = 1) {
+    const drums = Math.max(2, Math.round(height / 1.1));
+    let y = 0;
+    for (let i = 0; i < drums; i++) {
+      if (i / drums > brokenAt) break;
+      const h = height / drums;
+      this.block(
+        new THREE.CylinderGeometry(radius * (0.96 + this.rand() * 0.05), radius, h, 14),
+        [x + (this.rand() - 0.5) * 0.05, y + h / 2, z + (this.rand() - 0.5) * 0.05],
+        [0, this.rand() * 1, 0],
+        -0.02 * i / drums
+      );
+      y += h;
+    }
+    return y; // actual top
+  }
+  // a wall of stacked blocks; the top course crumbles away
+  wall(cx, cz, width, height, ry = 0, opening = null) {
+    const bw = 1.6, bh = 0.85;
+    const cols = Math.round(width / bw);
+    const rows = Math.round(height / bh);
+    const cosr = Math.cos(ry), sinr = Math.sin(ry);
+    for (let r = 0; r < rows; r++) {
+      const decay = (r / rows) ** 2;          // higher rows lose more blocks
+      for (let c = 0; c < cols; c++) {
+        const lx = (c - (cols - 1) / 2) * bw + (r % 2 ? bw * 0.25 : 0);
+        if (opening) {
+          const within = Math.abs(lx - opening.x) < opening.w / 2 && r * bh < opening.h;
+          if (within) continue;
+        }
+        if (this.rand() < decay * 0.85) continue;
+        const x = cx + lx * cosr;
+        const z = cz - lx * sinr;
+        // courses overlap slightly so seams melt together
+        this.box(
+          bw * (1.02 + this.rand() * 0.08), bh * 1.05, 0.95 + this.rand() * 0.3,
+          [x, r * bh + bh / 2, z + (this.rand() - 0.5) * 0.1],
+          [0, ry + (this.rand() - 0.5) * 0.03, (this.rand() - 0.5) * 0.02],
+          -decay * 0.06
+        );
+      }
+    }
+  }
+  // half-buried fallen blocks scattered around
+  rubble(cx, cz, radius, count) {
+    for (let i = 0; i < count; i++) {
+      const a = this.rand() * Math.PI * 2;
+      const d = radius * (0.4 + this.rand() * 0.6);
+      this.box(
+        0.9 + this.rand() * 1.2, 0.7 + this.rand() * 0.6, 0.8 + this.rand(),
+        [cx + Math.cos(a) * d, 0.1 + this.rand() * 0.15, cz + Math.sin(a) * d],
+        [this.rand() * 0.3, this.rand() * 3, this.rand() * 0.35],
+        -0.04
+      );
+    }
+  }
+  build() {
+    let total = 0;
+    for (const p of this.parts) total += p.g.attributes.position.count;
+    const pos = new Float32Array(total * 3);
+    const nor = new Float32Array(total * 3);
+    const col = new Float32Array(total * 3);
+    let off = 0;
+    for (const p of this.parts) {
+      pos.set(p.g.attributes.position.array, off * 3);
+      nor.set(p.g.attributes.normal.array, off * 3);
+      for (let i = 0; i < p.g.attributes.position.count; i++) {
+        col[(off + i) * 3] = p.col.r;
+        col[(off + i) * 3 + 1] = p.col.g;
+        col[(off + i) * 3 + 2] = p.col.b;
+      }
+      off += p.g.attributes.position.count;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const mesh = new THREE.Mesh(
+      g,
+      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92 })
     );
-    const x = (Math.random() - 0.5) * xSpread;
-    drip.position.set(x, y - len / 2, z + (Math.random() - 0.5) * 0.2);
-    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.045 * scale, 10, 10), drip.material);
-    tip.position.set(x, y - len, drip.position.z);
-    group.add(drip, tip);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
   }
 }
+
+// dark doorway + carved tablet, the standard "enter here";
+// ry turns both to face the door's outward direction
+function doorwayProps(group, doorPos, label, tabletY, ry = 0) {
+  const portal = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.9, 3),
+    new THREE.MeshBasicMaterial({ color: 0x120c08 })
+  );
+  portal.position.copy(doorPos);
+  portal.rotation.y = ry;
+  group.add(portal);
+  const tablet = new THREE.Mesh(
+    new THREE.BoxGeometry(2.6, 0.8, 0.18),
+    [null, null, null, null,
+      new THREE.MeshStandardMaterial({ map: signTexture(label, { bg: '#8a7458', fg: '#2e2418' }), roughness: 0.9 }),
+      null].map((m) => m || new THREE.MeshStandardMaterial({ color: 0x8a7458, roughness: 0.9 }))
+  );
+  tablet.position.set(doorPos.x, tabletY, doorPos.z);
+  tablet.translateOnAxis(new THREE.Vector3(Math.sin(ry), 0, Math.cos(ry)), 0.1);
+  tablet.rotation.y = ry;
+  tablet.rotation.z = 0.02;
+  tablet.castShadow = true;
+  group.add(tablet);
+}
+
+// drifted sand piled against ruins
+function sandDrift(group, x, z, s, sx = 1.6) {
+  const drift = new THREE.Mesh(
+    new THREE.SphereGeometry(s, 20, 12),
+    new THREE.MeshStandardMaterial({ color: GOLD.sandLit, roughness: 0.95 })
+  );
+  drift.scale.set(sx, 0.32, 1);
+  drift.rotation.y = Math.random() * 3;
+  drift.position.set(x, 0, z);
+  drift.receiveShadow = true;
+  group.add(drift);
+}
+
+// ------------------------------------------------------------
+//  RUINS — one unique ruin per category. Door faces +z (local).
+// ------------------------------------------------------------
+
+// DESIGN — the fresco wall: a tall broken gallery wall, a faded
+// mural still clinging to it, arched doorway through the middle
+function ruinDesign(cat) {
+  const g = new THREE.Group();
+  const kit = new StoneKit(11);
+  kit.wall(0, 0, 16, 7.5, 0, { x: 0, w: 2.6, h: 3.4 });
+  // lintel over the opening
+  kit.box(4.2, 0.9, 1.1, [0, 3.85, 0], [0, 0, 0.015], -0.03);
+  // a stub of a side wall, mostly gone
+  kit.wall(-8.8, -3, 6, 3.4, Math.PI / 2);
+  kit.rubble(0, 5, 7, 8);
+  g.add(kit.build());
+
+  // two mural panels flanking the doorway
+  for (const fx of [-4.6, 4.6]) {
+    const fresco = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.6, 4.6),
+      new THREE.MeshStandardMaterial({
+        map: frescoTexture(cat.palette.glow),
+        roughness: 0.95, transparent: true, opacity: 0.96,
+      })
+    );
+    fresco.position.set(fx, 3.1, 0.62);
+    fresco.receiveShadow = true;
+    g.add(fresco);
+  }
+
+  sandDrift(g, -5, 1.5, 3.2);
+  sandDrift(g, 6.5, -0.8, 2.6);
+  doorwayProps(g, new THREE.Vector3(0, 1.5, 0.55), cat.short, 4.9);
+  return { group: g, door: new THREE.Vector3(0, 1.5, 0.6), outward: new THREE.Vector3(0, 0, 1) };
+}
+
+// MUSIC — the amphitheatre: half-buried tiers curving around a
+// cracked stage, two columns still standing into the sky
+function ruinMusic(cat) {
+  const g = new THREE.Group();
+  const kit = new StoneKit(23);
+  // tiers: arcs of seat blocks, rear ones taller and more broken
+  for (let tier = 0; tier < 4; tier++) {
+    const R = 6.5 + tier * 2.1;
+    const y = 0.45 + tier * 0.95;
+    const n = 10 + tier * 3;
+    for (let i = 0; i < n; i++) {
+      const a = Math.PI * (0.16 + 0.68 * (i / (n - 1))); // arc behind the stage
+      if (kit.rand() < tier * 0.13) continue;
+      kit.box(
+        2, 0.9, 1.7,
+        [Math.cos(a) * R, y, -Math.sin(a) * R],
+        [0, a + Math.PI / 2, 0],
+        -tier * 0.03
+      );
+    }
+  }
+  g.add(kit.build());
+
+  const kit2 = new StoneKit(29);
+  // the stage: a low round dais, cracked
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    kit2.block(
+      new THREE.CylinderGeometry(2.6, 2.7, 0.5, 8, 1, false, a, Math.PI * 2 / 9 - 0.04),
+      [0, 0.25, -1], [0, 0, 0], -0.02
+    );
+  }
+  // standing + broken columns flanking the rear doorway
+  kit2.column(-4.6, -6.5, 7.4, 0.55, 1);
+  kit2.column(4.4, -6.8, 7.4, 0.55, 0.45);
+  // door jambs + lintel at the back of the stage
+  kit2.box(1, 3.6, 1, [-1.55, 1.8, -6.2]);
+  kit2.box(1, 3.6, 1, [1.55, 1.8, -6.2]);
+  kit2.box(4.4, 0.9, 1.2, [0, 3.95, -6.2], [0, 0, -0.02]);
+  kit2.rubble(5.5, -2, 4, 5);
+  g.add(kit2.build());
+
+  sandDrift(g, -7, -2, 3.4);
+  sandDrift(g, 3, 3.5, 2.8);
+  doorwayProps(g, new THREE.Vector3(0, 1.5, -5.65), cat.short, 5);
+  return { group: g, door: new THREE.Vector3(0, 1.5, -5.6), outward: new THREE.Vector3(0, 0, 1) };
+}
+
+// WEB — the ziggurat: a stepped temple losing its corners to the
+// wind, carved glyph stones around a dark doorway
+function ruinWeb(cat) {
+  const g = new THREE.Group();
+  const kit = new StoneKit(37);
+  const levels = [
+    { w: 15, h: 2.1, y: 0 },
+    { w: 10.5, h: 1.9, y: 2.1 },
+    { w: 6.4, h: 1.7, y: 4.0 },
+  ];
+  for (const [li, L] of levels.entries()) {
+    const bw = 1.7;
+    const n = Math.round(L.w / bw);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        // hollow: only the outer ring of blocks
+        if (i > 0 && i < n - 1 && j > 0 && j < n - 1) continue;
+        const x = (i - (n - 1) / 2) * bw;
+        const z = (j - (n - 1) / 2) * bw;
+        // erosion eats the corners, worse higher up
+        const corner = (Math.abs(x) + Math.abs(z)) / L.w;
+        if (kit.rand() < (corner - 0.45) * 1.4 + li * 0.12) continue;
+        kit.box(
+          bw * 1.04, L.h * 1.03, bw * 1.04,
+          [x, L.y + L.h / 2, z],
+          [0, (kit.rand() - 0.5) * 0.04, 0],
+          -li * 0.04 - corner * 0.05
+        );
+      }
+    }
+  }
+  // doorway punched into the base level, facing +z
+  kit.box(1.1, 3.2, 1, [-1.7, 1.6, 7.2]);
+  kit.box(1.1, 3.2, 1, [1.7, 1.6, 7.2]);
+  kit.box(4.6, 0.8, 1.1, [0, 3.6, 7.2], [0, 0, 0.02]);
+  kit.rubble(0, 11, 5, 6);
+  g.add(kit.build());
+
+  // glyph tablets set into the walls
+  for (const [x, z, ry] of [[-4.2, 7.6, 0], [4.2, 7.6, 0], [-7.6, 2, Math.PI / 2]]) {
+    const glyphs = new THREE.Mesh(
+      new THREE.PlaneGeometry(2.4, 1.6),
+      new THREE.MeshStandardMaterial({ map: glyphTexture(), roughness: 0.95 })
+    );
+    glyphs.position.set(x, 1.4, z);
+    glyphs.rotation.y = ry;
+    g.add(glyphs);
+  }
+
+  sandDrift(g, -7.5, 5, 3.6);
+  sandDrift(g, 8, -3, 4.2);
+  doorwayProps(g, new THREE.Vector3(0, 1.5, 7.55), cat.short, 4.5);
+  return { group: g, door: new THREE.Vector3(0, 1.5, 7.6), outward: new THREE.Vector3(0, 0, 1) };
+}
+
+// VIDEO — the theatre wall: a tall ruined facade with empty
+// window openings where the sky plays — frames with no pictures
+function ruinVideo(cat) {
+  const g = new THREE.Group();
+  const kit = new StoneKit(41);
+  const bw = 1.6, bh = 0.85;
+  const cols = 12, rows = 11;
+  const windows = [
+    { c0: 1.5, c1: 4, r0: 4, r1: 7 },
+    { c0: 7, c1: 9.5, r0: 4, r1: 7 },
+    { c0: 4.5, c1: 6.5, r0: 8, r1: 10 },
+  ];
+  for (let r = 0; r < rows; r++) {
+    const decay = (r / rows) ** 2.4;
+    for (let c = 0; c < cols; c++) {
+      const lx = (c - (cols - 1) / 2) * bw + (r % 2 ? bw * 0.25 : 0);
+      // door at the base
+      if (Math.abs(lx) < 1.3 && r * bh < 3.2) continue;
+      // window openings
+      const cc = c + (r % 2 ? 0.25 : 0);
+      if (windows.some((w) => cc >= w.c0 && cc <= w.c1 && r >= w.r0 && r <= w.r1)) continue;
+      if (kit.rand() < decay * 0.9) continue;
+      kit.box(
+        bw * (1.02 + kit.rand() * 0.06), bh * 1.05, 1.05 + kit.rand() * 0.25,
+        [lx, r * bh + bh / 2, (kit.rand() - 0.5) * 0.08],
+        [0, (kit.rand() - 0.5) * 0.03, (kit.rand() - 0.5) * 0.02],
+        -decay * 0.07
+      );
+    }
+  }
+  // door lintel
+  kit.box(3.6, 0.9, 1.2, [0, 3.6, 0], [0, 0, -0.015]);
+  // a leaning buttress
+  kit.box(1.4, 6, 1.4, [-9.2, 2.8, 1.6], [0, 0.3, 0.2], -0.04);
+  kit.rubble(3, 4.5, 6, 9);
+  g.add(kit.build());
+
+  sandDrift(g, 6, 1.8, 3.4);
+  sandDrift(g, -4.5, 2.2, 2.7);
+  doorwayProps(g, new THREE.Vector3(0, 1.4, 0.6), cat.short, 4.6);
+  return { group: g, door: new THREE.Vector3(0, 1.4, 0.65), outward: new THREE.Vector3(0, 0, 1) };
+}
+
+// CLOTHING — the weavers' colonnade: two rows of columns, most
+// broken, one ancient cloth still strung up and catching light
+function ruinClothing(cat) {
+  const g = new THREE.Group();
+  const kit = new StoneKit(53);
+  for (let i = 0; i < 4; i++) {
+    for (const zRow of [-2.6, 2.6]) {
+      const x = -6 + i * 4;
+      // the entrance pair (x = 2) still stands full height to carry the cloth
+      const broken = x === 2 ? 1 : kit.rand();
+      kit.column(x, zRow, 6.8, 0.6, broken < 0.4 ? 0.3 + kit.rand() * 0.4 : 1);
+    }
+  }
+  // architrave fragments still bridging pairs
+  kit.box(4.6, 0.8, 1, [-4, 7.1, -2.6], [0, 0, 0.01], -0.03);
+  kit.box(1.2, 0.8, 6.2, [2, 7.1, 0], [0, 0, -0.012], -0.03);
+  kit.rubble(0, 0, 6.5, 7);
+  // fallen column lying across
+  for (let i = 0; i < 4; i++) {
+    kit.block(
+      new THREE.CylinderGeometry(0.55, 0.58, 1.5, 12),
+      [-1 + i * 1.62, 0.5, 5.2 + i * 0.22],
+      [0.12, 0, Math.PI / 2 + 0.06 * i],
+      -0.03
+    );
+  }
+  g.add(kit.build());
+
+  // the surviving cloth: hung over the entrance between the
+  // standing pair, sagging and folded by centuries of wind
+  const clothGeo = new THREE.PlaneGeometry(5.4, 3.4, 36, 22);
+  {
+    const pos = clothGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), y = pos.getY(i);
+      const u = (x + 2.7) / 5.4;
+      const down = 1 - (y + 1.7) / 3.4; // 0 at the hung top edge
+      const sag = Math.sin(u * Math.PI) * 0.85 * down;
+      const fold = (Math.sin(x * 2.4) * 0.2 + Math.sin(x * 5.1 + 1) * 0.09) * (0.25 + down);
+      pos.setXYZ(i, x, y - sag, fold);
+    }
+    clothGeo.computeVertexNormals();
+  }
+  const cloth = new THREE.Mesh(
+    clothGeo,
+    new THREE.MeshStandardMaterial({
+      map: wovenClothTexture(), side: THREE.DoubleSide,
+      roughness: 0.95, transparent: true, alphaTest: 0.35,
+    })
+  );
+  cloth.position.set(2.2, 4.9, 0);
+  cloth.rotation.y = Math.PI / 2;
+  cloth.castShadow = true;
+  g.add(cloth);
+
+  sandDrift(g, 4, -4, 3);
+  sandDrift(g, -6, 3, 2.5);
+  // entrance: at the end of the colonnade aisle, tablet above the lintel
+  const out = new THREE.Vector3(1, 0, 0.25).normalize();
+  doorwayProps(g, new THREE.Vector3(2, 1.5, 0), cat.short, 7.9, Math.atan2(out.x, out.z));
+  return { group: g, door: new THREE.Vector3(2, 1.5, 0.1), outward: out };
+}
+
+// ------------------------------------------------------------
+//  WORLD ASSEMBLY
+// ------------------------------------------------------------
 
 export function buildWorld() {
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(DUSK.fog, 60, 230);
+  scene.fog = new THREE.Fog(GOLD.fog, 55, 270);
 
   const interactables = [];
   const animated = [];
 
-  // ---------- light: low sun, very long shadows ----------
-  scene.add(new THREE.HemisphereLight(0x9a7a9e, 0x6e4a3a, 0.55));
-  const sunLight = new THREE.DirectionalLight(0xffc890, 1.9);
-  sunLight.position.set(-55, 16, -38);
+  // ---------- light: low golden sun raking the ripples ----------
+  scene.add(new THREE.HemisphereLight(0xffd9b0, 0x8a5e48, 0.5));
+  scene.add(new THREE.AmbientLight(0xffe2c0, 0.16));
+  const sunLight = new THREE.DirectionalLight(0xffc685, 2.3);
+  sunLight.position.set(-90, 26, -45);
   sunLight.castShadow = true;
-  sunLight.shadow.mapSize.set(2048, 2048);
-  sunLight.shadow.camera.left = -45;
-  sunLight.shadow.camera.right = 45;
-  sunLight.shadow.camera.top = 45;
-  sunLight.shadow.camera.bottom = -45;
+  sunLight.shadow.mapSize.set(SHADOW_SIZE, SHADOW_SIZE);
+  const SB = 150;
+  sunLight.shadow.camera.left = -SB;
+  sunLight.shadow.camera.right = SB;
+  sunLight.shadow.camera.top = SB;
+  sunLight.shadow.camera.bottom = -SB;
   sunLight.shadow.camera.near = 1;
-  sunLight.shadow.camera.far = 200;
-  sunLight.shadow.bias = -0.0008;
-  scene.add(sunLight);
-  scene.add(new THREE.AmbientLight(0xffd9b0, 0.18));
+  sunLight.shadow.camera.far = 420;
+  sunLight.shadow.bias = -0.001;
+  sunLight.target.position.set(0, 0, -40);
+  scene.add(sunLight, sunLight.target);
 
   // ---------- sky + sun ----------
   const sky = new THREE.Mesh(
-    new THREE.SphereGeometry(420, 48, 32),
+    new THREE.SphereGeometry(520, 40, 24),
     new THREE.MeshBasicMaterial({
-      map: skyTexture(DUSK.skyTop, DUSK.skyMid, DUSK.skySun),
-      side: THREE.BackSide,
-      fog: false,
+      map: skyTexture(GOLD.skyTop, GOLD.skyMid, GOLD.skySun),
+      side: THREE.BackSide, fog: false,
     })
   );
   scene.add(sky);
 
-  const sun = makeSunSprite();
-  sun.position.set(-48, 16, -340);
+  const sun = makeSunSprite('#fff4dc', '#f8b870', 190);
+  sun.position.set(-330, 64, -165);
   scene.add(sun);
 
-  // ---------- the plain: vast, nearly flat, Dalí-empty ----------
-  const ground = new THREE.Mesh(
-    (() => {
-      const g = new THREE.PlaneGeometry(800, 800, 128, 128);
-      g.rotateX(-Math.PI / 2);
-      const pos = g.attributes.position;
-      for (let i = 0; i < pos.count; i++) {
-        const x = pos.getX(i), z = pos.getZ(i);
-        const d = Math.sqrt(x * x + z * z);
-        // gentle dunes only far away; near field stays a clean stage
-        let y = (Math.sin(x * 0.02) * Math.cos(z * 0.017) * 3 + Math.sin(x * 0.006 + 2) * 4);
-        y *= THREE.MathUtils.smoothstep(d, 70, 220);
-        pos.setY(i, y);
-      }
-      g.computeVertexNormals();
-      return g;
-    })(),
-    smoothMat(DUSK.sand, { rough: 0.95 })
-  );
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // ---------- floating dust motes ----------
+  // ---------- the dune sea ----------
   {
-    const n = 260;
+    const size = 560; // ends just inside the first backdrop ring
+    const geo = new THREE.PlaneGeometry(size, size, TERRAIN_SEGS, TERRAIN_SEGS);
+    geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      pos.setY(i, duneHeight(pos.getX(i), pos.getZ(i)));
+    }
+    geo.computeVertexNormals();
+
+    // vertex color: warm on sun-facing slopes, cool violet in the lee
+    const sunDir = new THREE.Vector3(-90, 26, -45).normalize();
+    const nor = geo.attributes.normal;
+    const colors = new Float32Array(pos.count * 3);
+    const lit = new THREE.Color(GOLD.sandLit);
+    const shade = new THREE.Color(GOLD.sandShade);
+    const tmpN = new THREE.Vector3();
+    const tmpC = new THREE.Color();
+    for (let i = 0; i < pos.count; i++) {
+      tmpN.set(nor.getX(i), nor.getY(i), nor.getZ(i));
+      const facing = THREE.MathUtils.clamp(tmpN.dot(sunDir) * 1.4 + 0.45, 0, 1);
+      tmpC.lerpColors(shade, lit, facing);
+      const tint = (hash2(Math.round(pos.getX(i) * 3.1), Math.round(pos.getZ(i) * 3.1)) - 0.5) * 0.05;
+      colors[i * 3] = tmpC.r + tint;
+      colors[i * 3 + 1] = tmpC.g + tint;
+      colors[i * 3 + 2] = tmpC.b + tint;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const bump = rippleBump();
+    bump.repeat.set(140, 140);
+    const ground = new THREE.Mesh(
+      geo,
+      new THREE.MeshStandardMaterial({
+        vertexColors: true, roughness: 0.96,
+        bumpMap: bump, bumpScale: 0.55,
+      })
+    );
+    ground.receiveShadow = true;
+    scene.add(ground);
+  }
+
+  // ---------- far dune silhouettes dissolving into the haze ----------
+  {
+    const layers = [
+      { r: 290, hMin: 8, hMax: 26, color: 0xd9a07c },
+      { r: 360, hMin: 12, hMax: 34, color: 0xe9bc92 },
+      { r: 440, hMin: 16, hMax: 44, color: 0xf4d2a8 },
+    ];
+    for (const [li, L] of layers.entries()) {
+      const n = 140;
+      const pts = [];
+      const idx = [];
+      for (let i = 0; i <= n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const x = Math.cos(a) * L.r, z = Math.sin(a) * L.r;
+        const h = L.hMin + fbm(Math.cos(a) * 7 + li * 31, Math.sin(a) * 7, 3) * (L.hMax - L.hMin);
+        pts.push(x, -6, z, x, h, z);
+      }
+      for (let i = 0; i < n; i++) {
+        const b = i * 2;
+        idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pts), 3));
+      g.setIndex(idx);
+      const mesh = new THREE.Mesh(
+        g,
+        new THREE.MeshBasicMaterial({ color: L.color, side: THREE.DoubleSide, fog: false })
+      );
+      mesh.renderOrder = -2 - li;
+      scene.add(mesh);
+    }
+  }
+
+  // ---------- drifting dust, sparse ----------
+  {
+    const n = 180;
     const pts = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
-      pts[i * 3] = (Math.random() - 0.5) * 130;
-      pts[i * 3 + 1] = Math.random() * 16;
-      pts[i * 3 + 2] = (Math.random() - 0.5) * 130;
+      pts[i * 3] = (Math.random() - 0.5) * 200;
+      pts[i * 3 + 1] = duneBase(pts[i * 3], (Math.random() - 0.5) * 200) + 2 + Math.random() * 12;
+      pts[i * 3 + 2] = (Math.random() - 0.5) * 200 - 30;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
     const dust = new THREE.Points(
       geo,
-      new THREE.PointsMaterial({ color: 0xffd9a8, size: 0.1, transparent: true, opacity: 0.4 })
+      new THREE.PointsMaterial({ color: 0xffe0b0, size: 0.12, transparent: true, opacity: 0.45 })
     );
     scene.add(dust);
-    animated.push((t) => { dust.rotation.y = t * 0.006; });
+    animated.push((t) => { dust.rotation.y = t * 0.004; });
   }
 
-  // ---------- DEON gate: two monoliths + a floating slab ----------
+  // ---------- the DEON gate on the starting ridge ----------
   {
+    const kit = new StoneKit(7);
+    kit.column(-5.4, 0, 8.2, 0.8, 1);
+    kit.column(5.4, 0, 8.2, 0.8, 1);
     const g = new THREE.Group();
-    const stone = smoothMat(0x6e5a52, { rough: 0.9 });
-    const mono1 = new THREE.Mesh(new THREE.BoxGeometry(1.4, 9, 1.8, 2, 8, 2), stone);
-    mono1.position.set(-6.5, 4.5, 0);
-    mono1.rotation.z = 0.02;
-    const mono2 = mono1.clone();
-    mono2.position.x = 6.5;
-    mono2.rotation.z = -0.03;
+    g.add(kit.build());
     const slab = new THREE.Mesh(
-      new THREE.BoxGeometry(11.5, 2.6, 0.5),
-      [stone, stone, stone, stone,
-        new THREE.MeshStandardMaterial({ map: signTexture(SITE.name, { sub: SITE.tagline, bg: '#4a3c35', fg: '#f2e6c8' }), roughness: 0.85 }),
-        stone]
+      new THREE.BoxGeometry(13, 2.4, 0.9),
+      [...Array(6)].map((_, i) => i === 4
+        ? new THREE.MeshStandardMaterial({ map: signTexture(SITE.name, { sub: SITE.tagline, bg: '#8a7458', fg: '#2e2418' }), roughness: 0.9 })
+        : new THREE.MeshStandardMaterial({ color: 0x9a8160, roughness: 0.9 }))
     );
-    slab.position.y = 10.6; // floats clear of the monoliths
-    shadowify(g.add(mono1, mono2, slab));
-    g.position.set(0, 0, 31);
+    slab.position.y = 9.1;
+    slab.rotation.z = -0.012;
+    slab.castShadow = true;
+    g.add(slab);
+    const gp = PADS.find((p) => p.key === 'gate');
+    g.position.set(gp.x, gp.y, gp.z);
     scene.add(g);
-    animated.push((t) => {
-      slab.position.y = 10.6 + Math.sin(t * 0.5) * 0.25;
-      slab.rotation.z = Math.sin(t * 0.3) * 0.012;
-    });
   }
 
-  // ---------- monuments (one per category) ----------
-  const layout = [
-    { key: 'design', x: -20, z: -7, ry: 0.45 },
-    { key: 'music', x: -10, z: -14, ry: 0.2 },
-    { key: 'web', x: 0.5, z: -17, ry: 0 },
-    { key: 'video', x: 11, z: -14, ry: -0.2 },
-    { key: 'clothing', x: 20.5, z: -7, ry: -0.45 },
-  ];
-  const builders = {
-    design: buildMeltingFrame,
-    music: buildDrapedVinyl,
-    web: buildBuriedCRT,
-    video: buildVHSMonolith,
-    clothing: buildFloatingGarment,
-  };
-  const structures = {};
-  for (const { key, x, z, ry } of layout) {
-    const cat = CATEGORIES[key];
-    const g = builders[key](cat, animated);
-    g.position.set(x, 0, z);
-    g.rotation.y = ry;
-    g.userData = { type: 'category', key, label: cat.label };
-    shadowify(g);
-    scene.add(g);
-    interactables.push(g);
-    structures[key] = g;
-  }
+  // ---------- the camp: fire, payphone, signpost ----------
+  const campPad = PADS.find((p) => p.key === 'camp');
+  const campY = campPad.y;
 
-  // ---------- campfire (ABOUT) ----------
   {
     const g = new THREE.Group();
     for (let i = 0; i < 9; i++) {
       const a = (i / 9) * Math.PI * 2;
       const s = new THREE.Mesh(
         new THREE.SphereGeometry(0.2 + Math.random() * 0.12, 12, 10),
-        smoothMat(0x5e544c)
+        new THREE.MeshStandardMaterial({ color: 0x6e6056, roughness: 0.9 })
       );
       s.scale.y = 0.7;
       s.position.set(Math.cos(a) * 0.85, 0.1, Math.sin(a) * 0.85);
+      s.castShadow = true;
       g.add(s);
     }
     for (let i = 0; i < 4; i++) {
-      const log = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.1, 9), smoothMat(0x4a3526));
+      const log = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.1, 1.1, 9),
+        new THREE.MeshStandardMaterial({ color: 0x4a3526, roughness: 0.9 })
+      );
       log.rotation.set(Math.PI / 2.4, (i / 4) * Math.PI * 2, 0);
       log.position.y = 0.22;
+      log.castShadow = true;
       g.add(log);
     }
-    const flameMat = new THREE.MeshBasicMaterial({ color: 0xff9a3d, transparent: true, opacity: 0.92 });
-    const flame = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.95, 12), flameMat);
+    const flame = new THREE.Mesh(
+      new THREE.ConeGeometry(0.3, 0.95, 12),
+      new THREE.MeshBasicMaterial({ color: 0xff9a3d, transparent: true, opacity: 0.92 })
+    );
     flame.position.y = 0.7;
     const flameIn = new THREE.Mesh(
       new THREE.ConeGeometry(0.15, 0.6, 12),
       new THREE.MeshBasicMaterial({ color: 0xffe09a, transparent: true, opacity: 0.95 })
     );
     flameIn.position.y = 0.62;
-    g.add(flame, flameIn);
-    const fireLight = new THREE.PointLight(0xff8c3a, 2.2, 16, 1.6);
+    const fireLight = new THREE.PointLight(0xff8c3a, 1.8, 14, 1.6);
     fireLight.position.y = 1;
-    g.add(fireLight);
+    g.add(flame, flameIn, fireLight);
     animated.push((t) => {
       const f = 1 + Math.sin(t * 11) * 0.12 + Math.sin(t * 23 + 1) * 0.08;
       flame.scale.set(f, 1 + Math.sin(t * 17) * 0.18, f);
       flameIn.scale.copy(flame.scale);
-      fireLight.intensity = 2 + Math.sin(t * 13) * 0.5 + Math.sin(t * 29) * 0.25;
+      fireLight.intensity = 1.7 + Math.sin(t * 13) * 0.4;
     });
-    shadowify(g);
-    g.position.set(-7.5, 0, 6.5);
+    g.position.set(-4, campY, 3);
     g.userData = { type: 'about', label: 'ABOUT — SIT DOWN' };
     scene.add(g);
     interactables.push(g);
   }
 
-  // ---------- payphone (CONTACT), decayed and slightly melting ----------
   {
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.3, 0.7, 2, 4, 2), smoothMat(0x3a5a56, { rough: 0.55 }));
+    const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: o.r ?? 0.6, metalness: o.m ?? 0 });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.3, 0.7), mat(0x3a5a56));
     body.position.y = 1.9;
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 1.5, 12), smoothMat(0x33302c, { rough: 0.5, metal: 0.6 }));
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 1.5, 12), mat(0x33302c, { m: 0.6, r: 0.5 }));
     post.position.y = 0.7;
-    const hood = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 1.1, 24, 1, false, 0, Math.PI), smoothMat(0x2e4543, { rough: 0.5 }));
+    const hood = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.62, 0.62, 1.1, 24, 1, false, 0, Math.PI),
+      mat(0x2e4543)
+    );
     hood.rotation.z = Math.PI / 2;
     hood.position.y = 3.15;
-    const receiver = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.5, 6, 12), smoothMat(0x16161a, { rough: 0.4 }));
+    const receiver = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.5, 6, 12), mat(0x16161a, { r: 0.4 }));
     receiver.position.set(-0.42, 1.6, 0.3);
-    // the cord hangs all the way to the sand, unhooked
-    const cordCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(-0.3, 2.2, 0.32),
-      new THREE.Vector3(-0.55, 1.6, 0.42),
-      new THREE.Vector3(-0.42, 1.0, 0.3),
-      new THREE.Vector3(-0.5, 0.2, 0.35),
-    ]);
-    const cord = new THREE.Mesh(new THREE.TubeGeometry(cordCurve, 32, 0.025, 8), smoothMat(0x16161a));
+    const cord = new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-0.3, 2.2, 0.32),
+        new THREE.Vector3(-0.55, 1.6, 0.42),
+        new THREE.Vector3(-0.42, 1.0, 0.3),
+        new THREE.Vector3(-0.5, 0.2, 0.35),
+      ]), 32, 0.025, 8),
+      mat(0x16161a)
+    );
     const signP = new THREE.Mesh(
       new THREE.PlaneGeometry(0.95, 0.4),
       new THREE.MeshBasicMaterial({ map: signTexture('CONTACT', { bg: '#13201f', fg: '#bfe8d9' }), transparent: true })
     );
     signP.position.set(0, 2.6, 0.36);
     g.add(post, body, hood, receiver, cord, signP);
-    addDrips(g, { y: 0.85, xSpread: 0.7, z: 0.3, color: 0x3a5a56, count: 4, scale: 0.8 });
-    shadowify(g);
-    g.rotation.y = -0.4;
-    g.position.set(9, 0, 7);
+    g.traverse((m) => { if (m.isMesh) m.castShadow = true; });
+    g.rotation.y = -0.5;
+    g.position.set(4.6, campY, 1.5);
     g.userData = { type: 'contact', label: 'CONTACT — PICK UP' };
     scene.add(g);
     interactables.push(g);
   }
 
-  // ---------- signpost (SOCIALS) ----------
   {
     const g = new THREE.Group();
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 4.6, 12), smoothMat(0x4a3526));
+    const post = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.09, 0.12, 4.6, 12),
+      new THREE.MeshStandardMaterial({ color: 0x4a3526, roughness: 0.9 })
+    );
     post.position.y = 2.1;
+    post.castShadow = true;
     g.add(post);
     SITE.socials.forEach((s, i) => {
       const arrow = new THREE.Mesh(
         new THREE.BoxGeometry(2.3, 0.5, 0.1),
-        [smoothMat(0x3a2c20), smoothMat(0x3a2c20), smoothMat(0x3a2c20), smoothMat(0x3a2c20),
-          new THREE.MeshStandardMaterial({ map: signTexture(s.label, { bg: '#241a12', fg: '#e0cfa8' }), roughness: 0.9 }),
-          smoothMat(0x3a2c20)]
+        [...Array(6)].map((_, fi) => fi === 4
+          ? new THREE.MeshStandardMaterial({ map: signTexture(s.label, { bg: '#241a12', fg: '#e0cfa8' }), roughness: 0.9 })
+          : new THREE.MeshStandardMaterial({ color: 0x3a2c20, roughness: 0.9 }))
       );
       arrow.position.set(i % 2 ? 0.85 : -0.85, 3.7 - i * 0.75, 0);
       arrow.rotation.y = (i % 2 ? -1 : 1) * (0.3 + Math.random() * 0.4);
-      arrow.rotation.z = (Math.random() - 0.5) * 0.1;
+      arrow.castShadow = true;
       g.add(arrow);
     });
-    shadowify(g);
     g.rotation.z = 0.05;
-    g.position.set(13.5, 0, 1.5);
+    g.rotation.y = 0.7;
+    g.position.set(7.5, campY, 6.5);
     g.userData = { type: 'socials', label: 'SIGNS — ELSEWHERE' };
     scene.add(g);
     interactables.push(g);
   }
 
-  // ---------- Dalí furniture: elephants, melting clock, floaters ----------
-  scene.add(longLeggedElephant(-70, -120, 1.3));
-  scene.add(longLeggedElephant(55, -150, 1.7));
+  // ---------- the five ruins ----------
+  const builders = {
+    design: ruinDesign, music: ruinMusic, web: ruinWeb,
+    video: ruinVideo, clothing: ruinClothing,
+  };
+  const structures = {};
+  const approach = {};
+  for (const pad of PADS) {
+    if (!builders[pad.key]) continue;
+    const cat = CATEGORIES[pad.key];
+    const { group, door, outward } = builders[pad.key](cat);
 
-  // dead tree with a clock melting over its branch
-  {
-    const g = new THREE.Group();
-    const bark = smoothMat(0x4a3a2c, { rough: 0.95 });
-    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.3, 4.2, 10), bark);
-    trunk.position.y = 2;
-    trunk.rotation.z = 0.08;
-    const branch = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 3, 9), bark);
-    branch.rotation.z = Math.PI / 2.25;
-    branch.position.set(1.2, 3.4, 0);
-    const branch2 = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 1.8, 8), bark);
-    branch2.rotation.z = Math.PI / 3.2;
-    branch2.position.set(-0.8, 3.9, 0.2);
-    g.add(trunk, branch, branch2);
+    // each ruin faces back toward the camp
+    const faceAngle = Math.atan2(0 - pad.x, 8 - pad.z);
+    group.rotation.y = faceAngle - Math.atan2(outward.x, outward.z);
+    group.position.set(pad.x, pad.y, pad.z);
+    group.userData = { type: 'category', key: pad.key, label: cat.label };
+    scene.add(group);
+    interactables.push(group);
+    structures[pad.key] = group;
 
-    const clock = new THREE.Mesh(
-      drape(new THREE.PlaneGeometry(2.6, 2.6, 48, 48).rotateX(-Math.PI / 2), 0.25, 0.42),
-      new THREE.MeshStandardMaterial({
-        map: clockTexture(), side: THREE.DoubleSide,
-        transparent: true, alphaTest: 0.4, roughness: 0.6,
-      })
-    );
-    clock.position.set(1.4, 3.62, 0);
-    clock.rotation.y = 0.3;
-    g.add(clock);
-    addDrips(g, { y: 2.6, xSpread: 0.5, z: 0.4, color: 0xe8ddc2, count: 3, scale: 0.6 });
-    shadowify(g);
-    g.position.set(-13.5, 0, 3);
-    g.rotation.y = 0.4;
-    scene.add(g);
+    group.updateMatrixWorld(true);
+    const dw = door.clone().applyMatrix4(group.matrixWorld);
+    const outWorld = outward.clone().applyEuler(group.rotation).normalize();
+    const ap = dw.clone().add(outWorld.clone().multiplyScalar(17));
+    ap.y = duneHeight(ap.x, ap.z) + 3.1;
+    approach[pad.key] = { pos: ap, look: new THREE.Vector3(dw.x, dw.y + 2.2, dw.z) };
   }
 
-  // floating stones, slowly breathing up and down
-  for (let i = 0; i < 7; i++) {
-    const rock = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(0.4 + Math.random() * 0.9, 1),
-      smoothMat(0x7a665c, { rough: 0.9 })
-    );
-    const a = Math.random() * Math.PI * 2;
-    const r = 14 + Math.random() * 45;
-    const baseY = 1.5 + Math.random() * 4;
-    rock.position.set(Math.cos(a) * r, baseY, Math.sin(a) * r - 12);
-    rock.rotation.set(Math.random() * 3, Math.random() * 3, 0);
-    rock.castShadow = true;
-    scene.add(rock);
-    const phase = Math.random() * 10, speed = 0.3 + Math.random() * 0.4;
-    animated.push((t) => {
-      rock.position.y = baseY + Math.sin(t * speed + phase) * 0.5;
-      rock.rotation.y = t * 0.05 + phase;
-    });
-  }
+  // camp viewpoint: stand at the camp, look out over the dune sea
+  const campView = {
+    pos: new THREE.Vector3(0, campY + 2.6, 16),
+    look: new THREE.Vector3(-6, campY + 1, -60),
+  };
 
-  // a couple of giant half-buried spheres far off — quiet landmarks
-  for (const [x, z, s] of [[-45, -60, 6], [38, -75, 9]]) {
-    const orb = new THREE.Mesh(new THREE.SphereGeometry(s, 32, 24), smoothMat(0x8a6e62, { rough: 0.7 }));
-    orb.position.set(x, s * 0.35, z);
-    orb.castShadow = true;
-    scene.add(orb);
-  }
-
-  return { scene, interactables, animated, structures, dusk: DUSK };
-}
-
-// ============================================================
-//  MONUMENTS
-// ============================================================
-
-function labelSign(text, glow, w = 4.6) {
-  return new THREE.Mesh(
-    new THREE.PlaneGeometry(w, w * 0.24),
-    new THREE.MeshBasicMaterial({
-      map: signTexture(text, { bg: '#16100c', fg: '#' + new THREE.Color(glow).getHexString() }),
-      transparent: true,
-    })
-  );
-}
-
-// DESIGN — a giant ornate frame standing in the sand, holding a
-// dream, its gilding melting off the bottom edge
-function buildMeltingFrame(cat, animated) {
-  const g = new THREE.Group();
-  const gold = smoothMat(0xb8924e, { rough: 0.35, metal: 0.7 });
-  const W = 5.4, H = 6.6, T = 0.42;
-
-  const top = new THREE.Mesh(new THREE.BoxGeometry(W + T * 2, T, T, 4, 2, 2), gold);
-  top.position.y = H;
-  const bottom = top.clone();
-  bottom.position.y = H - H + 1.2; // bottom rail floats above the sand
-  bottom.position.y = 1.2;
-  const left = new THREE.Mesh(new THREE.BoxGeometry(T, H - 1.2 + T, T, 2, 6, 2), gold);
-  left.position.set(-W / 2 - T / 2, (H + 1.2) / 2, 0);
-  const right = left.clone();
-  right.position.x = W / 2 + T / 2;
-
-  // inside the frame: another sky — a hole in the world
-  const dream = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, H - 1.2),
-    new THREE.MeshBasicMaterial({ map: skyTexture(0x2a3c5e, cat.palette.fog, cat.palette.glow), side: THREE.DoubleSide })
-  );
-  dream.position.y = (H + 1.2) / 2;
-
-  // ornament knobs along the frame
-  for (let i = 0; i < 8; i++) {
-    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), gold);
-    knob.position.set(-W / 2 + (i / 7) * W, H + T / 2, T / 2);
-    g.add(knob);
-  }
-
-  addDrips(g, { y: 1.2, xSpread: W, z: 0, color: 0xb8924e, count: 7, scale: 1.1 });
-
-  const sign = labelSign(cat.short, cat.palette.glow);
-  sign.position.set(0, H + 1.6, 0.3);
-  g.add(top, bottom, left, right, dream, sign);
-  g.rotation.y = 0.05;
-  animated.push((t) => { dream.material.map.offset.x = t * 0.0035; });
-  return g;
-}
-
-// MUSIC — a colossal vinyl record gone soft, draped over a stone cube
-function buildDrapedVinyl(cat, animated) {
-  const g = new THREE.Group();
-  const cube = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.4, 3.4, 3, 3, 3), smoothMat(0x6e5a52, { rough: 0.9 }));
-  cube.position.y = 1.7;
-  cube.rotation.y = 0.3;
-
-  const record = new THREE.Mesh(
-    drape(new THREE.PlaneGeometry(7.4, 7.4, 64, 64).rotateX(-Math.PI / 2), 1.7, 0.9),
-    new THREE.MeshStandardMaterial({
-      map: vinylTexture(cat.short, cat.palette.glow),
-      side: THREE.DoubleSide, transparent: true, alphaTest: 0.4,
-      roughness: 0.35, metalness: 0.1,
-    })
-  );
-  record.position.y = 3.48;
-  record.rotation.y = -Math.PI / 2 + 0.45; // melt fold hangs toward the viewer
-
-  // a floating tonearm hovering over the groove, slowly circling
-  const armG = new THREE.Group();
-  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 2.6, 10), smoothMat(0xd8cdb6, { rough: 0.3, metal: 0.8 }));
-  arm.rotation.z = Math.PI / 2;
-  arm.position.x = 1.3;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.18), smoothMat(0x222226, { rough: 0.4 }));
-  head.position.x = 2.6;
-  armG.add(arm, head);
-  armG.position.y = 4.4;
-  g.add(cube, record, armG);
-
-  addDrips(g, { y: 1.1, xSpread: 3, z: 1.6, color: 0x111014, count: 5, scale: 0.9 });
-
-  const sign = labelSign(cat.short, cat.palette.glow);
-  sign.position.set(0, 6.4, 0);
-  g.add(sign);
-
-  animated.push((t) => {
-    armG.rotation.y = t * 0.25;
-    armG.position.y = 4.4 + Math.sin(t * 0.7) * 0.12;
-  });
-  return g;
-}
-
-// WEB — a giant CRT monitor half-swallowed by the desert, still on
-function buildBuriedCRT(cat, animated) {
-  const g = new THREE.Group();
-  const shellMat = smoothMat(0xc9bca4, { rough: 0.6 });
-  const crt = new THREE.Group();
-
-  const shell = new THREE.Mesh(new THREE.BoxGeometry(6.2, 4.8, 4.6, 4, 4, 4), shellMat);
-  const tube = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 2.2, 1.4, 24), shellMat);
-  tube.rotation.x = Math.PI / 2;
-  tube.position.z = -2.8;
-  const bezel = new THREE.Mesh(new THREE.BoxGeometry(5.6, 4.2, 0.3, 2, 2, 1), smoothMat(0xb0a48c, { rough: 0.7 }));
-  bezel.position.z = 2.35;
-  const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(4.8, 3.5),
-    new THREE.MeshBasicMaterial({ color: cat.palette.glow })
-  );
-  screen.position.z = 2.52;
-  const screenGlow = new THREE.PointLight(cat.palette.glow, 1.6, 12, 1.6);
-  screenGlow.position.set(0, 0, 4);
-  crt.add(shell, tube, bezel, screen, screenGlow);
-
-  // half-buried, tilted back like it crashed long ago
-  crt.position.y = 1.5;
-  crt.rotation.set(-0.18, 0.12, 0.07);
-  g.add(crt);
-
-  // sand piled against it
-  const pile = new THREE.Mesh(new THREE.SphereGeometry(2.6, 24, 16), smoothMat(0xc29270, { rough: 0.95 }));
-  pile.scale.set(1.6, 0.4, 1);
-  pile.position.set(-2, 0.1, 1.8);
-  g.add(pile);
-
-  // a cable snaking away into the sand
-  const cable = new THREE.Mesh(
-    new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
-      new THREE.Vector3(3, 0.6, 1),
-      new THREE.Vector3(4.4, 0.2, 2.4),
-      new THREE.Vector3(5.6, 0.05, 1.6),
-      new THREE.Vector3(6.8, 0.0, 2.8),
-    ]), 48, 0.09, 10),
-    smoothMat(0x222226, { rough: 0.5 })
-  );
-  g.add(cable);
-
-  const sign = labelSign(cat.short, cat.palette.glow, 3.4);
-  sign.position.set(0, 5.4, 1.5);
-  g.add(sign);
-
-  animated.push((t) => {
-    // the screen breathes and occasionally drops a frame
-    const flick = 0.78 + Math.sin(t * 2.2) * 0.1 + (Math.random() > 0.99 ? -0.4 : 0);
-    screen.material.color.setHex(cat.palette.glow);
-    screen.material.color.multiplyScalar(flick);
-    screenGlow.intensity = 1.3 + flick * 0.6;
-  });
-  return g;
-}
-
-// VIDEO — a monumental VHS tape, corner sunk in the sand,
-// film ribbon spilling out and floating off
-function buildVHSMonolith(cat, animated) {
-  const g = new THREE.Group();
-  const bodyMat = smoothMat(0x1c1a1e, { rough: 0.45 });
-
-  const tape = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(7, 4.2, 1.5, 4, 3, 2), bodyMat);
-  // label stripe
-  const label = new THREE.Mesh(
-    new THREE.PlaneGeometry(5.6, 1.5),
-    new THREE.MeshStandardMaterial({
-      map: signTexture(cat.short, { bg: '#ddd2b8', fg: '#1c1a1e' }), roughness: 0.8,
-    })
-  );
-  label.position.set(0, 0.9, 0.78);
-  // reel windows
-  for (const x of [-1.8, 1.8]) {
-    const reel = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.2, 32), smoothMat(0x0c0b0d, { rough: 0.3 }));
-    reel.rotation.x = Math.PI / 2;
-    reel.position.set(x, -0.7, 0.72);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.24, 16), smoothMat(0xd8cdb6, { rough: 0.4 }));
-    hub.rotation.x = Math.PI / 2;
-    hub.position.set(x, -0.7, 0.74);
-    tape.add(reel, hub);
-  }
-  tape.add(body, label);
-  tape.position.y = 2.6;
-  tape.rotation.set(0.04, -0.15, -0.38); // one corner driven into the sand
-  g.add(tape);
-
-  // unspooled film, drifting up like it's weightless
-  const ribbonMat = smoothMat(0x141217, { rough: 0.3, metal: 0.4 });
-  const curves = [
-    [[-2.6, 1.2, 0.6], [-4, 0.4, 1.6], [-5.2, 1.8, 0.8], [-6, 4, 1.6], [-5.4, 6.5, 0.4]],
-    [[-2.2, 1.0, 0.9], [-3.4, 0.2, 2.2], [-2.8, 1.4, 3.2], [-3.6, 3.4, 3.8]],
-  ];
-  const ribbons = curves.map((pts) => {
-    const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
-    const r = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, 0.085, 10), ribbonMat);
-    r.scale.y = 1;
-    g.add(r);
-    return r;
-  });
-
-  const sign = labelSign(cat.short, cat.palette.glow, 3.6);
-  sign.position.set(0, 6.2, 0.5);
-  g.add(sign);
-
-  animated.push((t) => {
-    ribbons.forEach((r, i) => {
-      r.position.y = Math.sin(t * 0.5 + i * 2) * 0.18;
-      r.rotation.y = Math.sin(t * 0.22 + i) * 0.05;
-    });
-  });
-  return g;
-}
-
-// CLOTHING — a giant hanger floating mid-air, the garment on it
-// draping all the way down and melting into the sand
-function buildFloatingGarment(cat, animated) {
-  const g = new THREE.Group();
-
-  // hanger: bar + hook
-  const metal = smoothMat(0xd8cdb6, { rough: 0.25, metal: 0.85 });
-  const hangerG = new THREE.Group();
-  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 4.6, 12), metal);
-  bar.rotation.z = Math.PI / 2;
-  const hookCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0.7, 0),
-    new THREE.Vector3(0.05, 1.1, 0),
-    new THREE.Vector3(0.4, 1.3, 0),
-    new THREE.Vector3(0.7, 1.05, 0),
-  ]);
-  const hook = new THREE.Mesh(new THREE.TubeGeometry(hookCurve, 24, 0.06, 10), metal);
-  hangerG.add(bar, hook);
-  hangerG.position.y = 7.2;
-
-  // the cloth: a long plane with soft folds, tapered at the top
-  const clothGeo = new THREE.PlaneGeometry(4.4, 6.8, 48, 64);
-  {
-    const pos = clothGeo.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), y = pos.getY(i);
-      const v = (y + 3.4) / 6.8; // 0 bottom → 1 top
-      const taper = THREE.MathUtils.lerp(1, 0.45, v * v);
-      const folds =
-        Math.sin(x * 2.6 + v * 3) * 0.22 * (1 - v) +
-        Math.sin(x * 5.2 + 1.7) * 0.1 * (1 - v);
-      pos.setXYZ(i, x * taper, y, folds);
-    }
-    clothGeo.computeVertexNormals();
-  }
-  const cloth = new THREE.Mesh(
-    clothGeo,
-    smoothMat(0x8a4a3a, { rough: 0.85 })
-  );
-  cloth.material.side = THREE.DoubleSide;
-  cloth.position.y = 3.75;
-
-  // the hem melts into pools on the sand
-  for (let i = 0; i < 4; i++) {
-    const pool = new THREE.Mesh(new THREE.SphereGeometry(0.5 + Math.random() * 0.5, 18, 12), smoothMat(0x8a4a3a, { rough: 0.7 }));
-    pool.scale.y = 0.12;
-    pool.position.set((Math.random() - 0.5) * 3.4, 0.05, (Math.random() - 0.5) * 1);
-    g.add(pool);
-  }
-  addDrips(g, { y: 0.7, xSpread: 3.6, z: 0.2, color: 0x8a4a3a, count: 5, scale: 0.8 });
-
-  g.add(hangerG, cloth);
-
-  const sign = labelSign(cat.short, cat.palette.glow);
-  sign.position.set(0, 9.2, 0);
-  g.add(sign);
-
-  animated.push((t) => {
-    const bob = Math.sin(t * 0.55) * 0.18;
-    hangerG.position.y = 7.2 + bob;
-    cloth.position.y = 3.75 + bob;
-    hangerG.rotation.y = Math.sin(t * 0.3) * 0.06;
-    cloth.rotation.y = Math.sin(t * 0.3) * 0.06;
-  });
-  return g;
-}
-
-// the Dalí elephant: tiny body, impossibly long spindle legs,
-// an obelisk on its back — far away, half-dissolved in haze
-function longLeggedElephant(x, z, scale = 1.5) {
-  const g = new THREE.Group();
-  const dark = new THREE.MeshStandardMaterial({ color: 0x2a2024, roughness: 0.95 });
-
-  const body = new THREE.Mesh(new THREE.SphereGeometry(2.2, 20, 14), dark);
-  body.scale.set(1.5, 1, 0.9);
-  body.position.y = 16;
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(1.1, 16, 12), dark);
-  head.position.set(3.4, 16.6, 0);
-  const ear = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 10), dark);
-  ear.scale.set(0.25, 1.1, 0.9);
-  ear.position.set(2.9, 16.8, 0);
-
-  const trunkCurve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(4.3, 16.4, 0),
-    new THREE.Vector3(5.2, 15.2, 0.2),
-    new THREE.Vector3(5.0, 13.6, 0),
-    new THREE.Vector3(5.6, 12.4, -0.2),
-  ]);
-  const trunk = new THREE.Mesh(new THREE.TubeGeometry(trunkCurve, 24, 0.32, 8), dark);
-
-  // four spindly, knee-bent legs
-  for (const [lx, lz] of [[-1.6, 0.6], [1.6, 0.6], [-1.6, -0.6], [1.6, -0.6]]) {
-    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.1, 8.4, 8), dark);
-    upper.position.set(lx, 11, lz);
-    upper.rotation.z = (Math.random() - 0.5) * 0.06;
-    const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.05, 7, 8), dark);
-    lower.position.set(lx + (Math.random() - 0.5) * 0.6, 3.4, lz);
-    lower.rotation.z = (Math.random() - 0.5) * 0.1;
-    g.add(upper, lower);
-  }
-
-  const obelisk = new THREE.Mesh(new THREE.ConeGeometry(0.9, 4.6, 4), dark);
-  obelisk.position.y = 19.6;
-  obelisk.rotation.y = Math.PI / 4;
-
-  g.add(body, head, ear, trunk, obelisk);
-  g.scale.setScalar(scale);
-  g.position.set(x, 0, z);
-  g.rotation.y = Math.random() * Math.PI;
-  return g;
+  return { scene, interactables, animated, structures, approach, campView, campY, duneHeight };
 }

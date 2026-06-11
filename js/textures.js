@@ -212,7 +212,8 @@ export function skyTexture(topHex, midHex, sunHex) {
   }
   ctx.globalAlpha = 1;
 
-  grainOver(ctx, W, H, 0.02);
+  // dither hard enough to break gradient banding
+  grainOver(ctx, W, H, 0.045);
 
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -269,6 +270,154 @@ export function vinylTexture(label, glowHex) {
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
+  return tex;
+}
+
+// tiled bump map of wind ripples for the sand surface
+export function rippleBump() {
+  const S = 256;
+  const [c, ctx] = makeCanvas(S, S);
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(0, 0, S, S);
+  // wavy directional ridges
+  for (let y = -20; y < S + 20; y += 7) {
+    ctx.beginPath();
+    for (let x = 0; x <= S; x += 8) {
+      const yy = y + Math.sin(x * 0.06 + y * 0.5) * 3;
+      x === 0 ? ctx.moveTo(x, yy) : ctx.lineTo(x, yy);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth = 1.4;
+    ctx.translate(0, 2.4);
+    ctx.stroke();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  grainOver(ctx, S, S, 0.06);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// a worn fresco panel — faded pigment shapes on cracked plaster
+export function frescoTexture(glowHex) {
+  const W = 1024, H = 640;
+  const [c, ctx] = makeCanvas(W, H);
+  const glow = '#' + glowHex.toString(16).padStart(6, '0');
+
+  ctx.fillStyle = '#c4ad88';
+  ctx.fillRect(0, 0, W, H);
+  // plaster blotches
+  for (let i = 0; i < 40; i++) {
+    ctx.globalAlpha = 0.05 + Math.random() * 0.07;
+    ctx.fillStyle = Math.random() > 0.5 ? '#a88f6a' : '#d9c4a0';
+    ctx.beginPath();
+    ctx.ellipse(Math.random() * W, Math.random() * H, 40 + Math.random() * 130, 30 + Math.random() * 90, Math.random() * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // faded mural: bands, suns, figures — old pigments
+  const pig = ['#8a4a38', '#6e6a4a', glow, '#4a5e6a', '#9a7a3a'];
+  for (let i = 0; i < 9; i++) {
+    ctx.globalAlpha = 0.2 + Math.random() * 0.3;
+    ctx.fillStyle = pig[i % pig.length];
+    const t = Math.random();
+    if (t < 0.4) {
+      ctx.fillRect(Math.random() * W * 0.8, Math.random() * H * 0.8, 60 + Math.random() * 240, 14 + Math.random() * 40);
+    } else if (t < 0.7) {
+      ctx.beginPath();
+      ctx.arc(Math.random() * W, Math.random() * H * 0.6, 24 + Math.random() * 70, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // a row of little standing figures
+      const bx = Math.random() * W * 0.6, by = H * (0.45 + Math.random() * 0.35);
+      for (let f = 0; f < 5 + Math.random() * 5; f++) {
+        ctx.fillRect(bx + f * 34, by - 38, 12, 38);
+        ctx.beginPath();
+        ctx.arc(bx + f * 34 + 6, by - 46, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // cracks
+  ctx.strokeStyle = 'rgba(60,45,30,0.5)';
+  for (let i = 0; i < 7; i++) {
+    ctx.lineWidth = 0.8 + Math.random();
+    ctx.beginPath();
+    let x = Math.random() * W, y = 0;
+    ctx.moveTo(x, y);
+    while (y < H) {
+      x += (Math.random() - 0.5) * 60;
+      y += 30 + Math.random() * 60;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  distress(ctx, W, H, 2.2);
+  grainOver(ctx, W, H, 0.06);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+// rows of carved square glyphs, for the ziggurat stones
+export function glyphTexture() {
+  const S = 512;
+  const [c, ctx] = makeCanvas(S, S);
+  ctx.fillStyle = '#a68a64';
+  ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = 'rgba(50,38,26,0.55)';
+  for (let y = 30; y < S - 20; y += 56) {
+    for (let x = 30; x < S - 20; x += 52) {
+      if (Math.random() < 0.18) continue;
+      const t = Math.random();
+      if (t < 0.33) ctx.fillRect(x, y, 26, 26);
+      else if (t < 0.66) {
+        ctx.beginPath();
+        ctx.arc(x + 13, y + 13, 13, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, y, 26, 8);
+        ctx.fillRect(x, y + 18, 26, 8);
+      }
+    }
+  }
+  distress(ctx, S, S, 1.6);
+  grainOver(ctx, S, S, 0.07);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+// ancient woven cloth, sun-bleached, holes worn through
+export function wovenClothTexture() {
+  const W = 512, H = 512;
+  const [c, ctx] = makeCanvas(W, H);
+  ctx.fillStyle = '#9a5a44';
+  ctx.fillRect(0, 0, W, H);
+  // weave stripes
+  for (let y = 0; y < H; y += 18) {
+    ctx.fillStyle = ['#8a4a38', '#a8714e', '#7a5a4a', '#b8854e'][Math.floor(y / 18) % 4];
+    ctx.globalAlpha = 0.5;
+    ctx.fillRect(0, y, W, 9);
+  }
+  ctx.globalAlpha = 0.25;
+  for (let x = 0; x < W; x += 10) {
+    ctx.fillStyle = x % 20 ? '#00000022' : '#ffffff22';
+    ctx.fillRect(x, 0, 4, H);
+  }
+  ctx.globalAlpha = 1;
+  distress(ctx, W, H, 3);
+  grainOver(ctx, W, H, 0.07);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 

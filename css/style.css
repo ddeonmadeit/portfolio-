@@ -18,7 +18,7 @@
 }
 
 :root {
-  --accent: #d98a52;
+  --accent: #d9924a;
   --paper: #e8dfca;
   --ink: #1b140f;
   --mono: 'VT323', monospace;
@@ -30,7 +30,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
-  background: #120c10;
+  background: #160a0c;
   color: var(--paper);
   font-family: var(--mono);
 }
@@ -89,7 +89,7 @@ html, body {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: #0a0608;
+  background: #120607;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.32s ease;
@@ -337,8 +337,9 @@ body.pointing #cursor {
   inset: 0;
   z-index: 80;
   background:
-    radial-gradient(ellipse at 50% 110%, rgba(217, 138, 82, 0.22), transparent 55%),
-    #120c10;
+    radial-gradient(ellipse at 50% -20%, rgba(232, 140, 56, 0.3), transparent 60%),
+    radial-gradient(ellipse at 50% 115%, rgba(168, 42, 32, 0.5), transparent 65%),
+    #1a0a0c;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -355,8 +356,8 @@ body.pointing #cursor {
   letter-spacing: 0.02em;
   color: var(--paper);
   text-shadow:
-    3px 0 0 rgba(217, 138, 82, 0.55),
-    -3px 0 0 rgba(94, 122, 138, 0.45);
+    3px 0 0 rgba(232, 104, 56, 0.6),
+    -3px 0 0 rgba(94, 26, 44, 0.7);
   animation: jitter 4s steps(2) infinite;
 }
 @keyframes jitter {
@@ -385,7 +386,7 @@ body.pointing #cursor {
 #enter-btn:hover {
   background: var(--accent);
   border-color: var(--accent);
-  color: #120c10;
+  color: #1a0a0c;
   animation: none;
 }
 @keyframes pulse { 50% { border-color: var(--accent); color: var(--accent); } }

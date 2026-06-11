@@ -13,12 +13,12 @@ import {
 import { TERRAIN_SEGS, SHADOW_SIZE } from './quality.js';
 
 const GOLD = {
-  skyTop: 0x6e7ba8,   // cool lavender blue overhead
-  skyMid: 0xd9919a,   // soft pink
-  skySun: 0xffd9a0,   // warm gold at the horizon
-  fog: 0xe8b88e,      // golden haze
-  sandLit: 0xd9aa7c,
-  sandShade: 0x9a6e54,
+  skyTop: 0xe08434,   // burning gold-orange glow above
+  skyMid: 0xb23b22,   // smoky crimson
+  skySun: 0x6e1d1c,   // deep wine red at the horizon
+  fog: 0x8a2c20,      // red haze
+  sandLit: 0xa83a2c,  // ridges catching the red light
+  sandShade: 0x481b26, // dark wine shadow in the lee
 };
 
 // ------------------------------------------------------------
@@ -97,7 +97,7 @@ function mulberry32(seed) {
   };
 }
 
-const STONE = new THREE.Color(0xb29b80);
+const STONE = new THREE.Color(0x9c6e55);
 
 class StoneKit {
   constructor(seed = 1) {
@@ -509,10 +509,10 @@ export function buildWorld() {
   const interactables = [];
   const animated = [];
 
-  // ---------- light: low golden sun raking the ripples ----------
-  scene.add(new THREE.HemisphereLight(0xffd9b0, 0x8a5e48, 0.5));
-  scene.add(new THREE.AmbientLight(0xffe2c0, 0.16));
-  const sunLight = new THREE.DirectionalLight(0xffc685, 2.3);
+  // ---------- light: low ember sun raking the ripples ----------
+  scene.add(new THREE.HemisphereLight(0xd96a3a, 0x4a1c24, 0.5));
+  scene.add(new THREE.AmbientLight(0xff9a5e, 0.15));
+  const sunLight = new THREE.DirectionalLight(0xff8a4e, 2.3);
   sunLight.position.set(-90, 26, -45);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.set(SHADOW_SIZE, SHADOW_SIZE);
@@ -537,7 +537,7 @@ export function buildWorld() {
   );
   scene.add(sky);
 
-  const sun = makeSunSprite('#fff4dc', '#f8b870', 190);
+  const sun = makeSunSprite('#ffd9a0', '#e86838', 200);
   sun.position.set(-330, 64, -165);
   scene.add(sun);
 
@@ -587,9 +587,9 @@ export function buildWorld() {
   // ---------- far dune silhouettes dissolving into the haze ----------
   {
     const layers = [
-      { r: 290, hMin: 8, hMax: 26, color: 0xd9a07c },
-      { r: 360, hMin: 12, hMax: 34, color: 0xe9bc92 },
-      { r: 440, hMin: 16, hMax: 44, color: 0xf4d2a8 },
+      { r: 290, hMin: 8, hMax: 26, color: 0x6e2226 },
+      { r: 360, hMin: 12, hMax: 34, color: 0x8a2c24 },
+      { r: 440, hMin: 16, hMax: 44, color: 0xa83a26 },
     ];
     for (const [li, L] of layers.entries()) {
       const n = 140;
@@ -630,10 +630,41 @@ export function buildWorld() {
     geo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
     const dust = new THREE.Points(
       geo,
-      new THREE.PointsMaterial({ color: 0xffe0b0, size: 0.12, transparent: true, opacity: 0.45 })
+      new THREE.PointsMaterial({ color: 0xff9a5e, size: 0.12, transparent: true, opacity: 0.45 })
     );
     scene.add(dust);
     animated.push((t) => { dust.rotation.y = t * 0.004; });
+  }
+
+  // ---------- birds, far off, circling the dune sea ----------
+  {
+    const flock = new THREE.Group();
+    const birdMat = new THREE.MeshBasicMaterial({ color: 0x200d10, side: THREE.DoubleSide, fog: false });
+    const birds = [];
+    for (let i = 0; i < 12; i++) {
+      const b = new THREE.Group();
+      const wingGeo = new THREE.PlaneGeometry(1.5, 0.34);
+      const w1 = new THREE.Mesh(wingGeo, birdMat);
+      w1.position.x = -0.75;
+      const w2 = new THREE.Mesh(wingGeo, birdMat);
+      w2.position.x = 0.75;
+      b.add(w1, w2);
+      const r = 110 + Math.random() * 140;
+      const a = Math.random() * Math.PI * 2;
+      b.position.set(Math.cos(a) * r, 26 + Math.random() * 34, Math.sin(a) * r - 60);
+      b.scale.setScalar(0.6 + Math.random() * 0.8);
+      flock.add(b);
+      birds.push({ w1, w2, ph: Math.random() * 10, sp: 0.6 + Math.random() * 0.6 });
+    }
+    scene.add(flock);
+    animated.push((t) => {
+      flock.rotation.y = t * 0.012;
+      for (const { w1, w2, ph, sp } of birds) {
+        const f = 0.25 + Math.sin(t * 5.5 * sp + ph) * 0.5;
+        w1.rotation.z = f;
+        w2.rotation.z = -f;
+      }
+    });
   }
 
   // ---------- the DEON gate on the starting ridge ----------

@@ -188,23 +188,23 @@ export function skyTexture(topHex, midHex, sunHex) {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  // glowing band right at the horizon
+  // a faint ember band low in the sky
   const hg = ctx.createLinearGradient(0, H * 0.62, 0, H * 0.8);
-  hg.addColorStop(0, 'rgba(255,235,190,0)');
-  hg.addColorStop(1, 'rgba(255,228,170,0.5)');
+  hg.addColorStop(0, 'rgba(255,120,60,0)');
+  hg.addColorStop(1, 'rgba(255,110,50,0.28)');
   ctx.fillStyle = hg;
   ctx.fillRect(0, H * 0.62, W, H * 0.18);
 
-  // long soft clouds, lit from below — Dalí skies
-  for (let i = 0; i < 18; i++) {
-    const y = H * (0.18 + Math.random() * 0.42);
+  // smoke clouds: dark wine billows and golden tears in them
+  for (let i = 0; i < 22; i++) {
+    const y = H * (0.12 + Math.random() * 0.46);
     const x = Math.random() * W;
-    const w = 120 + Math.random() * 420;
-    const h = 6 + Math.random() * 22;
+    const w = 140 + Math.random() * 460;
+    const h = 10 + Math.random() * 40;
     ctx.save();
-    ctx.filter = 'blur(' + (6 + Math.random() * 14) + 'px)';
-    ctx.globalAlpha = 0.1 + Math.random() * 0.22;
-    ctx.fillStyle = Math.random() > 0.45 ? '#ffd9a8' : '#8a6a88';
+    ctx.filter = 'blur(' + (10 + Math.random() * 18) + 'px)';
+    ctx.globalAlpha = 0.12 + Math.random() * 0.24;
+    ctx.fillStyle = Math.random() > 0.4 ? '#5e2030' : '#f2a868';
     ctx.beginPath();
     ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
     ctx.fill();

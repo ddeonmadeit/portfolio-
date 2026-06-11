@@ -35,8 +35,8 @@ export const CATEGORIES = {
   design: {
     label: 'GRAPHIC DESIGN',
     short: 'DESIGN',
-    // muted dusty rose / magenta dusk
-    palette: { sky: 0x3a1f2e, fog: 0x6e3a4d, glow: 0xd98a9c, floor: 0x2a1722 },
+    // gold burning through smoke
+    palette: { sky: 0x6e1d1c, fog: 0xa83a24, glow: 0xf2a84e, floor: 0x2e1014 },
     blurb: 'posters, identities, cover art.',
     works: [
       { title: 'POSTER 001', year: '2025', desc: 'Placeholder — swap me in js/data.js. A gritty gig poster, riso-style, two colors.', link: '', img: '' },
@@ -49,8 +49,8 @@ export const CATEGORIES = {
   music: {
     label: 'MUSIC',
     short: 'MUSIC',
-    // deep purple / indigo night
-    palette: { sky: 0x1d1733, fog: 0x3c3060, glow: 0x9b86d9, floor: 0x161126 },
+    // deep ember, almost night
+    palette: { sky: 0x4a1422, fog: 0x8a2434, glow: 0xe86838, floor: 0x260d12 },
     blurb: 'released songs, beats, sketches.',
     works: [
       { title: 'MIRAGE', year: '2025', desc: 'Placeholder track — drop the real link in js/data.js and the OPEN button takes people there.', link: '', img: '' },
@@ -62,8 +62,8 @@ export const CATEGORIES = {
   web: {
     label: 'WEBSITES',
     short: 'WEB',
-    // teal / cyan dusk
-    palette: { sky: 0x102a2e, fog: 0x2a5a5e, glow: 0x7fd4cf, floor: 0x0c2023 },
+    // pale gold over wine
+    palette: { sky: 0x5e1a18, fog: 0x9a3424, glow: 0xffc878, floor: 0x2a0f0e },
     blurb: 'sites and experiments that live online.',
     works: [
       { title: 'THIS SITE', year: '2026', desc: 'The desert you are standing in. Built from scratch — three.js, no templates.', link: '', img: '' },
@@ -74,8 +74,8 @@ export const CATEGORIES = {
   video: {
     label: 'VIDEOS',
     short: 'VIDEO',
-    // burnt red / crimson
-    palette: { sky: 0x331414, fog: 0x6e2e26, glow: 0xe08a5e, floor: 0x260f0f },
+    // the darkest red, blood orange glow
+    palette: { sky: 0x3a0f14, fog: 0x7a1f1a, glow: 0xd94f2b, floor: 0x200a0c },
     blurb: 'music videos, edits, experiments on tape.',
     works: [
       { title: 'MUSIC VIDEO — MIRAGE', year: '2025', desc: 'Placeholder — shot on whatever was available. Link your YouTube/Vimeo in js/data.js.', link: '', img: '' },
@@ -87,8 +87,8 @@ export const CATEGORIES = {
   clothing: {
     label: 'CLOTHING',
     short: 'CLOTHING',
-    // ochre / sand gold
-    palette: { sky: 0x33260f, fog: 0x6e5526, glow: 0xd9b86a, floor: 0x261c0c },
+    // warm amber dusk
+    palette: { sky: 0x6a2418, fog: 0xa84a2e, glow: 0xe89a5e, floor: 0x2c1210 },
     blurb: 'pieces, drops, one-offs.',
     works: [
       { title: 'TEE — DUST RUN', year: '2025', desc: 'Placeholder — heavyweight tee, single print, front only.', link: '', img: '' },

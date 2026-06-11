@@ -73,7 +73,7 @@ const el = {
 function setAccent(hex) {
   document.documentElement.style.setProperty('--accent', '#' + hex.toString(16).padStart(6, '0'));
 }
-setAccent(0xe8a868);
+setAccent(0xd9924a);
 
 const DESERT_HINT = 'click a ruin or use the trail below · drag to look around';
 
@@ -285,7 +285,7 @@ function leaveInterior(after) {
     rig.target.copy(ap.look);
     rig.yawT = rig.pitchT = 0;
     rig.lookRange = { yaw: 0.4, pitch: 0.16 };
-    setAccent(0xe8a868);
+    setAccent(0xd9924a);
     el.section.textContent = 'THE DUNES';
     el.back.classList.remove('on');
     state = 'desert';

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>DEON — design · music · web · video · clothing</title>
+  <meta name="description" content="DEON — a desert of work. Graphic design, music, websites, videos, clothing." />
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <!-- film layers: grain, scanlines, vignette -->
+  <canvas id="grain" aria-hidden="true"></canvas>
+  <div id="scanlines" aria-hidden="true"></div>
+  <div id="vignette" aria-hidden="true"></div>
+
+  <!-- hard cut used for scene swaps -->
+  <div id="fade" aria-hidden="true"></div>
+
+  <!-- custom cursor -->
+  <div id="cursor" aria-hidden="true"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-corner top-left">
+      <span class="rec-dot"></span>
+      <span>REC</span>
+      <span id="timecode">00:00:00</span>
+    </div>
+    <div class="hud-corner top-center" id="section-label">THE DESERT</div>
+    <button class="hud-corner top-right" id="mute-btn">SOUND ON</button>
+    <div class="hud-corner bottom-center" id="hint"></div>
+    <button class="hud-corner bottom-left" id="back-btn">← OUT</button>
+  </div>
+
+  <!-- hover label follows the pointer -->
+  <div id="hover-label"></div>
+
+  <!-- detail / about / contact panel -->
+  <div id="panel" class="hidden">
+    <div id="panel-card">
+      <button id="panel-close">✕</button>
+      <div id="panel-content"></div>
+    </div>
+  </div>
+
+  <!-- intro -->
+  <div id="loader">
+    <h1 class="loader-title">DEON</h1>
+    <p class="loader-tag">design · music · web · video · clothing</p>
+    <button id="enter-btn">[ ENTER THE DESERT ]</button>
+    <p class="loader-note">sound on recommended</p>
+  </div>
+
+  <script>
+    // animated film grain on a tiny canvas, tiled by css
+    (function () {
+      const c = document.getElementById('grain');
+      const size = () => {
+        c.width = Math.ceil(window.innerWidth / 4);
+        c.height = Math.ceil(window.innerHeight / 4);
+      };
+      size();
+      window.addEventListener('resize', size);
+      const ctx = c.getContext('2d');
+      function frame() {
+        const img = ctx.createImageData(c.width, c.height);
+        const d = img.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const v = Math.random() * 255;
+          d[i] = d[i + 1] = d[i + 2] = v;
+          d[i + 3] = 28;
+        }
+        ctx.putImageData(img, 0, 0);
+      }
+      setInterval(frame, 80);
+      frame();
+    })();
+
+    // wait for the display fonts before drawing canvas textures
+    Promise.all([
+      document.fonts.load("900 100px 'Anton'"),
+      document.fonts.load("32px 'VT323'"),
+    ]).catch(() => {}).finally(() => import('./js/main.js'));
+  </script>
+</body>
+</html>

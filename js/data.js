@@ -18,7 +18,7 @@ export const SITE = {
   about: [
     "I'm Deon. I make things.",
     "Graphic design, music, websites, videos, clothing — different mediums, same hands.",
-    "This desert is where it all lives. Walk around. Open doors.",
+    "Swipe through. Everything here was made from scratch.",
   ],
   contact: {
     email: 'ddeonmadeit@gmail.com',

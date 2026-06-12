@@ -1,74 +1,59 @@
-# DEON — desert portfolio
+# DEON — portfolio app
 
-An interactive portfolio set in a sea of rolling dunes at golden hour.
-Five ancient ruins lie far apart across the sand, one per category:
-a collapsed fresco wall (**graphic design**), a half-buried amphitheatre
-(**music**), an eroded ziggurat (**websites**), a theatre wall whose empty
-windows frame the sky (**videos**), and a weavers' colonnade with one
-ancient cloth still hanging (**clothing**). Click a ruin — or its name on
-the trail menu — and the camera glides low over the dunes to it, then
-steps through the doorway into that category's dream-plain where the work
-floats. A small camp on the starting ridge holds about (campfire),
-contact (payphone) and socials (signpost). Ambient wind and fire crackle
-are synthesized live in the browser; nothing is streamed.
+A mobile-first portfolio that feels like an app. You land on a springy
+3D carousel of five cards — **graphic design, music, websites, videos,
+clothing** — each card a grid of work thumbnails over a crimson
+dunescape atmosphere with a giant ghost title drifting behind. Tap a
+card and the category slides up, laid out natively for its medium:
+
+- **MUSIC** — player-style track list
+- **VIDEOS** — big thumbnails
+- **CLOTHING** — full-screen lookbook swipe
+- **DESIGN** — two-column poster grid
+- **WEBSITES** — large site cards with visit links
+
+Tap any piece for a full-screen takeover with details and a link.
+The corner menu opens a bottom sheet with about, contact and socials.
+Browser/phone back buttons work everywhere; sheets and panels can be
+flicked away. Set in **Braun Linear** (owner-supplied, five weights).
+
+All placeholder art is generated at runtime — seeded crimson dunescapes
+with birds in the haze — so the site ships with zero image assets.
 
 ## Run it locally
 
-It's a static site — no build step, no dependencies to install
-(three.js is vendored in `/vendor`). Just serve the folder:
+No build step, no dependencies:
 
 ```bash
 python3 -m http.server 8000
-# then open http://localhost:8000
+# open http://localhost:8000
 ```
 
-(Any static server works. Opening `index.html` directly from disk will NOT
-work because ES modules need to be served over http.)
+(ES modules need a server — opening index.html from disk won't work.)
 
 ## Put your real work in
 
-Everything you'd want to change lives in **`js/data.js`**:
+Everything editable lives in **`js/data.js`**:
 
-- `SITE` — your name, tagline, about text, email, social links.
-- `CATEGORIES` — each category has a `works` list. Each work has a
-  `title`, `year`, `desc`, optional `link` (adds an OPEN button), and
-  optional `img` (path to an image, e.g. `assets/cover.jpg`).
-
-Drop image files into an `assets/` folder and reference them from `img`.
-If `img` is empty, a gritty generated placeholder is used so the walls are
-never bare.
-
-Each category also has a `palette` (sky / fog / glow / floor colors) that
-controls the mood inside its structure — tweak freely.
-
-## Controls
-
-- **Look around** — move the mouse (desktop) or drag (touch).
-- **Travel** — click a ruin in the distance, or use the trail menu at the
-  bottom (CAMP / DESIGN / MUSIC / WEB / VIDEO / CLOTHING). The camera
-  glides over the dunes and enters automatically.
-- **Open a work** — click a floating piece inside.
-- **Leave** — click the doorway, the `← OUT` button, or press `Esc`.
-- **Sound** — toggle top right.
-
-Mobile gets a wider field of view, lower shadow resolution and a capped
-pixel ratio automatically (see `js/quality.js`).
+- `SITE` — name, about text, email, social links.
+- `CATEGORIES` — each category's `works` list: `title`, `year`, `desc`,
+  optional `link` (adds an OPEN button), optional `img` (path to a file
+  in `assets/`, replaces the generated art everywhere, including the
+  home card and backdrop).
 
 ## Deploy
 
-Push to GitHub and enable **GitHub Pages** (Settings → Pages → deploy from
-branch, root folder). The site is fully static and works from any static host.
+Pushes to the main branches auto-deploy to GitHub Pages via
+`.github/workflows/pages.yml`. Live at
+`https://ddeonmadeit.github.io/portfolio-/`.
 
 ## Structure
 
 ```
-index.html       entry, HUD/panels markup, film-grain layer
-css/style.css    HUD, panels, loader, VHS overlays, cursor
+index.html       app shell + font preload
+css/app.css      all styles (Braun Linear @font-faces at the top)
 js/data.js       ← ALL CONTENT LIVES HERE
-js/main.js       renderer, camera, input, state machine, panels
-js/world.js      the desert: terrain, sky, structures, campfire, payphone
-js/interiors.js  the rooms inside each structure
-js/textures.js   canvas-drawn signs, placeholder art, sky
-js/audio.js      synthesized wind, crackle, UI sounds
-vendor/          three.js (vendored, no CDN needed)
+js/app.js        swiper physics, navigation, views, sheet
+js/art.js        seeded dunescape / placeholder art generators
+fonts/           Braun Linear woff2 (5 weights)
 ```

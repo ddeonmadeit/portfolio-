@@ -113,7 +113,7 @@ a { color: inherit; }
   filter: brightness(0.5) saturate(0.8);
 }
 
-/* atmospheric dunescapes behind everything */
+/* the room behind everything — tinted per category, crossfaded */
 #bgs { position: absolute; inset: 0; }
 #bgs canvas, #bgs img {
   position: absolute;
@@ -122,29 +122,13 @@ a { color: inherit; }
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  filter: brightness(0.5) saturate(1.05);
+  filter: brightness(0.82) saturate(0.92);
 }
 #bgs::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 110%, rgba(12, 4, 5, 0.9), rgba(12, 4, 5, 0.45) 55%, rgba(12, 4, 5, 0.3) 100%);
-}
-
-/* giant ghost word behind the cards */
-#ghost {
-  position: absolute;
-  top: 16%;
-  left: 50%;
-  white-space: nowrap;
-  font-weight: 700;
-  font-size: clamp(90px, 26vw, 270px);
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  color: transparent;
-  -webkit-text-stroke: 1.5px rgba(244, 227, 208, 0.16);
-  pointer-events: none;
-  will-change: transform;
+  background: radial-gradient(ellipse at 50% 118%, rgba(10, 3, 4, 0.6), rgba(10, 3, 4, 0.16) 55%, rgba(10, 3, 4, 0.05) 100%);
 }
 
 /* the 3d stage */
@@ -159,6 +143,9 @@ a { color: inherit; }
   transform-style: preserve-3d;
   touch-action: pan-y;
 }
+/* stone tablets — slate texture is painted on per card from JS.
+   Light comes from the window: warm catch on the upper-left edge,
+   occlusion lower-right, soft drop into the room. */
 .card {
   position: absolute;
   top: 50%;
@@ -166,50 +153,84 @@ a { color: inherit; }
   width: min(66vw, 320px);
   aspect-ratio: 3 / 4.1;
   margin-top: -4vh;
-  border-radius: 26px;
-  background:
-    linear-gradient(168deg, rgba(244, 227, 208, 0.1) 0%, rgba(244, 227, 208, 0.03) 30%, rgba(0, 0, 0, 0.25) 100%),
-    linear-gradient(180deg, #241012 0%, #170809 100%);
-  border: 1px solid rgba(244, 227, 208, 0.16);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
-  padding: 14px 14px 64px;
+  border-radius: 18px;
+  background-color: #1b1515;
+  background-size: cover;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 206, 162, 0.16),
+    inset -1px -2px 0 rgba(0, 0, 0, 0.65),
+    inset 0 0 46px rgba(0, 0, 0, 0.42),
+    0 16px 28px rgba(5, 1, 2, 0.55),
+    0 55px 100px rgba(5, 1, 2, 0.6);
+  padding: 16px 16px 62px;
   will-change: transform, opacity, filter;
   backface-visibility: hidden;
+}
+/* window-light wash over the whole slab */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(152deg, rgba(255, 206, 162, 0.1) 0%, rgba(255, 206, 162, 0) 42%, rgba(8, 3, 4, 0.32) 100%);
+  pointer-events: none;
+}
+/* the slab's shadow pooling on the sand beneath it */
+.card-shadow {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -10%;
+  height: 11%;
+  background: radial-gradient(ellipse at 46% 50%, rgba(4, 1, 2, 0.62), rgba(4, 1, 2, 0) 68%);
+  filter: blur(7px);
+  pointer-events: none;
 }
 .card-thumbs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: 1fr;
-  gap: 10px;
+  gap: 9px;
   height: 100%;
 }
+/* work art sits recessed into the stone */
 .card-thumbs span {
   display: block;
-  border-radius: 12px;
+  position: relative;
+  border-radius: 7px;
   overflow: hidden;
+  background: #0d0909;
+  box-shadow: 0 1px 0 rgba(255, 210, 165, 0.09);
+}
+.card-thumbs span::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 .card-thumbs canvas, .card-thumbs img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  filter: brightness(0.9) saturate(0.92);
 }
-.card-pill {
+/* label carved into the slab */
+.card-label {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 99px;
-  border: 1px solid rgba(244, 227, 208, 0.4);
-  background: rgba(14, 5, 6, 0.55);
-  backdrop-filter: blur(6px);
+  left: 16px;
+  right: 16px;
+  bottom: 22px;
+  text-align: center;
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.3em;
+  font-size: 14px;
+  letter-spacing: 0.38em;
+  text-indent: 0.38em; /* recenters wide tracking */
   text-transform: uppercase;
+  color: rgba(216, 184, 156, 0.42); /* dust settled in the carving */
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 215, 175, 0.18);
 }
 
 /* index + blurb under the carousel */

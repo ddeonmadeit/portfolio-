@@ -5,7 +5,7 @@
 // ============================================================
 
 import { SITE, CATEGORIES } from './data.js';
-import { dunescape, workArt, wideArt, scenePalette, hashStr } from './art.js';
+import { roomscape, slateTexture, workArt, wideArt, scenePalette, hashStr, mulberry } from './art.js';
 
 const KEYS = Object.keys(CATEGORIES);
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -54,11 +54,13 @@ function getWorkArt(key, i, { wide = false, thumb = false, plain = false } = {})
 // ============================================================
 
 class Swiper {
-  constructor(track, { onIndex, onTap, parallax, unit, renderFn, onMove } = {}) {
+  constructor(track, { onIndex, onTap, parallax, unit, renderFn, onMove, loop } = {}) {
     this.track = track;
     this.slides = [...track.children];
     this.n = this.slides.length;
-    this.index = 0;
+    this.loop = !!loop;    // endless — slides wrap around
+    this.index = 0;        // logical slide, always 0..n-1
+    this.pos = 0;          // continuous slide position, unbounded when looping
     this.x = 0;            // current position (px, negative going left)
     this.onIndex = onIndex;
     this.onTap = onTap;
@@ -73,7 +75,7 @@ class Swiper {
     track.addEventListener('pointermove', (e) => this.move(e));
     track.addEventListener('pointerup', (e) => this.up(e));
     track.addEventListener('pointercancel', (e) => this.up(e, true));
-    window.addEventListener('resize', () => this.jump(this.index));
+    window.addEventListener('resize', () => this.jump(this.pos));
     this.render();
   }
   get w() { return this.unit ? this.unit() : this.track.parentElement.clientWidth; }
@@ -93,10 +95,12 @@ class Swiper {
     if (this.drag.locked !== 'x') return;
     e.preventDefault();
     let nx = this.drag.startX + dx;
-    // rubber band past the ends
-    const min = -(this.n - 1) * this.w, max = 0;
-    if (nx > max) nx = max + (nx - max) * 0.3;
-    if (nx < min) nx = min + (nx - min) * 0.3;
+    if (!this.loop) {
+      // rubber band past the ends
+      const min = -(this.n - 1) * this.w, max = 0;
+      if (nx > max) nx = max + (nx - max) * 0.3;
+      if (nx < min) nx = min + (nx - min) * 0.3;
+    }
     this.x = nx;
     const now = performance.now();
     this.drag.v = (e.clientX - this.drag.lastX) / Math.max(1, now - this.drag.lastT);
@@ -116,13 +120,15 @@ class Swiper {
     // velocity-aware snap
     let target = Math.round(-this.x / this.w);
     if (Math.abs(d.v) > 0.45) target = -this.x / this.w + (d.v < 0 ? 0.5 : -0.5), target = Math.round(target);
-    target = Math.max(0, Math.min(this.n - 1, target));
+    if (!this.loop) target = Math.max(0, Math.min(this.n - 1, target));
     this.springTo(target, d.v * -1000);
   }
   springTo(i, v0 = 0) {
-    const changed = i !== this.index;
-    this.index = i;
-    if (changed && this.onIndex) this.onIndex(i);
+    this.pos = i;
+    const norm = this.loop ? ((i % this.n) + this.n) % this.n : i;
+    const changed = norm !== this.index;
+    this.index = norm;
+    if (changed && this.onIndex) this.onIndex(norm);
     const targetX = -i * this.w;
     let v = v0, last = performance.now();
     const k = 110, c = 21; // stiffness / damping — buttery, slight settle
@@ -144,7 +150,8 @@ class Swiper {
     this.anim = requestAnimationFrame(step);
   }
   jump(i) {
-    this.index = i;
+    this.pos = i;
+    this.index = this.loop ? ((i % this.n) + this.n) % this.n : i;
     this.x = -i * this.w;
     this.render();
   }
@@ -173,37 +180,45 @@ class Swiper {
 let homeSwiper = null;
 let swipeHinted = false;
 
+// offset wrapped to (-n/2, n/2] so the carousel is a ring
+function ringOffset(o, n) {
+  o = ((o % n) + n) % n;
+  if (o > n / 2) o -= n;
+  return o;
+}
+
 function buildHome() {
   const track = $('#covers');
   const bgs = $('#bgs');
-  const ghost = $('#ghost');
   track.innerHTML = '';
   bgs.innerHTML = '';
+  const n = KEYS.length;
+
+  // room canvases match the viewport aspect so nothing important crops away
+  const bgW = 720;
+  const bgH = Math.round(bgW * Math.max(0.9, Math.min(2.1, window.innerHeight / Math.max(1, window.innerWidth))));
 
   KEYS.forEach((key, i) => {
     const cat = CATEGORIES[key];
 
-    // atmospheric backdrop per category
+    // the room, tinted per category
     if (!coverCache[key]) {
-      const firstImg = cat.works.find((w) => w.img);
-      if (firstImg) {
-        const img = new Image();
-        img.src = firstImg.img;
-        img.alt = '';
-        coverCache[key] = img;
-      } else {
-        coverCache[key] = dunescape({ seed: hashStr(key) + 7, w: 800, h: 1400, pal: PAL[key] });
-      }
+      coverCache[key] = roomscape({ seed: hashStr(key) + 7, w: bgW, h: bgH, pal: PAL[key] });
     }
     const bg = cloneArt(coverCache[key]);
     bg.dataset.i = i;
     bgs.appendChild(bg);
 
-    // the card: a grid of work thumbnails + a pill label
+    // the tablet: hewn stone slab, recessed work thumbnails, carved label
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.key = key;
     card.dataset.i = i;
+    const rr = mulberry(hashStr(key) ^ 0xbeef);
+    const r = () => `${Math.round(13 + rr() * 8)}px`;
+    card.style.borderRadius = `${r()} ${r()} ${r()} ${r()} / ${r()} ${r()} ${r()} ${r()}`;
+    card.style.backgroundImage = `url(${slateTexture(hashStr(key) ^ 0x51a7e).toDataURL()})`;
+
     const thumbs = document.createElement('div');
     thumbs.className = 'card-thumbs';
     const cells = 6;
@@ -213,10 +228,12 @@ function buildHome() {
       cell.appendChild(getWorkArt(key, wi, { thumb: true }));
       thumbs.appendChild(cell);
     }
-    const pill = document.createElement('span');
-    pill.className = 'card-pill';
-    pill.textContent = cat.short;
-    card.append(thumbs, pill);
+    const label = document.createElement('span');
+    label.className = 'card-label';
+    label.textContent = cat.short;
+    const shade = document.createElement('span');
+    shade.className = 'card-shadow';
+    card.append(shade, thumbs, label);
     track.appendChild(card);
   });
 
@@ -224,24 +241,25 @@ function buildHome() {
 
   const renderCards = (x, w, slides) => {
     slides.forEach((s, i) => {
-      const o = (x + i * w) / w; // 0 when centered
+      const o = ringOffset((x + i * w) / w, n); // 0 when centered
       const a = Math.abs(o);
       s.style.transform =
         `translate(-50%, -50%) translateX(${o * w * 1.06}px) ` +
         `rotateY(${-o * 16}deg) scale(${Math.max(0.6, 1 - a * 0.1)}) translateZ(${-a * 120}px)`;
-      s.style.opacity = a > 2.4 ? 0 : String(Math.max(0, 1 - a * 0.3));
+      // neighbours stay present, then fade fast before the ring seam at ±n/2
+      s.style.opacity = String(a < 1 ? 1 - a * 0.22 : Math.max(0, 0.78 - (a - 1) * 0.68));
       s.style.zIndex = String(100 - Math.round(a * 10));
-      s.style.filter = `brightness(${Math.max(0.45, 1 - a * 0.28)})`;
+      s.style.filter = `brightness(${Math.max(0.4, 1 - a * 0.3)})`;
     });
-    // crossfade backdrops + drift the ghost word
+    // crossfade room tints
     bgLayers.forEach((b, i) => {
-      const o = Math.abs((x + i * w) / w);
-      b.style.opacity = String(Math.max(0, 1 - o));
+      const a = Math.abs(ringOffset((x + i * w) / w, n));
+      b.style.opacity = String(Math.max(0, 1 - a));
     });
-    ghost.style.transform = `translateX(calc(-50% + ${x * 0.12}px))`;
   };
 
   homeSwiper = new Swiper(track, {
+    loop: true,
     unit: () => Math.min(300, window.innerWidth * 0.62),
     renderFn: renderCards,
     onIndex: (i) => {
@@ -256,7 +274,7 @@ function buildHome() {
       const card = el && el.closest('.card');
       if (!card) return;
       const ti = +card.dataset.i;
-      if (ti !== i) homeSwiper.springTo(ti);
+      if (ti !== i) springToNearest(ti);
       else openCategory(KEYS[ti]);
     },
   });
@@ -267,7 +285,6 @@ function buildHome() {
     setTimeout(() => {
       $('#cap-index').textContent = `${String(i + 1).padStart(2, '0')} / ${String(KEYS.length).padStart(2, '0')}`;
       $('#cap-blurb').textContent = CATEGORIES[KEYS[i]].blurb;
-      ghost.textContent = CATEGORIES[KEYS[i]].short;
       cap.classList.remove('fade');
     }, 160);
   }
@@ -276,16 +293,23 @@ function buildHome() {
   dots.innerHTML = KEYS.map((_, i) => `<button class="dot" data-i="${i}" aria-label="category ${i + 1}"></button>`).join('');
   dots.addEventListener('click', (e) => {
     const b = e.target.closest('.dot');
-    if (b) homeSwiper.springTo(+b.dataset.i);
+    if (b) springToNearest(+b.dataset.i);
   });
 
   // initial state
-  ghost.textContent = CATEGORIES[KEYS[0]].short;
   $('#cap-index').textContent = `01 / ${String(KEYS.length).padStart(2, '0')}`;
   $('#cap-blurb').textContent = CATEGORIES[KEYS[0]].blurb;
   bgLayers[0].style.opacity = '1';
   setDots(0);
   setAccent(KEYS[0]);
+}
+
+// spring to logical slide i via the shortest way around the ring
+function springToNearest(i) {
+  const n = KEYS.length;
+  let delta = (((i - homeSwiper.index) % n) + n) % n;
+  if (delta > n / 2) delta -= n;
+  homeSwiper.springTo(homeSwiper.pos + delta);
 }
 
 function setDots(i) {
@@ -607,7 +631,7 @@ function dragDismiss(moveEl, handleEl, canStart = null, classEl = null) {
 
 $('#wordmark').addEventListener('click', () => {
   if (layers.cat || layers.menu) history.back();
-  else homeSwiper.springTo(0);
+  else springToNearest(0);
 });
 $('#menu-btn').addEventListener('click', openMenu);
 
@@ -616,8 +640,8 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') history.back();
     return;
   }
-  if (e.key === 'ArrowRight') homeSwiper.springTo(Math.min(KEYS.length - 1, homeSwiper.index + 1));
-  if (e.key === 'ArrowLeft') homeSwiper.springTo(Math.max(0, homeSwiper.index - 1));
+  if (e.key === 'ArrowRight') homeSwiper.springTo(homeSwiper.pos + 1);
+  if (e.key === 'ArrowLeft') homeSwiper.springTo(homeSwiper.pos - 1);
 });
 
 // animated grain

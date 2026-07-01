@@ -2,47 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <title>DEON — design · music · web · video · clothing</title>
-  <meta name="description" content="DEON — graphic design, music, websites, videos, clothing." />
-  <meta name="theme-color" content="#160a0c" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>DEON — Creative Studio</title>
+  <meta name="description" content="DEON — independent creative studio for graphic design, music, web, video and clothing." />
+  <meta name="theme-color" content="#f4f3ef" />
+  <meta name="color-scheme" content="light" />
+
+  <!-- Open Graph / social share -->
+  <meta property="og:title" content="DEON — Creative Studio" />
+  <meta property="og:description" content="Design · Music · Web · Video · Clothing. Made from scratch." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/og.jpg" />
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preload" href="fonts/BraunLinear-Medium.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
-  <div id="app">
-    <main id="home">
-      <div id="bgs" aria-hidden="true"></div>
-      <div id="stage">
-        <div id="covers"></div>
-      </div>
-      <div id="caption">
-        <p id="cap-index"></p>
-        <p id="cap-blurb"></p>
-      </div>
-    </main>
+  <!-- ===================== HEADER ===================== -->
+  <header id="header">
+    <a class="wordmark" href="#top" aria-label="DEON home">
+      <!-- Swap this text for an <img> logo later, see assets/README -->
+      <span class="wordmark-text">DEON</span>
+    </a>
+    <nav class="nav-desktop" aria-label="Primary">
+      <a href="#work">Work</a>
+      <a href="#studio">Studio</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button id="menu-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <!-- ===================== MOBILE MENU ===================== -->
+  <div id="menu" class="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <nav class="menu-nav" aria-label="Mobile">
+      <a href="#work">Work</a>
+      <a href="#studio">Studio</a>
+      <a href="#work-index">Disciplines</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="menu-socials" id="menu-socials"></div>
   </div>
 
-  <!-- chrome -->
-  <div id="topbar">
-    <button id="wordmark" aria-label="DEON home">DEON</button>
-    <button id="menu-btn" aria-label="menu"><span></span></button>
+  <main id="top">
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" id="hero">
+      <div class="hero-tag reveal">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="hero-availability">Available worldwide</span>
+      </div>
+      <h1 class="hero-statement reveal" id="hero-statement"></h1>
+      <div class="hero-meta reveal">
+        <span id="hero-location"></span>
+        <a class="hero-cta" href="#contact">Work with us <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <!-- ===================== WORK ===================== -->
+    <section class="section work" id="work">
+      <div class="section-head reveal">
+        <h2 class="section-label">Selected work</h2>
+        <div class="filters" id="filters" role="tablist" aria-label="Filter work"></div>
+      </div>
+      <div class="grid" id="work-grid"></div>
+    </section>
+
+    <!-- ===================== STUDIO / INTRO ===================== -->
+    <section class="section studio" id="studio">
+      <p class="studio-lead reveal" id="studio-intro"></p>
+    </section>
+
+    <!-- ===================== DISCIPLINES ===================== -->
+    <section class="section index" id="work-index">
+      <h2 class="section-label reveal">Disciplines</h2>
+      <ul class="discipline-list" id="discipline-list"></ul>
+    </section>
+
+    <!-- ===================== CLIENTS ===================== -->
+    <section class="section clients" id="clients" hidden>
+      <h2 class="section-label reveal">Selected collaborators</h2>
+      <div class="client-marquee" aria-hidden="true"><div class="client-track" id="client-track"></div></div>
+    </section>
+
+    <!-- ===================== CONTACT ===================== -->
+    <section class="section contact" id="contact">
+      <h2 class="contact-head reveal" id="contact-head"></h2>
+      <div class="contact-grid">
+        <div class="contact-channels reveal" id="contact-channels"></div>
+        <div class="contact-socials reveal" id="contact-socials"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer id="footer">
+    <div class="footer-row">
+      <span id="footer-name">DEON</span>
+      <span id="footer-year"></span>
+    </div>
+    <div class="footer-row footer-sub">
+      <span id="footer-credit"></span>
+      <button class="to-top" id="to-top">Back to top ↑</button>
+    </div>
+  </footer>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Work detail" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
+    <div class="lightbox-inner">
+      <div class="lightbox-media" id="lightbox-media"></div>
+      <div class="lightbox-info">
+        <p class="lightbox-cat" id="lightbox-cat"></p>
+        <h3 class="lightbox-title" id="lightbox-title"></h3>
+        <p class="lightbox-desc" id="lightbox-desc"></p>
+        <a class="lightbox-link" id="lightbox-link" target="_blank" rel="noopener" hidden>Open ↗</a>
+      </div>
+    </div>
   </div>
-  <div id="dots" aria-hidden="true"></div>
-  <p id="hint">SWIPE →</p>
 
-  <!-- film layers -->
-  <canvas id="grain" aria-hidden="true"></canvas>
-  <div id="vignette" aria-hidden="true"></div>
-
-  <script>
-    Promise.all([
-      document.fonts.load("700 100px 'Braun'"),
-      document.fonts.load("500 16px 'Braun'"),
-      document.fonts.load("300 16px 'Braun'"),
-      document.fonts.load("200 16px 'Braun'"),
-    ]).catch(() => {}).finally(() => import('./js/app.js'));
-  </script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

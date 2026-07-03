@@ -1,0 +1,75 @@
+# Pages CMS dashboard config — https://pagescms.org
+# Connect this repo at https://app.pagescms.org (sign in with GitHub)
+# to get a visual dashboard: edit text and drag-and-drop images, no code.
+
+media:
+  input: assets
+  output: /assets
+  extensions: [jpg, jpeg, png, gif, webp, svg, avif]
+
+content:
+  - name: site
+    label: Site & content
+    type: file
+    path: content/data.json
+    fields:
+      - name: site
+        label: Studio details
+        type: object
+        fields:
+          - { name: name, label: Studio name, type: string }
+          - { name: statement, label: Hero statement, type: text }
+          - { name: availability, label: Availability tag, type: string }
+          - { name: location, label: Location line, type: string }
+          - { name: intro, label: Studio paragraph (one line per entry), type: string, list: true }
+          - { name: contactHeading, label: Contact heading, type: string }
+          - name: channels
+            label: Contact emails
+            type: object
+            list: true
+            fields:
+              - { name: label, label: Label, type: string }
+              - { name: email, label: Email, type: string }
+          - name: socials
+            label: Social links
+            type: object
+            list: true
+            fields:
+              - { name: label, label: Label, type: string }
+              - { name: url, label: URL, type: string }
+          - { name: credit, label: Footer credit, type: string }
+
+      - name: disciplines
+        label: Disciplines
+        type: object
+        list: true
+        fields:
+          - { name: n, label: Number, type: string }
+          - { name: title, label: Title, type: string }
+          - { name: desc, label: Description, type: string }
+
+      - name: clients
+        label: Collaborators (marquee)
+        type: string
+        list: true
+
+      - name: work
+        label: Work
+        type: object
+        list: true
+        fields:
+          - { name: title, label: Title, type: string }
+          - name: cat
+            label: Category
+            type: select
+            options:
+              values: [design, music, web, video, clothing]
+          - { name: year, label: Year, type: string }
+          - name: ratio
+            label: Tile shape
+            type: select
+            options:
+              values: [portrait, landscape, square]
+          - { name: img, label: Image, type: image }
+          - { name: link, label: Link (optional), type: string }
+          - { name: desc, label: Description, type: text }

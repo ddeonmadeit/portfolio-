@@ -1,9 +1,22 @@
 // ============================================================
 //  DEON — app logic
-//  Renders content from data.js, handles nav, filtering,
-//  scroll reveals and the lightbox. No dependencies.
+//  Loads content from /content/data.json (edited via the
+//  Pages CMS dashboard), then handles nav, filtering, scroll
+//  reveals and the lightbox. No dependencies.
 // ============================================================
-import { SITE, DISCIPLINES, CLIENTS, FILTERS, WORK } from './data.js';
+
+// Category filters are fixed (they map to the studio's disciplines).
+const FILTERS = [
+  { id: 'all', label: 'All' },
+  { id: 'design', label: 'Design' },
+  { id: 'music', label: 'Music' },
+  { id: 'web', label: 'Web' },
+  { id: 'video', label: 'Video' },
+  { id: 'clothing', label: 'Clothing' },
+];
+
+// Filled once content/data.json loads.
+let SITE, DISCIPLINES, CLIENTS, WORK;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -183,10 +196,32 @@ function observeReveals() {
 }
 
 /* ---------------- boot ---------------- */
-fillText();
-fillDisciplines();
-fillClients();
-fillFilters();
-fillWork();
-observeReveals();
-onScroll();
+async function main() {
+  let data;
+  try {
+    const res = await fetch('content/data.json', { cache: 'no-cache' });
+    data = await res.json();
+  } catch (err) {
+    console.error('Could not load content/data.json', err);
+    return;
+  }
+
+  // shape the loaded JSON into what the render code expects
+  SITE = {
+    ...data.site,
+    contact: { heading: data.site.contactHeading, channels: data.site.channels || [] },
+  };
+  DISCIPLINES = data.disciplines || [];
+  CLIENTS = data.clients || [];
+  WORK = data.work || [];
+
+  fillText();
+  fillDisciplines();
+  fillClients();
+  fillFilters();
+  fillWork();
+  observeReveals();
+  onScroll();
+}
+
+main();

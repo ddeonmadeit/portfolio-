@@ -17,9 +17,15 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <link rel="preload" href="fonts/BraunLinear-Medium.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/BraunLinear-Bold.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/app.css" />
 </head>
-<body>
+<body class="loading">
+  <!-- ===================== PRELOADER ===================== -->
+  <div id="loader" aria-hidden="true">
+    <span id="loader-pct">0%</span>
+  </div>
+
   <!-- ===================== HEADER ===================== -->
   <header id="header">
     <a class="wordmark" href="#top" aria-label="DEON home">
@@ -41,29 +47,46 @@
     <nav class="menu-nav" aria-label="Mobile">
       <a href="#work">Work</a>
       <a href="#studio">Studio</a>
-      <a href="#work-index">Disciplines</a>
+      <a href="#services">Services</a>
       <a href="#contact">Contact</a>
     </nav>
     <div class="menu-socials" id="menu-socials"></div>
   </div>
 
-  <main id="top">
-    <!-- ===================== HERO ===================== -->
-    <section class="hero" id="hero">
-      <!-- Centerpiece slot: your 3D rock model drops in here.
-           Until then, a neutral stone placeholder reacts to scroll. -->
-      <div class="hero-object" id="hero-object" aria-hidden="true">
-        <div class="rock" id="rock"></div>
-      </div>
-      <div class="hero-tag reveal">
+  <!-- ===================== FLY-THROUGH STAGE =====================
+       Fixed full-page 3D layer. Scroll dollies the camera through
+       the wordmark (the counter of the O). The rock drifts past.
+       Replace .rock with your 3D model when it arrives. -->
+  <div id="fly-stage" aria-hidden="true">
+    <div id="fly-world">
+      <div class="rock" id="rock"></div>
+      <div class="fly-word" id="fly-word">DE<span class="fly-o" id="fly-o">O</span>N</div>
+    </div>
+  </div>
+
+  <!-- ===================== HERO OVERLAY (fixed) ===================== -->
+  <section id="hero-fixed" aria-label="Intro">
+    <div class="hero-top">
+      <div class="hero-tag">
         <span class="dot" aria-hidden="true"></span>
         <span id="hero-availability">Available worldwide</span>
       </div>
-      <h1 class="hero-statement reveal" id="hero-statement"></h1>
-      <div class="hero-meta reveal">
-        <span id="hero-location"></span>
-        <a class="hero-cta" href="#contact">Work with us <span aria-hidden="true">→</span></a>
-      </div>
+      <p class="hero-location" id="hero-location"></p>
+      <div class="hero-contacts" id="hero-contacts"></div>
+    </div>
+    <div class="hero-bottom">
+      <h1 class="hero-statement" id="hero-statement"></h1>
+      <p class="scroll-hint">Scroll down <span aria-hidden="true">↓</span></p>
+    </div>
+  </section>
+
+  <main id="top">
+    <!-- Runway: scroll distance consumed by the fly-through -->
+    <div id="runway"></div>
+
+    <!-- ===================== STATEMENT (word-scrub) ===================== -->
+    <section class="section studio" id="studio">
+      <p class="studio-lead" id="studio-intro"></p>
     </section>
 
     <!-- ===================== WORK ===================== -->
@@ -75,44 +98,44 @@
       <div class="grid" id="work-grid"></div>
     </section>
 
-    <!-- ===================== STUDIO / INTRO ===================== -->
-    <section class="section studio" id="studio">
-      <p class="studio-lead reveal" id="studio-intro"></p>
+    <!-- ===================== WHAT WE DO ===================== -->
+    <section class="section whatwedo" id="services">
+      <h2 class="section-label reveal">What we do</h2>
+      <div class="wwd-boxes">
+        <div class="wwd-box wwd-services reveal">
+          <h3 class="wwd-label">Services</h3>
+          <ul class="wwd-list" id="discipline-list"></ul>
+        </div>
+        <div class="wwd-box wwd-clients reveal">
+          <h3 class="wwd-label">Selected collaborators</h3>
+          <p class="wwd-flow" id="client-flow"></p>
+        </div>
+      </div>
     </section>
 
-    <!-- ===================== DISCIPLINES ===================== -->
-    <section class="section index" id="work-index">
-      <h2 class="section-label reveal">Disciplines</h2>
-      <ul class="discipline-list" id="discipline-list"></ul>
-    </section>
-
-    <!-- ===================== CLIENTS ===================== -->
-    <section class="section clients" id="clients" hidden>
-      <h2 class="section-label reveal">Selected collaborators</h2>
-      <div class="client-marquee" aria-hidden="true"><div class="client-track" id="client-track"></div></div>
-    </section>
-
-    <!-- ===================== CONTACT ===================== -->
+    <!-- ===================== CONTACT / CTA (dark) ===================== -->
     <section class="section contact" id="contact">
+      <p class="contact-kicker reveal">Not the end.</p>
       <h2 class="contact-head reveal" id="contact-head"></h2>
+      <a class="contact-cta reveal" id="contact-cta" href="#">Work with us <span aria-hidden="true">→</span></a>
+      <p class="contact-kicker kicker-after reveal">It starts here.</p>
       <div class="contact-grid">
         <div class="contact-channels reveal" id="contact-channels"></div>
         <div class="contact-socials reveal" id="contact-socials"></div>
       </div>
+
+      <footer id="footer">
+        <div class="footer-row">
+          <span id="footer-name">DEON</span>
+          <span id="footer-year"></span>
+        </div>
+        <div class="footer-row footer-sub">
+          <span id="footer-credit"></span>
+          <button class="to-top" id="to-top">Back to top ↑</button>
+        </div>
+      </footer>
     </section>
   </main>
-
-  <!-- ===================== FOOTER ===================== -->
-  <footer id="footer">
-    <div class="footer-row">
-      <span id="footer-name">DEON</span>
-      <span id="footer-year"></span>
-    </div>
-    <div class="footer-row footer-sub">
-      <span id="footer-credit"></span>
-      <button class="to-top" id="to-top">Back to top ↑</button>
-    </div>
-  </footer>
 
   <!-- ===================== LIGHTBOX ===================== -->
   <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Work detail" hidden>

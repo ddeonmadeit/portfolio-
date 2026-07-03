@@ -176,6 +176,28 @@ const onScroll = () => header.classList.toggle('solid', window.scrollY > window.
 window.addEventListener('scroll', onScroll, { passive: true });
 $('#to-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+/* ---------------- scroll-linked motion ----------------
+   Keeps native (momentum) scrolling — important on mobile — and
+   eases the hero centerpiece with a smoothed scroll value so the
+   page feels alive as you scroll. Swap #rock for a 3D model later. */
+function initScrollFX() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const rock = $('#rock');
+  if (!rock) return;
+  let smooth = window.scrollY;
+  const tick = () => {
+    const y = window.scrollY;
+    smooth += (y - smooth) * 0.09;
+    const vh = window.innerHeight || 1;
+    const p = Math.min(Math.max(smooth / vh, 0), 1.4);
+    rock.style.transform =
+      `translate3d(0, ${smooth * 0.16}px, 0) rotate(${smooth * 0.03}deg) scale(${1 + p * 0.12})`;
+    rock.style.opacity = String(Math.max(1 - p * 0.7, 0));
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 /* ---------------- scroll reveals ---------------- */
 function observeReveals() {
   const io = new IntersectionObserver((entries) => {
@@ -221,6 +243,7 @@ async function main() {
   fillFilters();
   fillWork();
   observeReveals();
+  initScrollFX();
   onScroll();
 }
 

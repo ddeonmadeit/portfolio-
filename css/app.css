@@ -106,11 +106,31 @@ body.menu-open .menu { transform: translateY(0); }
 
 /* ---------------- hero ---------------- */
 .hero {
+  position: relative;
   min-height: 100svh;
   padding: 120px var(--pad) 48px;
   display: flex; flex-direction: column; justify-content: flex-end;
   gap: 28px;
+  overflow: hidden;
 }
+/* centerpiece — replace .rock with your 3D model (Three.js / Spline / GLB) */
+.hero-object {
+  position: absolute; inset: 0; z-index: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; will-change: transform;
+}
+.rock {
+  width: min(56vw, 340px); aspect-ratio: 1 / 1;
+  border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%;
+  background:
+    radial-gradient(60% 55% at 38% 32%, #fbfaf7 0%, #e9e7de 34%, #cfccc0 66%, #b3afa1 100%);
+  box-shadow:
+    inset -18px -22px 44px rgba(90, 84, 70, 0.35),
+    inset 20px 24px 40px rgba(255, 255, 255, 0.7),
+    0 40px 80px -30px rgba(60, 56, 46, 0.45);
+  will-change: transform;
+}
+.hero > .hero-tag, .hero > .hero-statement, .hero > .hero-meta { position: relative; z-index: 1; }
 .hero-tag {
   display: inline-flex; align-items: center; gap: 10px;
   font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;

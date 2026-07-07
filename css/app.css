@@ -101,7 +101,7 @@ a { color: inherit; }
   box-shadow: 0 5px 0 var(--ink), 0 -5px 0 var(--ink);
 }
 
-/* ---------- home: card carousel ---------- */
+/* ---------- home: the cave ---------- */
 #home {
   position: absolute;
   inset: 0;
@@ -109,192 +109,140 @@ a { color: inherit; }
   transition: transform 0.5s var(--spring), filter 0.5s ease, opacity 0.5s ease;
 }
 #home.under {
-  transform: scale(0.94);
-  filter: brightness(0.5) saturate(0.8);
+  transform: scale(0.96);
+  filter: brightness(0.45) saturate(0.85);
 }
-
-/* the room behind everything — tinted per category, crossfaded */
-#bgs { position: absolute; inset: 0; }
-#bgs canvas, #bgs img {
+#scene {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  filter: brightness(0.82) saturate(0.92);
-}
-#bgs::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 118%, rgba(10, 3, 4, 0.6), rgba(10, 3, 4, 0.16) 55%, rgba(10, 3, 4, 0.05) 100%);
-}
-
-/* the 3d stage */
-#stage {
-  position: absolute;
-  inset: 0;
-  perspective: 1100px;
-}
-#covers {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  touch-action: pan-y;
-}
-/* stone tablets — slate texture is painted on per card from JS.
-   Light comes from the window: warm catch on the upper-left edge,
-   occlusion lower-right, soft drop into the room. */
-.card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(66vw, 320px);
-  aspect-ratio: 3 / 4.1;
-  margin-top: -4vh;
-  border-radius: 18px;
-  background-color: #1b1515;
-  background-size: cover;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 206, 162, 0.16),
-    inset -1px -2px 0 rgba(0, 0, 0, 0.65),
-    inset 0 0 46px rgba(0, 0, 0, 0.42),
-    0 16px 28px rgba(5, 1, 2, 0.55),
-    0 55px 100px rgba(5, 1, 2, 0.6);
-  padding: 16px 16px 62px;
-  will-change: transform, opacity, filter;
-  backface-visibility: hidden;
-}
-/* window-light wash over the whole slab */
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(152deg, rgba(255, 206, 162, 0.1) 0%, rgba(255, 206, 162, 0) 42%, rgba(8, 3, 4, 0.32) 100%);
-  pointer-events: none;
-}
-/* the slab's shadow pooling on the sand beneath it */
-.card-shadow {
-  position: absolute;
-  left: 4%;
-  right: 4%;
-  bottom: -10%;
-  height: 11%;
-  background: radial-gradient(ellipse at 46% 50%, rgba(4, 1, 2, 0.62), rgba(4, 1, 2, 0) 68%);
-  filter: blur(7px);
-  pointer-events: none;
-}
-.card-thumbs {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: 1fr;
-  gap: 9px;
-  height: 100%;
-}
-/* work art sits recessed into the stone */
-.card-thumbs span {
   display: block;
-  position: relative;
-  border-radius: 7px;
-  overflow: hidden;
-  background: #0d0909;
-  box-shadow: 0 1px 0 rgba(255, 210, 165, 0.09);
-}
-.card-thumbs span::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-}
-.card-thumbs canvas, .card-thumbs img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: brightness(0.9) saturate(0.92);
-}
-/* label carved into the slab */
-.card-label {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 22px;
-  text-align: center;
-  font-weight: 700;
-  font-size: 14px;
-  letter-spacing: 0.38em;
-  text-indent: 0.38em; /* recenters wide tracking */
-  text-transform: uppercase;
-  color: rgba(216, 184, 156, 0.42); /* dust settled in the carving */
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 215, 175, 0.18);
+  touch-action: none;
 }
 
-/* index + blurb under the carousel */
-#caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(54px + env(safe-area-inset-bottom));
-  text-align: center;
-  pointer-events: none;
-}
-#cap-index {
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.34em;
-  color: var(--accent);
-  margin-bottom: 6px;
-  transition: opacity 0.25s;
-}
-#cap-blurb {
-  font-weight: 300;
-  font-size: 15px;
-  color: var(--dim);
-  transition: opacity 0.25s;
-}
-#caption.fade #cap-index, #caption.fade #cap-blurb { opacity: 0; }
-
-/* dots */
-#dots {
+/* camera switcher, bottom right — like a security rig */
+#cams {
   position: fixed;
-  bottom: calc(22px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+  right: 14px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
   z-index: 61;
   display: flex;
-  gap: 7px;
+  flex-direction: column;
+  gap: 9px;
+  align-items: flex-end;
 }
-.dot {
-  width: 18px;
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(244, 227, 208, 0.25);
-  transition: background 0.3s, width 0.35s var(--spring);
+.cam {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  padding: 10px 16px;
+  color: var(--dim);
+  background: rgba(12, 5, 6, 0.55);
+  border: 1px solid rgba(244, 227, 208, 0.22);
+  border-radius: 46% 54% 48% 52% / 58% 44% 56% 42%;
+  transition: transform 0.2s var(--spring), background 0.25s, color 0.25s, border-color 0.25s;
 }
-.dot.on { background: var(--accent); width: 32px; }
+.cam:active { transform: scale(0.92); }
+.cam i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(244, 227, 208, 0.3);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+.cam.on {
+  color: #1b0a08;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.cam.on i {
+  background: #1b0a08;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.35);
+}
+
+/* about pill, bottom left */
+#about-pill {
+  position: fixed;
+  left: 14px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 61;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  padding: 12px 18px;
+  color: var(--ink);
+  background: rgba(12, 5, 6, 0.55);
+  border: 1px solid rgba(244, 227, 208, 0.35);
+  border-radius: 54% 46% 52% 48% / 44% 58% 42% 56%;
+  transition: transform 0.2s var(--spring);
+}
+#about-pill:active { transform: scale(0.92); }
 
 #hint {
   position: fixed;
-  bottom: calc(132px + env(safe-area-inset-bottom));
+  bottom: calc(96px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 61;
   font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.3em;
+  font-size: 11px;
+  letter-spacing: 0.28em;
   color: var(--dim);
-  animation: nudge 2.2s ease-in-out infinite;
+  white-space: nowrap;
   pointer-events: none;
-  transition: opacity 0.4s;
+  opacity: 0;
+  transition: opacity 0.6s;
 }
+#hint.show { opacity: 1; }
 #hint.gone { opacity: 0; }
-@keyframes nudge {
-  0%, 100% { transform: translateX(-50%); }
-  50% { transform: translateX(calc(-50% + 9px)); }
+
+/* ---------- enter gate ---------- */
+#gate {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  background: radial-gradient(ellipse at 50% 60%, #1c0b0c 0%, #0c0304 70%);
+  transition: opacity 0.9s ease, visibility 0.9s;
+  cursor: pointer;
+}
+#gate.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+#gate-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#gate-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -58%);
+  width: min(92vw, 720px);
+  height: auto;
+  pointer-events: none;
+}
+#enter {
+  position: absolute;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em;
+  padding: 16px 30px;
+  color: var(--ink);
+  border: 1px solid rgba(244, 227, 208, 0.4);
+  border-radius: 52% 48% 46% 54% / 46% 56% 44% 54%;
+  animation: breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
 }
 
 /* ---------- category panel ---------- */
@@ -306,7 +254,7 @@ a { color: inherit; }
   flex-direction: column;
   transform: translate3d(0, 103%, 0);
   transition: transform 0.55s var(--spring);
-  border-radius: 22px 22px 0 0;
+  border-radius: 44px 28px 0 0 / 38px 24px 0 0;
   overflow: hidden;
 }
 .panel.in { transform: translate3d(0, 0, 0); }
@@ -530,7 +478,7 @@ a { color: inherit; }
   z-index: 40;
   transform: translate3d(0, 103%, 0);
   transition: transform 0.5s var(--spring);
-  border-radius: 22px 22px 0 0;
+  border-radius: 30px 46px 0 0 / 26px 40px 0 0;
   overflow: hidden;
   touch-action: pan-y;
 }
@@ -616,7 +564,7 @@ a { color: inherit; }
   max-height: 86dvh;
   overflow-y: auto;
   background: linear-gradient(180deg, #2a0f10 0%, #170809 100%);
-  border-radius: 24px 24px 0 0;
+  border-radius: 42px 26px 0 0 / 34px 24px 0 0;
   border-top: 1px solid rgba(244, 227, 208, 0.16);
   padding: 14px 26px calc(44px + env(safe-area-inset-bottom));
   transform: translate3d(0, 103%, 0);
@@ -689,10 +637,11 @@ a { color: inherit; }
 
 /* home chrome steps aside when a layer is open */
 body.layered #topbar,
-body.layered #dots,
+body.layered #cams,
+body.layered #about-pill,
 body.layered #hint {
   opacity: 0;
   pointer-events: none !important;
   transition: opacity 0.25s;
 }
-#topbar, #dots, #hint { transition: opacity 0.25s; }
+#topbar, #cams, #about-pill { transition: opacity 0.25s; }

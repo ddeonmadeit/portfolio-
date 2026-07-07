@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>DEON — design · music · web · video · clothing</title>
   <meta name="description" content="DEON — graphic design, music, websites, videos, clothing." />
-  <meta name="theme-color" content="#160a0c" />
+  <meta name="theme-color" content="#120708" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="css/app.css" />
@@ -13,14 +13,7 @@
 <body>
   <div id="app">
     <main id="home">
-      <div id="bgs" aria-hidden="true"></div>
-      <div id="stage">
-        <div id="covers"></div>
-      </div>
-      <div id="caption">
-        <p id="cap-index"></p>
-        <p id="cap-blurb"></p>
-      </div>
+      <canvas id="scene"></canvas>
     </main>
   </div>
 
@@ -29,8 +22,20 @@
     <button id="wordmark" aria-label="DEON home">DEON</button>
     <button id="menu-btn" aria-label="menu"><span></span></button>
   </div>
-  <div id="dots" aria-hidden="true"></div>
-  <p id="hint">SWIPE →</p>
+  <div id="cams" aria-label="camera angles">
+    <button class="cam on" data-i="0"><i></i>CAMERA 1</button>
+    <button class="cam" data-i="1"><i></i>CAMERA 2</button>
+    <button class="cam" data-i="2"><i></i>CAMERA 3</button>
+  </div>
+  <button id="about-pill">✶ ABOUT US</button>
+  <p id="hint">DRAG TO LOOK · TAP A TABLET</p>
+
+  <!-- enter gate -->
+  <div id="gate">
+    <canvas id="gate-fx" aria-hidden="true"></canvas>
+    <canvas id="gate-logo" aria-hidden="true"></canvas>
+    <button id="enter">TAP TO ENTER</button>
+  </div>
 
   <!-- film layers -->
   <canvas id="grain" aria-hidden="true"></canvas>

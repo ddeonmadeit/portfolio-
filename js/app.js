@@ -1,11 +1,12 @@
 // ============================================================
-//  DEON — the app. Swipeable covers, medium-native category
-//  views, full-screen work takeovers, a menu sheet. Vanilla JS,
-//  springy gestures, browser-back aware.
+//  DEON — the app. A 3D cave home (cave.js), medium-native
+//  category views, full-screen work takeovers, a menu sheet.
+//  Vanilla JS, springy gestures, browser-back aware.
 // ============================================================
 
 import { SITE, CATEGORIES } from './data.js';
-import { roomscape, slateTexture, workArt, wideArt, scenePalette, hashStr, mulberry } from './art.js';
+import { workArt, wideArt, scenePalette, hashStr } from './art.js';
+import { initCave } from './cave.js';
 
 const KEYS = Object.keys(CATEGORIES);
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -15,7 +16,6 @@ const app = $('#app');
 
 // per-category derived palettes + art caches
 const PAL = {};
-const coverCache = {};
 const artCache = {};
 for (const k of KEYS) PAL[k] = scenePalette(CATEGORIES[k].palette);
 
@@ -174,147 +174,87 @@ class Swiper {
 }
 
 // ============================================================
-//  HOME — the five covers
+//  HOME — the cave
 // ============================================================
 
-let homeSwiper = null;
-let swipeHinted = false;
-
-// offset wrapped to (-n/2, n/2] so the carousel is a ring
-function ringOffset(o, n) {
-  o = ((o % n) + n) % n;
-  if (o > n / 2) o -= n;
-  return o;
-}
+let cave = null;
 
 function buildHome() {
-  const track = $('#covers');
-  const bgs = $('#bgs');
-  track.innerHTML = '';
-  bgs.innerHTML = '';
-  const n = KEYS.length;
-
-  // room canvases match the viewport aspect so nothing important crops away
-  const bgW = 720;
-  const bgH = Math.round(bgW * Math.max(0.9, Math.min(2.1, window.innerHeight / Math.max(1, window.innerWidth))));
-
-  KEYS.forEach((key, i) => {
-    const cat = CATEGORIES[key];
-
-    // the room, tinted per category
-    if (!coverCache[key]) {
-      coverCache[key] = roomscape({ seed: hashStr(key) + 7, w: bgW, h: bgH, pal: PAL[key] });
-    }
-    const bg = cloneArt(coverCache[key]);
-    bg.dataset.i = i;
-    bgs.appendChild(bg);
-
-    // the tablet: hewn stone slab, recessed work thumbnails, carved label
-    const card = document.createElement('article');
-    card.className = 'card';
-    card.dataset.key = key;
-    card.dataset.i = i;
-    const rr = mulberry(hashStr(key) ^ 0xbeef);
-    const r = () => `${Math.round(13 + rr() * 8)}px`;
-    card.style.borderRadius = `${r()} ${r()} ${r()} ${r()} / ${r()} ${r()} ${r()} ${r()}`;
-    card.style.backgroundImage = `url(${slateTexture(hashStr(key) ^ 0x51a7e).toDataURL()})`;
-
-    const thumbs = document.createElement('div');
-    thumbs.className = 'card-thumbs';
-    const cells = 6;
-    for (let c = 0; c < cells; c++) {
-      const wi = c % cat.works.length;
-      const cell = document.createElement('span');
-      cell.appendChild(getWorkArt(key, wi, { thumb: true }));
-      thumbs.appendChild(cell);
-    }
-    const label = document.createElement('span');
-    label.className = 'card-label';
-    label.textContent = cat.short;
-    const shade = document.createElement('span');
-    shade.className = 'card-shadow';
-    card.append(shade, thumbs, label);
-    track.appendChild(card);
+  cave = initCave({
+    canvas: $('#scene'),
+    onTablet: (key) => openCategory(key),
+    onHey: () => openMenu(),
   });
+  cave.onFirstDrag(() => $('#hint').classList.add('gone'));
 
-  const bgLayers = [...bgs.children];
+  document.querySelectorAll('#cams .cam').forEach((b) => {
+    b.addEventListener('click', () => selectCam(+b.dataset.i));
+  });
+  $('#about-pill').addEventListener('click', () => openMenu());
+}
 
-  const renderCards = (x, w, slides) => {
-    slides.forEach((s, i) => {
-      const o = ringOffset((x + i * w) / w, n); // 0 when centered
-      const a = Math.abs(o);
-      s.style.transform =
-        `translate(-50%, -50%) translateX(${o * w * 1.06}px) ` +
-        `rotateY(${-o * 16}deg) scale(${Math.max(0.6, 1 - a * 0.1)}) translateZ(${-a * 120}px)`;
-      // neighbours stay present, then fade fast before the ring seam at ±n/2
-      s.style.opacity = String(a < 1 ? 1 - a * 0.22 : Math.max(0, 0.78 - (a - 1) * 0.68));
-      s.style.zIndex = String(100 - Math.round(a * 10));
-      s.style.filter = `brightness(${Math.max(0.4, 1 - a * 0.3)})`;
-    });
-    // crossfade room tints
-    bgLayers.forEach((b, i) => {
-      const a = Math.abs(ringOffset((x + i * w) / w, n));
-      b.style.opacity = String(Math.max(0, 1 - a));
-    });
+function selectCam(i) {
+  const on = cave.setCamera(i);
+  document.querySelectorAll('#cams .cam').forEach((b) => b.classList.toggle('on', +b.dataset.i === on));
+}
+
+// ---- the enter gate: ember field + melted wordmark ----
+function buildGate() {
+  const gate = $('#gate');
+  const fx = $('#gate-fx');
+  const logo = $('#gate-logo');
+
+  const fctx = fx.getContext('2d');
+  const sizeFx = () => { fx.width = Math.ceil(innerWidth / 2); fx.height = Math.ceil(innerHeight / 2); };
+  sizeFx();
+  window.addEventListener('resize', sizeFx);
+  const embers = Array.from({ length: 90 }, () => ({
+    x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 1.4, r: Math.random() * 7,
+  }));
+
+  // wordmark drawn once, then re-drawn as warped slices
+  const W = 1000, H = 340;
+  const off = document.createElement('canvas');
+  off.width = W; off.height = H;
+  const octx = off.getContext('2d');
+  octx.font = "700 205px 'Braun', sans-serif";
+  octx.textAlign = 'center';
+  octx.textBaseline = 'middle';
+  octx.fillStyle = '#f4e3d0';
+  octx.fillText('DEON', W / 2, H / 2);
+  logo.width = W; logo.height = H;
+  const lctx = logo.getContext('2d');
+
+  let t = 0, raf = 0;
+  const loop = () => {
+    t += 0.016;
+    fctx.clearRect(0, 0, fx.width, fx.height);
+    for (const e of embers) {
+      e.y -= 0.0011 * e.s;
+      if (e.y < -0.02) e.y = 1.02;
+      const x = (e.x + Math.sin(t * 0.3 + e.r) * 0.012) * fx.width;
+      fctx.fillStyle = `rgba(255,190,130,${0.1 + 0.28 * Math.abs(Math.sin(t * 0.8 + e.r))})`;
+      fctx.fillRect(x, e.y * fx.height, e.s, e.s);
+    }
+    lctx.clearRect(0, 0, W, H);
+    const slice = 8;
+    for (let x = 0; x < W; x += slice) {
+      const dy = Math.sin(x * 0.012 + t * 1.1) * 15 + Math.sin(x * 0.033 - t * 0.7) * 7;
+      const sx = Math.sin(x * 0.02 + t * 0.5) * 3;
+      lctx.drawImage(off, x, 0, slice, H, x + sx, dy, slice, H);
+    }
+    raf = requestAnimationFrame(loop);
   };
+  loop();
 
-  homeSwiper = new Swiper(track, {
-    loop: true,
-    unit: () => Math.min(300, window.innerWidth * 0.62),
-    renderFn: renderCards,
-    onIndex: (i) => {
-      setDots(i);
-      setAccent(KEYS[i]);
-      setCaption(i);
-      if (!swipeHinted) { swipeHinted = true; $('#hint').classList.add('gone'); }
-    },
-    onTap: (i, e) => {
-      // pointer capture retargets events to the track, so hit-test manually
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const card = el && el.closest('.card');
-      if (!card) return;
-      const ti = +card.dataset.i;
-      if (ti !== i) springToNearest(ti);
-      else openCategory(KEYS[ti]);
-    },
-  });
-
-  function setCaption(i) {
-    const cap = $('#caption');
-    cap.classList.add('fade');
-    setTimeout(() => {
-      $('#cap-index').textContent = `${String(i + 1).padStart(2, '0')} / ${String(KEYS.length).padStart(2, '0')}`;
-      $('#cap-blurb').textContent = CATEGORIES[KEYS[i]].blurb;
-      cap.classList.remove('fade');
-    }, 160);
-  }
-
-  const dots = $('#dots');
-  dots.innerHTML = KEYS.map((_, i) => `<button class="dot" data-i="${i}" aria-label="category ${i + 1}"></button>`).join('');
-  dots.addEventListener('click', (e) => {
-    const b = e.target.closest('.dot');
-    if (b) springToNearest(+b.dataset.i);
-  });
-
-  // initial state
-  $('#cap-index').textContent = `01 / ${String(KEYS.length).padStart(2, '0')}`;
-  $('#cap-blurb').textContent = CATEGORIES[KEYS[0]].blurb;
-  bgLayers[0].style.opacity = '1';
-  setDots(0);
-  setAccent(KEYS[0]);
+  gate.addEventListener('pointerup', () => {
+    gate.classList.add('gone');
+    $('#hint').classList.add('show');
+    setTimeout(() => $('#hint').classList.add('gone'), 8000);
+    setTimeout(() => { cancelAnimationFrame(raf); gate.remove(); }, 900);
+  }, { once: true });
 }
 
-// spring to logical slide i via the shortest way around the ring
-function springToNearest(i) {
-  const n = KEYS.length;
-  let delta = (((i - homeSwiper.index) % n) + n) % n;
-  if (delta > n / 2) delta -= n;
-  homeSwiper.springTo(homeSwiper.pos + delta);
-}
-
-function setDots(i) {
-  document.querySelectorAll('#dots .dot').forEach((d, di) => d.classList.toggle('on', di === i));
-}
 function setAccent(key) {
   const p = CATEGORIES[key].palette;
   document.documentElement.style.setProperty('--accent', hex(p.glow));
@@ -396,7 +336,7 @@ function hideCategory() {
   $('#home').classList.remove('under');
   if (!panel) return;
   panel.classList.remove('in');
-  setAccent(KEYS[homeSwiper.index]);
+  setAccent(KEYS[0]);
   setTimeout(() => panel.remove(), 450);
 }
 
@@ -631,7 +571,7 @@ function dragDismiss(moveEl, handleEl, canStart = null, classEl = null) {
 
 $('#wordmark').addEventListener('click', () => {
   if (layers.cat || layers.menu) history.back();
-  else springToNearest(0);
+  else selectCam(0);
 });
 $('#menu-btn').addEventListener('click', openMenu);
 
@@ -640,8 +580,9 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') history.back();
     return;
   }
-  if (e.key === 'ArrowRight') homeSwiper.springTo(homeSwiper.pos + 1);
-  if (e.key === 'ArrowLeft') homeSwiper.springTo(homeSwiper.pos - 1);
+  if (e.key === 'ArrowRight') selectCam(cave.camIndex + 1);
+  if (e.key === 'ArrowLeft') selectCam(cave.camIndex - 1);
+  if (e.key === '1' || e.key === '2' || e.key === '3') selectCam(+e.key - 1);
 });
 
 // animated grain
@@ -664,7 +605,9 @@ window.addEventListener('keydown', (e) => {
 
 history.replaceState({}, '');
 buildHome();
+buildGate();
 window.__deon = {
   open: openCategory,
-  state: () => ({ ...layers, index: homeSwiper.index }),
+  cam: (i) => selectCam(i),
+  state: () => ({ ...layers, cam: cave.camIndex }),
 };

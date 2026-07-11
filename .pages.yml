@@ -48,11 +48,6 @@ content:
           - { name: title, label: Title, type: string }
           - { name: desc, label: Description, type: string }
 
-      - name: clients
-        label: Collaborators (marquee)
-        type: string
-        list: true
-
       - name: work
         label: Work
         type: object

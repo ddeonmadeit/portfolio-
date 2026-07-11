@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>DEON — Creative Studio</title>
   <meta name="description" content="DEON — independent creative studio for graphic design, music, web, video and clothing." />
-  <meta name="theme-color" content="#f4f3ef" />
-  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#0d0c0a" />
+  <meta name="color-scheme" content="dark" />
 
   <!-- Open Graph / social share -->
   <meta property="og:title" content="DEON — Creative Studio" />
@@ -14,7 +14,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/og.jpg" />
 
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <link rel="preload" href="fonts/BraunLinear-Medium.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="fonts/BraunLinear-Bold.woff2" as="font" type="font/woff2" crossorigin />
@@ -59,7 +59,7 @@
        Replace .rock with your 3D model when it arrives. -->
   <div id="fly-stage" aria-hidden="true">
     <div id="fly-world">
-      <div class="rock" id="rock"></div>
+      <canvas class="rock" id="rock"></canvas>
       <div class="fly-word" id="fly-word">DE<span class="fly-o" id="fly-o">O</span>N</div>
     </div>
   </div>
@@ -72,7 +72,6 @@
         <span id="hero-availability">Available worldwide</span>
       </div>
       <p class="hero-location" id="hero-location"></p>
-      <div class="hero-contacts" id="hero-contacts"></div>
     </div>
     <div class="hero-bottom">
       <h1 class="hero-statement" id="hero-statement"></h1>
@@ -99,18 +98,9 @@
     </section>
 
     <!-- ===================== WHAT WE DO ===================== -->
-    <section class="section whatwedo" id="services">
+    <section class="section services" id="services">
       <h2 class="section-label reveal">What we do</h2>
-      <div class="wwd-boxes">
-        <div class="wwd-box wwd-services reveal">
-          <h3 class="wwd-label">Services</h3>
-          <ul class="wwd-list" id="discipline-list"></ul>
-        </div>
-        <div class="wwd-box wwd-clients reveal">
-          <h3 class="wwd-label">Selected collaborators</h3>
-          <p class="wwd-flow" id="client-flow"></p>
-        </div>
-      </div>
+      <ul class="service-list" id="discipline-list"></ul>
     </section>
 
     <!-- ===================== CONTACT / CTA (dark) ===================== -->
@@ -118,7 +108,6 @@
       <p class="contact-kicker reveal">Not the end.</p>
       <h2 class="contact-head reveal" id="contact-head"></h2>
       <a class="contact-cta reveal" id="contact-cta" href="#">Work with us <span aria-hidden="true">→</span></a>
-      <p class="contact-kicker kicker-after reveal">It starts here.</p>
       <div class="contact-grid">
         <div class="contact-channels reveal" id="contact-channels"></div>
         <div class="contact-socials reveal" id="contact-socials"></div>

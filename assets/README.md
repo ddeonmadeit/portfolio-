@@ -16,22 +16,23 @@ Drop your image files into this folder, then point to them from
 Until an `img` is set, a clean placeholder tile shows automatically, so the
 site always looks complete.
 
-## Add your logo
+## Logo
 
-Two options:
+`logo-mark.png` / `logo-mark-512.png` — the studio mark (transparent
+background, white glyph), used to carve the logo into the 3D rock in
+`js/rock.js`. `favicon.png` and `apple-touch-icon.png` are generated from
+the same mark on a dark rounded tile — regenerate them if you replace the
+logo (crop/threshold to a clean transparent PNG, then composite onto a
+`#0d0c0a` rounded square at 512px and 180px).
 
-- **Text wordmark (current):** leave as-is in `index.html`.
-- **Image logo:** save `assets/logo.svg` (or `.png`), then in `index.html`
-  replace the `<span class="wordmark-text">DEON</span>` inside the header
-  `.wordmark` link with:
-  ```html
-  <img src="assets/logo.svg" alt="DEON" style="height:22px" />
-  ```
+To also swap the text wordmark in the header for the image logo, replace
+`<span class="wordmark-text">DEON</span>` in `index.html` with:
+```html
+<img src="assets/logo-mark.png" alt="DEON" style="height:22px" />
+```
 
 ## Recommended files (optional but nice)
 
-- `favicon.svg` — browser tab icon (a placeholder is already included).
-- `apple-touch-icon.png` — 180×180, home-screen icon on iOS.
 - `og.jpg` — 1200×630, the preview image when the link is shared.
 
 ## Image tips for fast mobile loading

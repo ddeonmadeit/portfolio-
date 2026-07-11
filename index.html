@@ -2,52 +2,155 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <title>DEON — design · music · web · video · clothing</title>
-  <meta name="description" content="DEON — graphic design, music, websites, videos, clothing." />
-  <meta name="theme-color" content="#120708" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>DEON — Creative Studio</title>
+  <meta name="description" content="DEON — independent creative studio for graphic design, music, web, video and clothing." />
+  <meta name="theme-color" content="#f4f3ef" />
+  <meta name="color-scheme" content="light" />
+
+  <!-- Open Graph / social share -->
+  <meta property="og:title" content="DEON — Creative Studio" />
+  <meta property="og:description" content="Design · Music · Web · Video · Clothing. Made from scratch." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/og.jpg" />
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preload" href="fonts/BraunLinear-Medium.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/BraunLinear-Bold.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/app.css" />
 </head>
-<body>
-  <div id="app">
-    <main id="home">
-      <canvas id="scene"></canvas>
-    </main>
+<body class="loading">
+  <!-- ===================== PRELOADER ===================== -->
+  <div id="loader" aria-hidden="true">
+    <span id="loader-pct">0%</span>
   </div>
 
-  <!-- chrome -->
-  <div id="topbar">
-    <button id="wordmark" aria-label="DEON home">DEON</button>
-    <button id="menu-btn" aria-label="menu"><span></span></button>
-  </div>
-  <div id="cams" aria-label="camera angles">
-    <button class="cam on" data-i="0"><i></i>CAMERA 1</button>
-    <button class="cam" data-i="1"><i></i>CAMERA 2</button>
-    <button class="cam" data-i="2"><i></i>CAMERA 3</button>
-  </div>
-  <button id="about-pill">✶ ABOUT US</button>
-  <p id="hint">DRAG TO LOOK · TAP A TABLET</p>
+  <!-- ===================== HEADER ===================== -->
+  <header id="header">
+    <a class="wordmark" href="#top" aria-label="DEON home">
+      <!-- Swap this text for an <img> logo later, see assets/README -->
+      <span class="wordmark-text">DEON</span>
+    </a>
+    <nav class="nav-desktop" aria-label="Primary">
+      <a href="#work">Work</a>
+      <a href="#studio">Studio</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button id="menu-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
+      <span></span><span></span>
+    </button>
+  </header>
 
-  <!-- enter gate -->
-  <div id="gate">
-    <canvas id="gate-fx" aria-hidden="true"></canvas>
-    <canvas id="gate-logo" aria-hidden="true"></canvas>
-    <button id="enter">TAP TO ENTER</button>
+  <!-- ===================== MOBILE MENU ===================== -->
+  <div id="menu" class="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
+    <nav class="menu-nav" aria-label="Mobile">
+      <a href="#work">Work</a>
+      <a href="#studio">Studio</a>
+      <a href="#services">Services</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="menu-socials" id="menu-socials"></div>
   </div>
 
-  <!-- film layers -->
-  <canvas id="grain" aria-hidden="true"></canvas>
-  <div id="vignette" aria-hidden="true"></div>
+  <!-- ===================== FLY-THROUGH STAGE =====================
+       Fixed full-page 3D layer. Scroll dollies the camera through
+       the wordmark (the counter of the O). The rock drifts past.
+       Replace .rock with your 3D model when it arrives. -->
+  <div id="fly-stage" aria-hidden="true">
+    <div id="fly-world">
+      <div class="rock" id="rock"></div>
+      <div class="fly-word" id="fly-word">DE<span class="fly-o" id="fly-o">O</span>N</div>
+    </div>
+  </div>
 
-  <script>
-    Promise.all([
-      document.fonts.load("700 100px 'Braun'"),
-      document.fonts.load("500 16px 'Braun'"),
-      document.fonts.load("300 16px 'Braun'"),
-      document.fonts.load("200 16px 'Braun'"),
-    ]).catch(() => {}).finally(() => import('./js/app.js'));
-  </script>
+  <!-- ===================== HERO OVERLAY (fixed) ===================== -->
+  <section id="hero-fixed" aria-label="Intro">
+    <div class="hero-top">
+      <div class="hero-tag">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="hero-availability">Available worldwide</span>
+      </div>
+      <p class="hero-location" id="hero-location"></p>
+      <div class="hero-contacts" id="hero-contacts"></div>
+    </div>
+    <div class="hero-bottom">
+      <h1 class="hero-statement" id="hero-statement"></h1>
+      <p class="scroll-hint">Scroll down <span aria-hidden="true">↓</span></p>
+    </div>
+  </section>
+
+  <main id="top">
+    <!-- Runway: scroll distance consumed by the fly-through -->
+    <div id="runway"></div>
+
+    <!-- ===================== STATEMENT (word-scrub) ===================== -->
+    <section class="section studio" id="studio">
+      <p class="studio-lead" id="studio-intro"></p>
+    </section>
+
+    <!-- ===================== WORK ===================== -->
+    <section class="section work" id="work">
+      <div class="section-head reveal">
+        <h2 class="section-label">Selected work</h2>
+        <div class="filters" id="filters" role="tablist" aria-label="Filter work"></div>
+      </div>
+      <div class="grid" id="work-grid"></div>
+    </section>
+
+    <!-- ===================== WHAT WE DO ===================== -->
+    <section class="section whatwedo" id="services">
+      <h2 class="section-label reveal">What we do</h2>
+      <div class="wwd-boxes">
+        <div class="wwd-box wwd-services reveal">
+          <h3 class="wwd-label">Services</h3>
+          <ul class="wwd-list" id="discipline-list"></ul>
+        </div>
+        <div class="wwd-box wwd-clients reveal">
+          <h3 class="wwd-label">Selected collaborators</h3>
+          <p class="wwd-flow" id="client-flow"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONTACT / CTA (dark) ===================== -->
+    <section class="section contact" id="contact">
+      <p class="contact-kicker reveal">Not the end.</p>
+      <h2 class="contact-head reveal" id="contact-head"></h2>
+      <a class="contact-cta reveal" id="contact-cta" href="#">Work with us <span aria-hidden="true">→</span></a>
+      <p class="contact-kicker kicker-after reveal">It starts here.</p>
+      <div class="contact-grid">
+        <div class="contact-channels reveal" id="contact-channels"></div>
+        <div class="contact-socials reveal" id="contact-socials"></div>
+      </div>
+
+      <footer id="footer">
+        <div class="footer-row">
+          <span id="footer-name">DEON</span>
+          <span id="footer-year"></span>
+        </div>
+        <div class="footer-row footer-sub">
+          <span id="footer-credit"></span>
+          <button class="to-top" id="to-top">Back to top ↑</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <!-- ===================== LIGHTBOX ===================== -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Work detail" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
+    <div class="lightbox-inner">
+      <div class="lightbox-media" id="lightbox-media"></div>
+      <div class="lightbox-info">
+        <p class="lightbox-cat" id="lightbox-cat"></p>
+        <h3 class="lightbox-title" id="lightbox-title"></h3>
+        <p class="lightbox-desc" id="lightbox-desc"></p>
+        <a class="lightbox-link" id="lightbox-link" target="_blank" rel="noopener" hidden>Open ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

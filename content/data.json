@@ -1,0 +1,48 @@
+{
+  "site": {
+    "name": "DEON",
+    "statement": "Independent creative studio for design, music, web, video & clothing.",
+    "availability": "Available worldwide",
+    "location": "Working everywhere · Based online",
+    "intro": [
+      "DEON is a one-person, multidisciplinary studio.",
+      "Graphic design, music, websites, videos and clothing — different mediums, same hands. Everything here is made from scratch."
+    ],
+    "contactHeading": "Let's make something.",
+    "channels": [
+      { "label": "Work & commissions", "email": "ddeonmadeit@gmail.com" },
+      { "label": "General", "email": "ddeonmadeit@gmail.com" }
+    ],
+    "socials": [
+      { "label": "Instagram", "url": "https://instagram.com/ddeonmadeit" },
+      { "label": "YouTube", "url": "https://youtube.com/@ddeonmadeit" },
+      { "label": "SoundCloud", "url": "https://soundcloud.com/ddeonmadeit" }
+    ],
+    "credit": "Site by DEON"
+  },
+  "disciplines": [
+    { "n": "01", "title": "Graphic Design", "desc": "Posters, identities, cover art, layout." },
+    { "n": "02", "title": "Music", "desc": "Songs, beats, production, sound." },
+    { "n": "03", "title": "Web", "desc": "Websites and interactive experiments." },
+    { "n": "04", "title": "Video", "desc": "Music videos, edits, motion." },
+    { "n": "05", "title": "Clothing", "desc": "Pieces, drops and one-offs." }
+  ],
+  "clients": [
+    "Your Client", "A Brand", "An Artist", "A Label",
+    "A Studio", "A Magazine", "A Festival", "A Shop"
+  ],
+  "work": [
+    { "title": "Poster 001", "cat": "design", "year": "2025", "ratio": "portrait", "img": "", "link": "", "desc": "Riso-style gig poster, two colours, heavy type." },
+    { "title": "Identity — Smoke", "cat": "design", "year": "2025", "ratio": "landscape", "img": "", "link": "", "desc": "Full brand identity — mark, type system, layout." },
+    { "title": "Mirage", "cat": "music", "year": "2025", "ratio": "square", "img": "", "link": "", "desc": "Single — tape-saturated, slow burn. Add your streaming link." },
+    { "title": "Music Video — Mirage", "cat": "video", "year": "2025", "ratio": "landscape", "img": "", "link": "", "desc": "Shot and edited in-house. Link your YouTube/Vimeo." },
+    { "title": "Tee — Dust Run", "cat": "clothing", "year": "2025", "ratio": "portrait", "img": "", "link": "", "desc": "Heavyweight tee, single front print." },
+    { "title": "This Site", "cat": "web", "year": "2026", "ratio": "landscape", "img": "", "link": "", "desc": "Built from scratch — no templates." },
+    { "title": "Cover Art — Dust", "cat": "design", "year": "2024", "ratio": "square", "img": "", "link": "", "desc": "Single cover, scanned textures, heavy type." },
+    { "title": "Heat Haze", "cat": "music", "year": "2024", "ratio": "square", "img": "", "link": "", "desc": "Instrumental, late-drive music." },
+    { "title": "Recap Tape 24", "cat": "video", "year": "2024", "ratio": "portrait", "img": "", "link": "", "desc": "A year compressed into three minutes of grain." },
+    { "title": "Hoodie — Static", "cat": "clothing", "year": "2024", "ratio": "portrait", "img": "", "link": "", "desc": "Over-dyed, screen printed by hand." },
+    { "title": "Shop Concept", "cat": "web", "year": "2025", "ratio": "landscape", "img": "", "link": "", "desc": "Storefront experiment, brutalist checkout." },
+    { "title": "Zine No.3", "cat": "design", "year": "2024", "ratio": "portrait", "img": "", "link": "", "desc": "24 pages of collage." }
+  ]
+}

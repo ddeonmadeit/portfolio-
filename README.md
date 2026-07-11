@@ -1,59 +1,62 @@
-# DEON — portfolio app
+# DEON — creative studio portfolio
 
-A mobile-first portfolio that feels like an app. You land on a springy
-3D carousel of five cards — **graphic design, music, websites, videos,
-clothing** — each card a grid of work thumbnails over a crimson
-dunescape atmosphere with a giant ghost title drifting behind. Tap a
-card and the category slides up, laid out natively for its medium:
+A light, minimal, mobile-first portfolio site for a multidisciplinary
+studio — **graphic design, music, web, video, clothing**. Single page:
+sticky header, big statement hero, filterable work grid with a lightbox,
+studio note, disciplines index, collaborators marquee, contact and footer.
 
-- **MUSIC** — player-style track list
-- **VIDEOS** — big thumbnails
-- **CLOTHING** — full-screen lookbook swipe
-- **DESIGN** — two-column poster grid
-- **WEBSITES** — large site cards with visit links
+No framework, no build step — plain HTML, CSS and ES modules. All content
+lives in one file so it's easy to edit and add your own photos.
 
-Tap any piece for a full-screen takeover with details and a link.
-The corner menu opens a bottom sheet with about, contact and socials.
-Browser/phone back buttons work everywhere; sheets and panels can be
-flicked away. Set in **Braun Linear** (owner-supplied, five weights).
+## Edit the content
 
-All placeholder art is generated at runtime — seeded crimson dunescapes
-with birds in the haze — so the site ships with zero image assets.
+Everything is in **`js/data.js`**:
+
+- `SITE` — name, hero statement, availability, intro, contact, socials.
+- `DISCIPLINES` — the numbered services index.
+- `CLIENTS` — collaborators marquee (empty the array to hide the section).
+- `FILTERS` / `WORK` — the work grid. Each work has a `title`, `cat`,
+  `year`, `ratio`, optional `img` and `link`, and a `desc`.
+
+## Add photos & your logo
+
+See **`assets/README.md`**. Short version: drop image files in `assets/`
+and set `img: 'assets/your-file.jpg'` on the matching `WORK` item. For a
+logo, add `assets/logo.svg` and swap the wordmark in `index.html`. Until
+then, clean placeholder tiles are shown so the site always looks finished.
 
 ## Run it locally
 
-No build step, no dependencies:
+ES modules need a server (opening the file directly won't work):
 
 ```bash
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-(ES modules need a server — opening index.html from disk won't work.)
+## Deploy to Vercel
 
-## Put your real work in
+This repo is ready for Vercel with no configuration — it's a static site.
 
-Everything editable lives in **`js/data.js`**:
+1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+2. **Add New… → Project**, then import this repository.
+3. Framework preset: **Other**. Leave build command and output empty.
+   (Vercel serves the repo root as static files.)
+4. Click **Deploy**. You get a `*.vercel.app` URL immediately.
 
-- `SITE` — name, about text, email, social links.
-- `CATEGORIES` — each category's `works` list: `title`, `year`, `desc`,
-  optional `link` (adds an OPEN button), optional `img` (path to a file
-  in `assets/`, replaces the generated art everywhere, including the
-  home card and backdrop).
+Every push to the connected branch redeploys automatically. `vercel.json`
+adds long-cache headers for fonts and assets plus basic security headers.
 
-## Deploy
-
-Pushes to the main branches auto-deploy to GitHub Pages via
-`.github/workflows/pages.yml`. Live at
-`https://ddeonmadeit.github.io/portfolio-/`.
+To connect a custom domain: Vercel project → **Settings → Domains**.
 
 ## Structure
 
 ```
-index.html       app shell + font preload
-css/app.css      all styles (Braun Linear @font-faces at the top)
-js/data.js       ← ALL CONTENT LIVES HERE
-js/app.js        swiper physics, navigation, views, sheet
-js/art.js        seeded dunescape / placeholder art generators
-fonts/           Braun Linear woff2 (5 weights)
+index.html        markup + meta tags
+css/app.css        all styles (Braun Linear @font-faces at the top)
+js/data.js         ← ALL CONTENT LIVES HERE
+js/app.js          rendering, nav, filtering, lightbox, scroll reveals
+fonts/             Braun Linear woff2 (5 weights)
+assets/            your photos + logo + favicon (see assets/README.md)
+vercel.json        static hosting config
 ```

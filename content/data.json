@@ -5,8 +5,7 @@
     "availability": "Available worldwide",
     "location": "Working everywhere · Based online",
     "intro": [
-      "DEON is a one-person, multidisciplinary studio.",
-      "Graphic design, music, websites, videos and clothing — different mediums, same hands. Everything here is made from scratch."
+      "DEON is a one-person, multidisciplinary studio — design, music, web, video, clothing, made from scratch."
     ],
     "contactHeading": "Let's make something.",
     "channels": [
@@ -26,10 +25,6 @@
     { "n": "03", "title": "Web", "desc": "Websites and interactive experiments." },
     { "n": "04", "title": "Video", "desc": "Music videos, edits, motion." },
     { "n": "05", "title": "Clothing", "desc": "Pieces, drops and one-offs." }
-  ],
-  "clients": [
-    "Your Client", "A Brand", "An Artist", "A Label",
-    "A Studio", "A Magazine", "A Festival", "A Shop"
   ],
   "work": [
     { "title": "Poster 001", "cat": "design", "year": "2025", "ratio": "portrait", "img": "", "link": "", "desc": "Riso-style gig poster, two colours, heavy type." },

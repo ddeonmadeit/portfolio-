@@ -17,7 +17,7 @@ const FILTERS = [
 ];
 
 // Filled once content/data.json loads.
-let SITE, DISCIPLINES, CLIENTS, WORK;
+let SITE, DISCIPLINES, WORK;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -36,17 +36,6 @@ function fillText() {
   $('#hero-statement').textContent = SITE.statement;
   $('#hero-availability').textContent = SITE.availability;
   $('#hero-location').textContent = SITE.location;
-
-  // hero contact rows (label + email), podium-style top block
-  const hc = $('#hero-contacts');
-  SITE.contact.channels.forEach(c => {
-    const row = el('div', 'hc-row');
-    row.append(el('span', 'hc-label', c.label));
-    const a = el('a', null, c.email);
-    a.href = `mailto:${c.email}`;
-    row.append(a);
-    hc.append(row);
-  });
 
   // statement — split into word spans for the scroll scrub
   const intro = $('#studio-intro');
@@ -84,7 +73,6 @@ function fillText() {
 function fillDisciplines() {
   const list = $('#discipline-list');
   DISCIPLINES.forEach(d => list.append(el('li', null, d.title)));
-  $('#client-flow').textContent = (CLIENTS || []).join(', ') + (CLIENTS?.length ? '.' : '');
 }
 
 /* ---------------- work grid ---------------- */
@@ -184,6 +172,15 @@ $('#to-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior:
 const PERSPECTIVE = 900;    // must match #fly-stage CSS
 const DOLLY_MAX = 872;      // stop just before the word plane crosses the camera
 
+function webglSupported() {
+  try {
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch {
+    return false;
+  }
+}
+
 function initFlyThrough() {
   const stage = $('#fly-stage');
   const world = $('#fly-world');
@@ -195,6 +192,15 @@ function initFlyThrough() {
   const words = $$('.w', lead);
 
   if (REDUCED) { words.forEach(w => w.classList.add('on')); return; }
+
+  // realistic 3D rock — small, self-contained, loaded only when it can
+  // actually run and only after the fly-through itself has booted
+  let rockCtl = null;
+  if (webglSupported()) {
+    import('./rock.js')
+      .then(mod => { rockCtl = mod.initRock($('#rock')); })
+      .catch(() => { rockCtl = null; });
+  }
 
   // Offset from the O's centre to the viewport centre — translating the
   // world by this keeps the O dead-centre, so the dolly flies through it.
@@ -210,8 +216,13 @@ function initFlyThrough() {
 
   let smooth = window.scrollY;
   let wordCount = -1;
+  let lastT = performance.now();
 
   const tick = () => {
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+
     smooth += (window.scrollY - smooth) * 0.085;
 
     const H = Math.max(runway.offsetHeight - innerHeight, 1);
@@ -234,7 +245,9 @@ function initFlyThrough() {
     overlay.style.visibility = op <= 0.001 ? 'hidden' : 'visible';
 
     // hide the stage once the fly-through is done
-    stage.style.visibility = p >= 0.995 ? 'hidden' : 'visible';
+    const stageVisible = p < 0.995;
+    stage.style.visibility = stageVisible ? 'visible' : 'hidden';
+    if (rockCtl && stageVisible && !document.hidden) rockCtl.render(dt);
 
     // statement word scrub — words light up as the block crosses the view
     const lr = lead.getBoundingClientRect();
@@ -305,7 +318,6 @@ async function main() {
     contact: { heading: data.site.contactHeading, channels: data.site.channels || [] },
   };
   DISCIPLINES = data.disciplines || [];
-  CLIENTS = data.clients || [];
   WORK = data.work || [];
 
   fillText();

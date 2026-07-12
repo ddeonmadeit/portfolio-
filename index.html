@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>DEON — Creative Studio</title>
-  <meta name="description" content="DEON — independent creative studio for graphic design, music, web, video and clothing." />
+  <title>DEON — Independent Creative</title>
+  <meta name="description" content="DEON — independent creative direction and production across design, music, web, video and clothing." />
   <meta name="theme-color" content="#0d0c0a" />
   <meta name="color-scheme" content="dark" />
 
-  <!-- Open Graph / social share -->
-  <meta property="og:title" content="DEON — Creative Studio" />
-  <meta property="og:description" content="Design · Music · Web · Video · Clothing. Made from scratch." />
+  <meta property="og:title" content="DEON — Independent Creative" />
+  <meta property="og:description" content="Creative direction & production across design, music, web, video and clothing." />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="assets/og.jpg" />
 
@@ -21,21 +20,21 @@
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body class="loading">
-  <!-- ===================== PRELOADER ===================== -->
+  <!-- ===================== LOADER ===================== -->
   <div id="loader" aria-hidden="true">
-    <span id="loader-pct">0%</span>
+    <span class="loader-dot"></span>
+    <span id="loader-pct" class="loader-pct">0%</span>
   </div>
 
   <!-- ===================== HEADER ===================== -->
   <header id="header">
     <a class="wordmark" href="#top" aria-label="DEON home">
-      <!-- Swap this text for an <img> logo later, see assets/README -->
       <span class="wordmark-text">DEON</span>
     </a>
     <nav class="nav-desktop" aria-label="Primary">
-      <a href="#work">Work</a>
-      <a href="#studio">Studio</a>
-      <a href="#contact">Contact</a>
+      <button type="button" data-scroll-to="#work">Work</button>
+      <button type="button" data-scroll-to="#studio">About</button>
+      <button type="button" id="nav-contact">Contact</button>
     </nav>
     <button id="menu-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
       <span></span><span></span>
@@ -44,98 +43,99 @@
 
   <!-- ===================== MOBILE MENU ===================== -->
   <div id="menu" class="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
-    <nav class="menu-nav" aria-label="Mobile">
-      <a href="#work">Work</a>
-      <a href="#studio">Studio</a>
-      <a href="#services">Services</a>
-      <a href="#contact">Contact</a>
-    </nav>
+    <ul class="menu-nav">
+      <li><button type="button" data-scroll-to="#work">Work</button></li>
+      <li><button type="button" data-scroll-to="#studio">About</button></li>
+      <li><button type="button" id="menu-contact">Contact</button></li>
+    </ul>
     <div class="menu-socials" id="menu-socials"></div>
   </div>
 
-  <!-- ===================== FLY-THROUGH STAGE =====================
-       Fixed full-page 3D layer. Scroll dollies the camera through
-       the wordmark (the counter of the O). The rock drifts past.
-       Replace .rock with your 3D model when it arrives. -->
-  <div id="fly-stage" aria-hidden="true">
-    <div id="fly-world">
-      <canvas class="rock" id="rock"></canvas>
-      <div class="fly-word" id="fly-word">DE<span class="fly-o" id="fly-o">O</span>N</div>
+  <!-- ===================== CONTACT MODAL ===================== -->
+  <div id="contact-modal" class="modal" hidden>
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Contact">
+      <button class="modal-close" id="modal-close" aria-label="Close contact">✕</button>
+      <h2 class="modal-heading" id="modal-heading"></h2>
+      <p class="modal-note" id="modal-note"></p>
+      <div class="modal-channels" id="modal-channels"></div>
+      <div class="modal-socials" id="modal-socials"></div>
     </div>
   </div>
 
-  <!-- ===================== HERO OVERLAY (fixed) ===================== -->
-  <section id="hero-fixed" aria-label="Intro">
-    <div class="hero-top">
-      <div class="hero-tag">
-        <span class="dot" aria-hidden="true"></span>
-        <span id="hero-availability">Available worldwide</span>
-      </div>
-      <p class="hero-location" id="hero-location"></p>
-    </div>
-    <div class="hero-bottom">
-      <h1 class="hero-statement" id="hero-statement"></h1>
-      <p class="scroll-hint">Scroll down <span aria-hidden="true">↓</span></p>
-    </div>
-  </section>
-
   <main id="top">
-    <!-- Runway: scroll distance consumed by the fly-through -->
-    <div id="runway"></div>
+    <!-- ===================== HERO (fixed text over a spacer) ===================== -->
+    <section class="hero-fixed" id="hero-fixed">
+      <h1 class="hero-statement" id="hero-statement"></h1>
+      <button class="hero-scroll" id="hero-scroll-hint" data-scroll-to="#studio">
+        <span id="hero-scroll-label"></span>
+      </button>
+    </section>
+    <div class="hero-runway" id="hero-runway"></div>
 
-    <!-- ===================== STATEMENT (word-scrub) ===================== -->
+    <!-- ===================== ABOUT / STUDIO ===================== -->
     <section class="section studio" id="studio">
-      <p class="studio-lead" id="studio-intro"></p>
+      <p class="eyebrow reveal" id="studio-eyebrow"></p>
+      <div class="studio-row">
+        <p class="studio-lead" id="studio-mission"></p>
+        <canvas class="studio-rock" id="rock" aria-hidden="true"></canvas>
+      </div>
     </section>
 
-    <!-- ===================== WORK ===================== -->
-    <section class="section work" id="work">
-      <div class="section-head reveal">
-        <h2 class="section-label">Selected work</h2>
-        <div class="filters" id="filters" role="tablist" aria-label="Filter work"></div>
+    <!-- ===================== BEHIND THE SCENES ===================== -->
+    <section class="section carousel-section" id="bts">
+      <div class="carousel-head reveal">
+        <h3 class="carousel-title">Behind the scenes</h3>
+        <span class="carousel-rule" aria-hidden="true"></span>
       </div>
-      <div class="grid" id="work-grid"></div>
+      <div class="carousel" id="bts-carousel"></div>
     </section>
 
     <!-- ===================== WHAT WE DO ===================== -->
-    <section class="section services" id="services">
-      <h2 class="section-label reveal">What we do</h2>
-      <ul class="service-list" id="discipline-list"></ul>
+    <section class="section carousel-section" id="services">
+      <div class="carousel-head reveal">
+        <h3 class="carousel-title">What I do</h3>
+        <span class="carousel-rule" aria-hidden="true"></span>
+      </div>
+      <div class="carousel" id="services-carousel"></div>
     </section>
 
-    <!-- ===================== CONTACT / CTA (dark) ===================== -->
-    <section class="section contact" id="contact">
-      <p class="contact-kicker reveal">Not the end.</p>
-      <h2 class="contact-head reveal" id="contact-head"></h2>
-      <a class="contact-cta reveal" id="contact-cta" href="#">Work with us <span aria-hidden="true">→</span></a>
-      <div class="contact-grid">
-        <div class="contact-channels reveal" id="contact-channels"></div>
-        <div class="contact-socials reveal" id="contact-socials"></div>
+    <!-- ===================== WORK (project index + preview) ===================== -->
+    <section class="section work" id="work">
+      <h3 class="section-label reveal">Selected work</h3>
+      <div class="work-layout">
+        <div class="work-preview" id="work-preview" aria-hidden="true">
+          <div class="work-preview-ph"></div>
+        </div>
+        <ul class="work-index" id="work-index"></ul>
       </div>
+    </section>
+
+    <!-- ===================== CTA + FOOTER ===================== -->
+    <section class="cta" id="contact">
+      <p class="cta-kicker cta-kicker-left" id="cta-kicker-left"></p>
+      <div class="cta-center">
+        <p class="cta-heading" id="cta-heading"></p>
+        <button class="cta-link" id="cta-link"></button>
+      </div>
+      <p class="cta-kicker cta-kicker-right" id="cta-kicker-right"></p>
 
       <footer id="footer">
         <div class="footer-row">
-          <span id="footer-name">DEON</span>
-          <span id="footer-year"></span>
-        </div>
-        <div class="footer-row footer-sub">
           <span id="footer-credit"></span>
-          <button class="to-top" id="to-top">Back to top ↑</button>
         </div>
       </footer>
     </section>
   </main>
 
-  <!-- ===================== LIGHTBOX ===================== -->
+  <!-- ===================== WORK LIGHTBOX (tap on mobile) ===================== -->
   <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Work detail" hidden>
     <button class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
     <div class="lightbox-inner">
-      <div class="lightbox-media" id="lightbox-media"></div>
+      <div class="lightbox-media"><div class="lightbox-ph"></div></div>
       <div class="lightbox-info">
         <p class="lightbox-cat" id="lightbox-cat"></p>
         <h3 class="lightbox-title" id="lightbox-title"></h3>
-        <p class="lightbox-desc" id="lightbox-desc"></p>
-        <a class="lightbox-link" id="lightbox-link" target="_blank" rel="noopener" hidden>Open ↗</a>
       </div>
     </div>
   </div>

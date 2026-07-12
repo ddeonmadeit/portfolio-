@@ -1,23 +1,12 @@
 // ============================================================
 //  DEON — app logic
-//  Loads content from /content/data.json (edited via the
-//  Pages CMS dashboard). Signature interaction: a smoothed,
-//  scroll-driven camera dolly that flies through the wordmark
-//  (the counter of the O) before the page content arrives.
+//  Loads content from /content/data.json (edited via the Pages
+//  CMS dashboard). Structure mirrors podium.global: pinned fixed
+//  hero, a contact modal, horizontal flip-card carousels, a
+//  project index with a swapping preview, split-kicker CTA.
 // ============================================================
 
-// Category filters are fixed (they map to the studio's disciplines).
-const FILTERS = [
-  { id: 'all', label: 'All' },
-  { id: 'design', label: 'Design' },
-  { id: 'music', label: 'Music' },
-  { id: 'web', label: 'Web' },
-  { id: 'video', label: 'Video' },
-  { id: 'clothing', label: 'Clothing' },
-];
-
-// Filled once content/data.json loads.
-let SITE, DISCIPLINES, WORK;
+let SITE, SERVICES, BTS, WORK;
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -28,111 +17,109 @@ const el = (tag, cls, html) => {
   return n;
 };
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-const CAT_LABEL = Object.fromEntries(FILTERS.map(f => [f.id, f.label]));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* ---------------- populate static text ---------------- */
+/* ---------------- static text ---------------- */
 function fillText() {
   $('#hero-statement').textContent = SITE.statement;
-  $('#hero-availability').textContent = SITE.availability;
-  $('#hero-location').textContent = SITE.location;
+  $('#hero-scroll-label').textContent = SITE.scrollHint;
 
-  // statement — split into word spans for the scroll scrub
-  const intro = $('#studio-intro');
-  const text = SITE.intro.join(' ');
-  intro.innerHTML = text.split(/\s+/).map(w => `<span class="w">${w}</span>`).join(' ');
+  $('#studio-eyebrow').textContent = SITE.eyebrow;
+  const lead = $('#studio-mission');
+  lead.innerHTML = SITE.mission.split(/\s+/).map(w => `<span class="w">${w}</span>`).join(' ');
 
-  $('#contact-head').textContent = SITE.contact.heading;
-  const primary = SITE.contact.channels[0];
-  if (primary) $('#contact-cta').href = `mailto:${primary.email}`;
-
-  const channels = $('#contact-channels');
+  $('#modal-heading').textContent = SITE.contact.heading;
+  $('#modal-note').textContent = SITE.contact.note;
+  const channels = $('#modal-channels');
   SITE.contact.channels.forEach(c => {
-    const block = el('div', 'channel');
+    const block = el('div');
     block.append(el('div', 'channel-label', c.label));
-    const a = el('a', 'channel-email', c.email);
-    a.href = `mailto:${c.email}`;
-    block.append(a);
+    const btn = el('button', 'channel-copy');
+    btn.innerHTML = `<span class="label-text">${c.email}</span><span class="copied">Copied</span>`;
+    btn.addEventListener('click', () => copyToClipboard(c.email, btn));
+    block.append(btn);
     channels.append(block);
   });
 
-  const cs = $('#contact-socials');
   const ms = $('#menu-socials');
+  const modalSocials = $('#modal-socials');
   SITE.socials.forEach(s => {
     const mk = () => { const a = el('a', null, s.label); a.href = s.url; a.target = '_blank'; a.rel = 'noopener'; return a; };
-    cs.append(mk());
     ms.append(mk());
+    modalSocials.append(mk());
   });
 
-  $('#footer-name').textContent = SITE.name;
-  $('#footer-year').textContent = new Date().getFullYear();
-  $('#footer-credit').textContent = `© ${new Date().getFullYear()} ${SITE.name}. ${SITE.credit}.`;
+  $('#cta-kicker-left').textContent = SITE.ctaKickerLeft;
+  $('#cta-heading').textContent = SITE.ctaHeading;
+  $('#cta-link').textContent = SITE.ctaLink;
+  $('#cta-kicker-right').textContent = SITE.ctaKickerRight;
+
+  $('#footer-credit').textContent = `© ${new Date().getFullYear()} ${SITE.credit}`;
 }
 
-/* ---------------- what we do ---------------- */
-function fillDisciplines() {
-  const list = $('#discipline-list');
-  DISCIPLINES.forEach(d => list.append(el('li', null, d.title)));
+function copyToClipboard(text, btn) {
+  const flash = () => {
+    btn.classList.add('copied-flash');
+    setTimeout(() => btn.classList.remove('copied-flash'), 1400);
+  };
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(flash).catch(flash);
+  } else {
+    flash();
+  }
 }
 
-/* ---------------- work grid ---------------- */
-function fillWork() {
-  const grid = $('#work-grid');
-  WORK.forEach((w, i) => {
-    const tile = el('button', 'tile');
-    tile.dataset.ratio = w.ratio || 'square';
-    tile.dataset.cat = w.cat;
-    if (w.ratio === 'landscape' && i % 5 === 0) tile.dataset.span = '2';
-    tile.setAttribute('aria-label', `${w.title} — open`);
+/* ---------------- flip-card carousels ---------------- */
+function buildCarousel(container, items, { kind }) {
+  items.forEach(item => {
+    const card = el('div', 'flip-card');
+    if (kind === 'service') card.dataset.tint = item.tint;
+    const inner = el('div', 'flip-card-inner');
 
-    if (w.img) {
-      const img = el('img');
-      img.src = w.img; img.alt = w.title; img.loading = 'lazy';
-      tile.append(img);
+    const front = el('div', 'flip-face flip-front');
+    front.append(el('span', 'flip-caption', kind === 'service' ? item.title : item.caption));
+
+    const back = el('div', 'flip-face flip-back');
+    if (kind === 'service') {
+      back.append(el('div', 'flip-back-title', item.title), el('div', 'flip-back-desc', item.desc));
     } else {
-      tile.append(el('div', 'tile-ph'));
-      tile.append(el('div', 'tile-ph-label', CAT_LABEL[w.cat] || w.cat));
+      back.append(el('div', 'flip-back-title', item.caption));
     }
-    const meta = el('div', 'tile-meta');
-    meta.append(el('span', 'tile-title', w.title), el('span', 'tile-year', w.year || ''));
-    tile.append(meta);
 
-    tile.addEventListener('click', () => openLightbox(w));
-    grid.append(tile);
+    inner.append(front, back);
+    card.append(inner);
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
+    container.append(card);
   });
 }
 
-/* ---------------- filters ---------------- */
-function fillFilters() {
-  const wrap = $('#filters');
-  FILTERS.forEach(f => {
-    const b = el('button', 'filter' + (f.id === 'all' ? ' active' : ''), f.label);
-    b.dataset.id = f.id;
-    b.addEventListener('click', () => {
-      $$('.filter').forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      $$('.tile').forEach(t => {
-        const show = f.id === 'all' || t.dataset.cat === f.id;
-        t.classList.toggle('hide', !show);
-      });
-    });
-    wrap.append(b);
+/* ---------------- work: project index + preview ---------------- */
+function fillWork() {
+  const list = $('#work-index');
+  const previewPh = $('.work-preview-ph');
+  const CAT_HUE = { Design: '#4a4030', Music: '#30402f', Web: '#2c3340', Video: '#4a4030', Clothing: '#30402f' };
+
+  WORK.forEach((w, i) => {
+    const li = el('li');
+    const btn = el('button', 'work-item');
+    btn.innerHTML = `<span>${w.title}</span><span class="wi-meta">${w.cat} · ${w.year}</span>`;
+    const setActive = () => {
+      previewPh.style.background = `linear-gradient(135deg, ${CAT_HUE[w.cat] || '#201d16'} 0%, var(--tile) 100%)`;
+    };
+    btn.addEventListener('mouseenter', setActive);
+    btn.addEventListener('focus', setActive);
+    btn.addEventListener('click', () => openLightbox(w));
+    li.append(btn);
+    list.append(li);
+    if (i === 0) setActive();
   });
 }
 
 /* ---------------- lightbox ---------------- */
 const lb = $('#lightbox');
 function openLightbox(w) {
-  const media = $('#lightbox-media');
-  media.innerHTML = w.img
-    ? `<img src="${w.img}" alt="${w.title}">`
-    : `<div class="ph">${CAT_LABEL[w.cat] || w.cat}</div>`;
-  $('#lightbox-cat').textContent = `${CAT_LABEL[w.cat] || w.cat} · ${w.year || ''}`.trim();
+  $('#lightbox-cat').textContent = `${w.cat} · ${w.year}`;
   $('#lightbox-title').textContent = w.title;
-  $('#lightbox-desc').textContent = w.desc || '';
-  const link = $('#lightbox-link');
-  if (w.link) { link.href = w.link; link.hidden = false; } else { link.hidden = true; }
-
   lb.hidden = false;
   requestAnimationFrame(() => lb.classList.add('open'));
   document.body.style.overflow = 'hidden';
@@ -144,8 +131,27 @@ function closeLightbox() {
 }
 $('#lightbox-close').addEventListener('click', closeLightbox);
 lb.addEventListener('click', e => { if (e.target === lb) closeLightbox(); });
+
+/* ---------------- contact modal ---------------- */
+const modal = $('#contact-modal');
+function openModal() {
+  modal.hidden = false;
+  requestAnimationFrame(() => modal.classList.add('open'));
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+  setTimeout(() => { modal.hidden = true; }, 350);
+}
+$('#nav-contact').addEventListener('click', openModal);
+$('#menu-contact').addEventListener('click', () => { closeMenu(); openModal(); });
+$('#cta-link').addEventListener('click', openModal);
+$('#modal-close').addEventListener('click', closeModal);
+$('#modal-backdrop').addEventListener('click', closeModal);
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeLightbox(); closeMenu(); }
+  if (e.key === 'Escape') { closeLightbox(); closeModal(); closeMenu(); }
 });
 
 /* ---------------- mobile menu ---------------- */
@@ -155,23 +161,32 @@ function closeMenu() { document.body.classList.remove('menu-open'); menuBtn.setA
 menuBtn.addEventListener('click', () => {
   document.body.classList.contains('menu-open') ? closeMenu() : openMenu();
 });
-$$('.menu-nav a').forEach(a => a.addEventListener('click', closeMenu));
 
-/* ---------------- header state + back to top ---------------- */
-const header = $('#header');
-const onScroll = () => header.classList.toggle('solid', window.scrollY > window.innerHeight * 1.2);
-window.addEventListener('scroll', onScroll, { passive: true });
-$('#to-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+/* ---------------- scroll-to buttons ---------------- */
+$$('[data-scroll-to]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    closeMenu();
+    const target = $(btn.dataset.scrollTo);
+    target?.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth' });
+  });
+});
 
-/* ============================================================
-   FLY-THROUGH ENGINE
-   Native (momentum) scrolling is kept — a lerped scroll value
-   drives the 3D dolly, so the camera glides through the
-   counter of the O in the wordmark, then the page arrives.
-   ============================================================ */
-const PERSPECTIVE = 900;    // must match #fly-stage CSS
-const DOLLY_MAX = 872;      // stop just before the word plane crosses the camera
+/* ---------------- hero fade (fixed statement fades as you scroll past it) ---------------- */
+function initHeroFade() {
+  const hero = $('#hero-fixed');
+  const runway = $('#hero-runway');
+  if (REDUCED) { hero.style.position = 'absolute'; return; }
+  const onScroll = () => {
+    const h = runway.offsetHeight || 1;
+    const p = clamp(window.scrollY / h, 0, 1);
+    hero.style.opacity = String(1 - p);
+    hero.style.pointerEvents = p > 0.85 ? 'none' : 'auto';
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
 
+/* ---------------- realistic 3D rock (small, in the About section) ---------------- */
 function webglSupported() {
   try {
     const c = document.createElement('canvas');
@@ -181,86 +196,46 @@ function webglSupported() {
   }
 }
 
-function initFlyThrough() {
-  const stage = $('#fly-stage');
-  const world = $('#fly-world');
-  const wordEl = $('#fly-word');
-  const oEl = $('#fly-o');
-  const overlay = $('#hero-fixed');
-  const runway = $('#runway');
-  const lead = $('#studio-intro');
-  const words = $$('.w', lead);
+function initRockLazy() {
+  const canvas = $('#rock');
+  if (!canvas || REDUCED || !webglSupported()) return;
 
-  if (REDUCED) { words.forEach(w => w.classList.add('on')); return; }
-
-  // realistic 3D rock — small, self-contained, loaded only when it can
-  // actually run and only after the fly-through itself has booted
   let rockCtl = null;
-  if (webglSupported()) {
-    import('./rock.js')
-      .then(mod => { rockCtl = mod.initRock($('#rock')); })
-      .catch(() => { rockCtl = null; });
-  }
-
-  // Offset from the O's centre to the viewport centre — translating the
-  // world by this keeps the O dead-centre, so the dolly flies through it.
-  let oOffX = 0, oOffY = 0;
-  const measure = () => {
-    world.style.transform = 'none';
-    const r = oEl.getBoundingClientRect();
-    oOffX = (innerWidth / 2) - (r.left + r.width / 2);
-    oOffY = (innerHeight / 2) - (r.top + r.height / 2);
-  };
-  measure();
-  addEventListener('resize', measure);
-
-  let smooth = window.scrollY;
-  let wordCount = -1;
+  let raf = null;
   let lastT = performance.now();
 
-  const tick = () => {
+  const loop = () => {
     const now = performance.now();
     const dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-
-    smooth += (window.scrollY - smooth) * 0.085;
-
-    const H = Math.max(runway.offsetHeight - innerHeight, 1);
-    const p = clamp(smooth / H, 0, 1);
-
-    // camera dolly: ease in, drift the O to centre over the first half
-    const dz = DOLLY_MAX * (0.25 * p + 0.75 * p * p);
-    const align = Math.min(p / 0.5, 1);
-    const alignE = align * align * (3 - 2 * align); // smoothstep
-    world.style.transform =
-      `translate3d(${oOffX * alignE}px, ${oOffY * alignE}px, ${dz}px)`;
-
-    // wordmark fades right at the end of the pass-through
-    wordEl.style.opacity = String(clamp(1 - (p - 0.86) / 0.12, 0, 1));
-
-    // overlay text drifts up + fades over the first third
-    const op = clamp(1 - p / 0.32, 0, 1);
-    overlay.style.opacity = String(op);
-    overlay.style.transform = `translateY(${(1 - op) * -40}px)`;
-    overlay.style.visibility = op <= 0.001 ? 'hidden' : 'visible';
-
-    // hide the stage once the fly-through is done
-    const stageVisible = p < 0.995;
-    stage.style.visibility = stageVisible ? 'visible' : 'hidden';
-    if (rockCtl && stageVisible && !document.hidden) rockCtl.render(dt);
-
-    // statement word scrub — words light up as the block crosses the view
-    const lr = lead.getBoundingClientRect();
-    const lp = clamp((innerHeight * 0.9 - lr.top) / (innerHeight * 0.65), 0, 1);
-    const n = Math.round(lp * words.length);
-    if (n !== wordCount) {
-      wordCount = n;
-      words.forEach((w, i) => w.classList.toggle('on', i < n));
-    }
-
-    requestAnimationFrame(tick);
+    rockCtl?.render(dt);
+    raf = requestAnimationFrame(loop);
   };
-  requestAnimationFrame(tick);
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        if (!rockCtl) {
+          import('./rock.js').then(mod => {
+            rockCtl = mod.initRock(canvas);
+            lastT = performance.now();
+            if (!raf) raf = requestAnimationFrame(loop);
+          }).catch(() => {});
+        } else if (!raf) {
+          lastT = performance.now();
+          raf = requestAnimationFrame(loop);
+        }
+      } else if (raf) {
+        cancelAnimationFrame(raf);
+        raf = null;
+      }
+    });
+  }, { threshold: 0.1 });
+  io.observe(canvas);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && raf) { cancelAnimationFrame(raf); raf = null; }
+  });
 }
 
 /* ---------------- preloader ---------------- */
@@ -268,15 +243,12 @@ function runLoader(done) {
   const pct = $('#loader-pct');
   if (REDUCED) { pct.textContent = '100%'; document.body.classList.remove('loading'); done(); return; }
   const t0 = performance.now();
-  const DUR = 1100;
+  const DUR = 900;
   const step = (now) => {
     const p = clamp((now - t0) / DUR, 0, 1);
     pct.textContent = Math.round(p * 100) + '%';
-    if (p < 1) { requestAnimationFrame(step); }
-    else {
-      document.body.classList.remove('loading');
-      done();
-    }
+    if (p < 1) requestAnimationFrame(step);
+    else { document.body.classList.remove('loading'); done(); }
   };
   requestAnimationFrame(step);
 }
@@ -287,17 +259,6 @@ function observeReveals() {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
   }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
   $$('.reveal').forEach(n => io.observe(n));
-
-  // tiles stagger in
-  const tio = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('in'), (i % 3) * 80);
-        tio.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.1 });
-  $$('.tile').forEach(n => tio.observe(n));
 }
 
 /* ---------------- boot ---------------- */
@@ -312,23 +273,22 @@ async function main() {
     return;
   }
 
-  // shape the loaded JSON into what the render code expects
-  SITE = {
-    ...data.site,
-    contact: { heading: data.site.contactHeading, channels: data.site.channels || [] },
-  };
-  DISCIPLINES = data.disciplines || [];
+  SITE = data.site;
+  SERVICES = data.services || [];
+  BTS = data.behindTheScenes || [];
   WORK = data.work || [];
 
   fillText();
-  fillDisciplines();
-  fillFilters();
+  buildCarousel($('#bts-carousel'), BTS, { kind: 'bts' });
+  buildCarousel($('#services-carousel'), SERVICES, { kind: 'service' });
   fillWork();
   observeReveals();
-  onScroll();
 
   await document.fonts.ready;
-  runLoader(() => initFlyThrough());
+  runLoader(() => {
+    initHeroFade();
+    initRockLazy();
+  });
 }
 
 main();

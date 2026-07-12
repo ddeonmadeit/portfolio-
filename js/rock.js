@@ -137,7 +137,7 @@ function buildRockCanvas(logoImg) {
 
 /* ---------------- public API ---------------- */
 export function initRock(canvas, { logoUrl = 'assets/logo-mark.png' } = {}) {
-  const SIZE = 640; // internal render resolution — higher than the ~300px CSS box for headroom under the fly-through's perspective scale-up
+  const SIZE = 360; // internal render resolution — the rock is now a small decorative element (~130-220px CSS box), no perspective scale-up to budget for
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.setSize(SIZE, SIZE, false);

@@ -19,17 +19,22 @@ content:
         fields:
           - { name: name, label: Studio name, type: string }
           - { name: statement, label: Hero statement, type: text }
-          - { name: availability, label: Availability tag, type: string }
-          - { name: location, label: Location line, type: string }
-          - { name: intro, label: Studio paragraph (one line per entry), type: string, list: true }
-          - { name: contactHeading, label: Contact heading, type: string }
-          - name: channels
-            label: Contact emails
+          - { name: scrollHint, label: "Hero \"scroll down\" label", type: string }
+          - { name: eyebrow, label: About eyebrow label, type: string }
+          - { name: mission, label: About mission paragraph, type: text }
+          - name: contact
+            label: Contact modal
             type: object
-            list: true
             fields:
-              - { name: label, label: Label, type: string }
-              - { name: email, label: Email, type: string }
+              - { name: heading, label: Heading, type: string }
+              - { name: note, label: Note, type: string }
+              - name: channels
+                label: Contact emails
+                type: object
+                list: true
+                fields:
+                  - { name: label, label: Label, type: string }
+                  - { name: email, label: Email, type: string }
           - name: socials
             label: Social links
             type: object
@@ -37,19 +42,35 @@ content:
             fields:
               - { name: label, label: Label, type: string }
               - { name: url, label: URL, type: string }
+          - { name: ctaKickerLeft, label: "Closing CTA — left kicker (desktop only)", type: string }
+          - { name: ctaHeading, label: Closing CTA heading, type: string }
+          - { name: ctaLink, label: Closing CTA link text, type: string }
+          - { name: ctaKickerRight, label: "Closing CTA — right kicker (desktop only)", type: string }
           - { name: credit, label: Footer credit, type: string }
 
-      - name: disciplines
-        label: Disciplines
+      - name: services
+        label: What I do (services)
         type: object
         list: true
         fields:
-          - { name: n, label: Number, type: string }
           - { name: title, label: Title, type: string }
           - { name: desc, label: Description, type: string }
+          - name: tint
+            label: Card color
+            type: select
+            options:
+              values: [a, b, c]
+
+      - name: behindTheScenes
+        label: Behind the scenes
+        type: object
+        list: true
+        fields:
+          - { name: caption, label: Caption, type: string }
+          - { name: img, label: Photo, type: image }
 
       - name: work
-        label: Work
+        label: Selected work
         type: object
         list: true
         fields:
@@ -58,13 +79,6 @@ content:
             label: Category
             type: select
             options:
-              values: [design, music, web, video, clothing]
+              values: [Design, Music, Web, Video, Clothing]
           - { name: year, label: Year, type: string }
-          - name: ratio
-            label: Tile shape
-            type: select
-            options:
-              values: [portrait, landscape, square]
           - { name: img, label: Image, type: image }
-          - { name: link, label: Link (optional), type: string }
-          - { name: desc, label: Description, type: text }

@@ -6,7 +6,7 @@
     "eyebrow": "Independent & worldwide",
     "mission": "I help ideas become real things, through design work, sound, code and film, with hands-on production from first sketch to final file.",
     "contact": {
-      "heading": "Available worldwide",
+      "heading": "Get in touch",
       "note": "Based online. Working with people everywhere.",
       "channels": [
         { "label": "Work", "email": "ddeonmadeit@gmail.com" },
@@ -18,10 +18,10 @@
       { "label": "YouTube", "url": "https://youtube.com/@ddeonmadeit" },
       { "label": "SoundCloud", "url": "https://soundcloud.com/ddeonmadeit" }
     ],
-    "ctaKickerLeft": "Not the finish line.",
-    "ctaHeading": "Let's build your vision",
-    "ctaLink": "Work with us",
-    "ctaKickerRight": "It's step one.",
+    "ctaKickerLeft": "Always making something.",
+    "ctaHeading": "Got an idea?",
+    "ctaLink": "Let's talk",
+    "ctaKickerRight": "Reply's usually quick.",
     "credit": "DEON"
   },
 

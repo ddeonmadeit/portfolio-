@@ -180,9 +180,12 @@ function coverLoop(p) {
 }
 
 function buildTile(p, eager) {
-  const tile = el('button', 'tile');
+  const aspect = p.aspect || '1/1';
+  // 9/16 (vertical video) is too narrow to sit beside anything — it takes a
+  // whole row on its own. Every other ratio pairs up two per row.
+  const tile = el('button', aspect === '9/16' ? 'tile tile-solo' : 'tile');
   tile.setAttribute('aria-label', p.title);
-  tile.style.aspectRatio = (p.aspect || '1/1').replace('/', ' / ');
+  tile.style.aspectRatio = aspect.replace('/', ' / ');
   if (p.cover) tile.append(buildMedia(p.cover, p.coverType, '', eager, coverLoop(p)));
   tile.addEventListener('click', () => navigate(`/project/${p.id}`));
   return tile;

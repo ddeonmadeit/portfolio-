@@ -60,9 +60,16 @@
           <label for="cfg-token">GitHub token</label>
           <input type="password" id="cfg-token" placeholder="github_pat_…" autocomplete="off" />
           <div class="field-hint">
-            Fine-grained token, this repository only, with
-            <strong>Contents: Read and write</strong>. Create one at
-            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>.
+            Either kind of GitHub token works:
+            <br /><br />
+            <strong>Classic</strong> (simplest) —
+            <a href="https://github.com/settings/tokens/new?scopes=public_repo&amp;description=DEON%20dashboard" target="_blank" rel="noopener">create one here</a>
+            with the <strong>public_repo</strong> scope ticked. Nothing else to configure.
+            <br /><br />
+            <strong>Fine-grained</strong> (tighter, more fiddly) —
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">create one here</a>,
+            then set <em>both</em>: “Repository access” → <strong>Only select repositories</strong> → pick this repo,
+            and “Permissions” → <strong>Contents: Read and write</strong>. Missing either one gives a 403.
           </div>
         </div>
 

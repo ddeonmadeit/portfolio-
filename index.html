@@ -28,9 +28,14 @@
   <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
+  <!-- ===================== MASTHEAD — small, centred, on every page ===================== -->
+  <header class="masthead">
+    <button type="button" class="logo-mark" id="logo-home" aria-label="DEON — home"></button>
+  </header>
+
   <!-- ===================== HOME ===================== -->
   <div id="home" class="view">
-    <!-- HERO -->
+    <!-- TITLE — sits at the very top of the page -->
     <header class="hero">
       <div class="hero-ghost" aria-hidden="true"><span id="ghost-word">DEON</span></div>
       <div class="hero-copy">
@@ -42,9 +47,13 @@
       </div>
     </header>
 
-    <!-- ARCHIVE GRID -->
+    <!-- PROJECT PREVIEWS — directly below the title. Two full-width rows
+         of cover images only (no text), looping horizontally; each tile
+         opens the project. Falls back to a static single pass when the
+         viewer prefers reduced motion. -->
     <main class="archive" id="archive">
-      <div class="grid" id="grid"></div>
+      <div class="marquee-row" id="row-1"><div class="marquee-track" id="track-1"></div></div>
+      <div class="marquee-row reverse" id="row-2"><div class="marquee-track" id="track-2"></div></div>
     </main>
 
     <!-- FILTER BAR -->

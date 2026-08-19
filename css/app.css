@@ -112,26 +112,57 @@ img { display: block; max-width: 100%; }
 .rise { opacity: 0; animation: riseIn 1s var(--ease) forwards; }
 .rise-1 { animation-delay: 0.4s; }
 
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
-.reveal.in { opacity: 1; transform: none; }
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .rise { opacity: 1; animation: none; }
-  .reveal { opacity: 1; transform: none; transition: none; }
 }
 
 /* ============================================================
-   HERO
+   MASTHEAD — small centred symbol, shared by every view (home
+   and project detail alike, since it sits outside both). The
+   glyph itself has no background: assets/logo-mark.png is a
+   white shape on a transparent field, used purely as a mask so
+   an animated sunset gradient shows through the symbol only.
+   ============================================================ */
+.masthead {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 0;
+}
+.logo-mark {
+  width: 44px;
+  aspect-ratio: 1.9 / 1;
+  cursor: pointer;
+  -webkit-mask-image: url('../assets/logo-mark.png');
+  mask-image: url('../assets/logo-mark.png');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  background: linear-gradient(115deg, #ff8c00, #ffd27a, #ff5f6d, #ffb84d, #ff8c00);
+  background-size: 300% 300%;
+  animation: sunsetShift 9s ease-in-out infinite;
+}
+@keyframes sunsetShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark { animation: none; background-position: 30% 50%; }
+}
+
+/* ============================================================
+   TITLE — compact, sits at the very top of the page (no more
+   full-viewport centering; the ghost wordmark is now a cropped
+   backdrop behind a short header instead of the whole hero).
    ============================================================ */
 .hero {
   position: relative;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
-  padding: 0 24px;
+  padding: 28px 24px 22px;
+  text-align: center;
 }
 .hero-ghost {
   position: absolute; inset: 0;
@@ -139,22 +170,22 @@ img { display: block; max-width: 100%; }
   pointer-events: none; user-select: none;
 }
 .hero-ghost span {
-  font-size: 28vw;
+  font-size: 22vw;
   line-height: 1;
   letter-spacing: -0.05em;
   color: transparent;
   -webkit-text-stroke: 1.5px rgba(253, 249, 243, 0.18);
   white-space: nowrap;
 }
-.hero-copy { position: relative; z-index: 10; max-width: 48rem; text-align: center; }
+.hero-copy { position: relative; z-index: 10; max-width: 48rem; margin: 0 auto; }
 .hero-head {
   --stroke: 0.5px;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1.15;
   color: var(--fg);
 }
 .hero-sub {
-  margin-top: 20px;
+  margin-top: 14px;
   font-size: 14px;
   line-height: 1.375;
   color: var(--fg);
@@ -164,41 +195,43 @@ img { display: block; max-width: 100%; }
 }
 
 /* ============================================================
-   ARCHIVE GRID (masonry via multicol)
+   PROJECT PREVIEWS — two full-bleed rows, image only, looping
+   in opposite directions. Each row is duplicated once in the DOM
+   for a seamless loop; prefers-reduced-motion gets a single static
+   pass instead (js/app.js skips the duplication there too).
    ============================================================ */
-.archive { padding: 0 var(--pad); }
-.grid { columns: 2; column-gap: 14px; }
+.archive { overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+.marquee-row { width: 100%; overflow: hidden; }
+.marquee-row[hidden] { display: none; }
+.marquee-track {
+  display: flex;
+  gap: 6px;
+  width: max-content;
+  animation: marqueeL 42s linear infinite;
+}
+.marquee-row.reverse .marquee-track { animation-name: marqueeR; }
+.marquee-row:hover .marquee-track { animation-play-state: paused; }
+@keyframes marqueeL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes marqueeR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
 
-.card {
-  break-inside: avoid;
-  margin-bottom: 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
+.tile {
+  flex: 0 0 auto;
+  height: clamp(150px, 32vw, 320px);
   display: block;
-  width: 100%;
-  background: transparent;
-  transition: border-color 0.4s var(--ease), background-color 0.4s var(--ease);
-}
-.card:hover, .card:focus-visible { border-color: rgba(255, 140, 0, 0.5); background: var(--card); }
-.card-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-}
-.card-media {
-  position: relative;
-  margin: 14px 0;
   overflow: hidden;
-  border-radius: var(--radius);
+  cursor: pointer;
   background: var(--card);
 }
-.card-media img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: transform 0.7s var(--ease), filter 0.7s var(--ease);
+.tile img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
   filter: saturate(0.9);
 }
-.card:hover .card-media img { transform: scale(1.05); filter: saturate(1.05); }
-.card-view { transition: color 0.3s var(--ease); }
-.card:hover .card-view { color: var(--accent); }
+.tile:hover img, .tile:focus-visible img { transform: scale(1.05); filter: saturate(1.05); }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
+}
 
 /* ============================================================
    FILTER BAR
@@ -341,15 +374,13 @@ img { display: block; max-width: 100%; }
    RESPONSIVE
    ============================================================ */
 @media (min-width: 640px) {
+  .hero { padding: 36px 24px 28px; }
   .hero-head { font-size: 36px; }
   .hero-sub { font-size: 16px; max-width: 24rem; }
-  .grid { column-gap: 18px; }
-  .card { margin-bottom: 18px; }
   .detail-specs { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (min-width: 900px) {
   .hero-head { font-size: 48px; }
-  .grid { columns: 3; }
-  .hero-ghost span { font-size: 28vw; }
+  .hero-ghost span { font-size: 24vw; }
 }

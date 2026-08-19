@@ -24,16 +24,56 @@
     "instagramUrl": "https://instagram.com/deonmadeit",
     "knotsssUrl": "https://knotsss.com"
   },
-
   "sections": [
-    { "id": "featured", "title": "", "projectIds": ["atelier-noir", "resonance", "brutalist-system", "after-hours", "void-pavilion", "thread-study"] },
-    { "id": "fashion", "title": "Fashion", "projectIds": ["atelier-noir", "thread-study"] },
-    { "id": "sound", "title": "Sound", "projectIds": ["resonance"] },
-    { "id": "graphics", "title": "Graphics", "projectIds": ["brutalist-system"] },
-    { "id": "video", "title": "Video", "projectIds": ["after-hours"] },
-    { "id": "events", "title": "Events", "projectIds": ["void-pavilion"] }
+    {
+      "id": "featured",
+      "title": "",
+      "projectIds": [
+        "atelier-noir",
+        "resonance",
+        "brutalist-system",
+        "after-hours",
+        "void-pavilion",
+        "thread-study"
+      ]
+    },
+    {
+      "id": "fashion",
+      "title": "Fashion",
+      "projectIds": [
+        "atelier-noir",
+        "thread-study"
+      ]
+    },
+    {
+      "id": "sound",
+      "title": "Sound",
+      "projectIds": [
+        "resonance"
+      ]
+    },
+    {
+      "id": "graphics",
+      "title": "Graphics",
+      "projectIds": [
+        "brutalist-system"
+      ]
+    },
+    {
+      "id": "video",
+      "title": "Video",
+      "projectIds": [
+        "after-hours"
+      ]
+    },
+    {
+      "id": "events",
+      "title": "Events",
+      "projectIds": [
+        "void-pavilion"
+      ]
+    }
   ],
-
   "projects": [
     {
       "id": "atelier-noir",
@@ -47,9 +87,18 @@
       "summary": "A monochrome capsule collection exploring weight, drape, and the architecture of heavy fabric under low-key light.",
       "narrative": "Atelier Noir was conceived as a study in restraint — a seven-piece capsule built around the tension between industrial textile and couture finishing. Every seam was lit to expose the structure rather than disguise it, treating the garment as architecture worn close to the body.",
       "gallery": [
-        { "url": "assets/atelier-noir.jpg", "type": "image" },
-        { "url": "assets/thread-study.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/atelier-noir.jpg",
+          "type": "image"
+        },
+        {
+          "url": "assets/thread-study.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "resonance",
@@ -63,8 +112,14 @@
       "summary": "An ambient score and sound identity built from granular synthesis, designed for immersive gallery playback.",
       "narrative": "Resonance translates physical space into frequency. Field recordings were decomposed into grains and re-arranged into a continuous ambient bed that reacts to room acoustics, blurring the line between installation and score.",
       "gallery": [
-        { "url": "assets/resonance.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/resonance.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "brutalist-system",
@@ -78,8 +133,14 @@
       "summary": "A modular identity system for an independent record label — raw grid, cream on cacao, restrained accent.",
       "narrative": "Brutalist System strips the identity back to a single grid and two weights. The system flexes across print, motion, and signage without ever breaking its structural logic, proving that discipline scales further than decoration.",
       "gallery": [
-        { "url": "assets/brutalist-system.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/brutalist-system.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "after-hours",
@@ -93,8 +154,14 @@
       "summary": "A nocturnal short film edit — amber rim light, deep shadow, and a pace built for the hour after midnight.",
       "narrative": "After Hours is an exercise in tempo. The edit breathes with the city it documents, holding on shadows longer than expected and cutting only when the light demands it. The grade pushes every frame toward copper and obsidian.",
       "gallery": [
-        { "url": "assets/after-hours.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/after-hours.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "void-pavilion",
@@ -108,8 +175,14 @@
       "summary": "A one-night immersive event staged inside a raw concrete shell, lit with a single directional source.",
       "narrative": "Void Pavilion turned an empty industrial shell into a one-night experience. A single lighting axis carved the space into exposure and concealment, guiding four hundred guests through sound, projection, and movement without a single sign.",
       "gallery": [
-        { "url": "assets/void-pavilion.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/void-pavilion.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "thread-study",
@@ -123,8 +196,14 @@
       "summary": "A macro investigation of copper metallic thread woven through heavy cacao wool — texture as the subject.",
       "narrative": "Thread Study zooms in until the garment disappears and only the material remains. Shot at macro distance under Rembrandt light, the series treats thread, weave, and sheen as the true craft of fashion production.",
       "gallery": [
-        { "url": "assets/thread-study.jpg", "type": "image" }
-      ]
+        {
+          "url": "assets/thread-study.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     }
   ]
 }

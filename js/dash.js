@@ -1,9 +1,17 @@
 // ============================================================
 //  DEON — Dashboard (/dash)
-//  Edits content/data.json and uploads media by committing to the
-//  GitHub repo through two small serverless functions (api/dash-
-//  login.js, api/dash-save.js, api/dash-upload.js). Everything here
-//  is in-memory until "Save changes" is pressed.
+//  The site is hosted on GitHub Pages, which serves static files and
+//  runs no code of its own, so there is no server here to talk to.
+//  Saving instead commits straight to the repository from this
+//  browser using the GitHub API, with a token the owner pastes into
+//  the Connection tab (kept in this browser's localStorage only).
+//  Everything edited is in-memory until "Save changes" is pressed,
+//  and lands as a single commit.
+//
+//  Note the password gate below is a convenience, not a security
+//  boundary: on a static host there is nothing to verify it against,
+//  and anyone can read this file. The GitHub token is the real
+//  credential — without it nothing can be written.
 // ============================================================
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -15,13 +23,29 @@ const el = (tag, cls, text) => {
   return n;
 };
 
-let PW = sessionStorage.getItem('dash_pw') || '';
+const DASH_PASSWORD = 'v';
+const DEFAULTS = { repo: 'ddeonmadeit/portfolio-', branch: 'claude/tender-bohr-u27stq' };
+
 let DATA = null;
 // key -> { file, apply(path, type) } — resolved into real asset paths on Save
 let pendingUploads = {};
 let uploadSeq = 0;
 
-const MAX_RECOMMENDED_BYTES = 4 * 1024 * 1024;
+// GitHub Pages serves files straight from the repo, so an upload is
+// really a git commit. Individual files must stay under GitHub's 100MB
+// limit, and a Pages site must stay under 1GB total — but note every
+// version of every file lives in git history forever, so re-uploading
+// a big video repeatedly grows the repo permanently.
+const MAX_RECOMMENDED_BYTES = 25 * 1024 * 1024;
+
+const CFG = {
+  get token()  { return localStorage.getItem('dash_gh_token') || ''; },
+  set token(v) { v ? localStorage.setItem('dash_gh_token', v) : localStorage.removeItem('dash_gh_token'); },
+  get repo()   { return localStorage.getItem('dash_gh_repo') || DEFAULTS.repo; },
+  set repo(v)  { localStorage.setItem('dash_gh_repo', v || DEFAULTS.repo); },
+  get branch() { return localStorage.getItem('dash_gh_branch') || DEFAULTS.branch; },
+  set branch(v){ localStorage.setItem('dash_gh_branch', v || DEFAULTS.branch); },
+};
 
 /* ---------------- helpers ---------------- */
 function slugify(s) {
@@ -70,45 +94,84 @@ function setStatus(msg, kind) {
   s.className = 'dash-status' + (kind ? ' ' + kind : '');
 }
 
-/* ---------------- login ---------------- */
-async function tryLogin(password) {
-  const res = await fetch('/api/dash-login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password }),
+/* ---------------- GitHub API ---------------- */
+async function gh(path, options = {}) {
+  if (!CFG.token) throw new Error('No GitHub token set — open the Connection tab.');
+  const res = await fetch(`https://api.github.com${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${CFG.token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
   });
-  return res.ok;
+  if (!res.ok) {
+    let detail = '';
+    try { detail = (await res.json()).message || ''; } catch {}
+    if (res.status === 401) throw new Error('GitHub rejected the token (401). Check it hasn\'t expired.');
+    if (res.status === 403) throw new Error('GitHub denied the request (403). The token needs Contents: Read and write on this repo.');
+    if (res.status === 404) throw new Error(`Not found (404) — check the repository and branch names. ${detail}`);
+    throw new Error(`GitHub error ${res.status}: ${detail}`);
+  }
+  return res.status === 204 ? null : res.json();
 }
 
-async function boot() {
-  if (PW) {
-    const ok = await tryLogin(PW).catch(() => false);
-    if (ok) return enterDashboard();
-    sessionStorage.removeItem('dash_pw');
-    PW = '';
+// Commit every changed file in one go via the git data API. Branch names
+// contain slashes here, so they're interpolated raw rather than encoded.
+async function commitFiles(files, message) {
+  const repo = CFG.repo;
+  const branch = CFG.branch;
+
+  const ref = await gh(`/repos/${repo}/git/ref/heads/${branch}`);
+  const baseSha = ref.object.sha;
+  const baseCommit = await gh(`/repos/${repo}/git/commits/${baseSha}`);
+
+  const tree = [];
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    setStatus(`Uploading ${i + 1} of ${files.length}…`);
+    const blob = await gh(`/repos/${repo}/git/blobs`, {
+      method: 'POST',
+      body: JSON.stringify({ content: f.base64, encoding: 'base64' }),
+    });
+    tree.push({ path: f.path, mode: '100644', type: 'blob', sha: blob.sha });
   }
+
+  setStatus('Committing…');
+  const newTree = await gh(`/repos/${repo}/git/trees`, {
+    method: 'POST',
+    body: JSON.stringify({ base_tree: baseCommit.tree.sha, tree }),
+  });
+  const commit = await gh(`/repos/${repo}/git/commits`, {
+    method: 'POST',
+    body: JSON.stringify({ message, tree: newTree.sha, parents: [baseSha] }),
+  });
+  await gh(`/repos/${repo}/git/refs/heads/${branch}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ sha: commit.sha }),
+  });
+  return commit.sha;
+}
+
+/* ---------------- gate (local convenience only — see header note) ---------------- */
+function boot() {
+  if (sessionStorage.getItem('dash_unlocked') === '1') return enterDashboard();
   $('#gate').hidden = false;
 }
 
-$('#gate-form').addEventListener('submit', async (e) => {
+$('#gate-form').addEventListener('submit', (e) => {
   e.preventDefault();
-  const pw = $('#gate-pw').value;
   const errEl = $('#gate-error');
   errEl.hidden = true;
-  const submitBtn = $('#gate-form button[type="submit"]');
-  submitBtn.disabled = true;
-  try {
-    const ok = await tryLogin(pw);
-    if (!ok) throw new Error('Wrong password.');
-    PW = pw;
-    sessionStorage.setItem('dash_pw', pw);
-    await enterDashboard();
-  } catch (err) {
-    errEl.textContent = err.message || 'Could not log in.';
+  if ($('#gate-pw').value !== DASH_PASSWORD) {
+    errEl.textContent = 'Wrong password.';
     errEl.hidden = false;
-  } finally {
-    submitBtn.disabled = false;
+    return;
   }
+  sessionStorage.setItem('dash_unlocked', '1');
+  enterDashboard();
 });
 
 async function enterDashboard() {
@@ -119,6 +182,9 @@ async function enterDashboard() {
     DATA = await res.json();
   }
   renderAll();
+  if (!CFG.token) {
+    setStatus('No GitHub token yet — open Connection to enable saving.', 'err');
+  }
 }
 
 /* ---------------- tabs ---------------- */
@@ -133,6 +199,7 @@ function renderAll() {
   renderTextPanel();
   renderSectionsPanel();
   renderProjectsPanel();
+  renderSettingsPanel();
 }
 
 /* ============================================================
@@ -355,7 +422,7 @@ function mediaSlot(label, currentUrl, currentType, onFile) {
   const input = el('input');
   input.type = 'file';
   input.accept = 'image/*,video/mp4,video/webm,video/quicktime';
-  const hint = el('div', 'field-hint', 'Photo, video or GIF. Videos/GIFs loop automatically wherever they appear.');
+  const hint = el('div', 'field-hint', 'Photo, video or GIF (keep under 25MB). Videos/GIFs loop automatically wherever they appear.');
   const warn = el('div', 'field-hint');
   warn.style.color = 'var(--danger)';
   warn.hidden = true;
@@ -364,7 +431,7 @@ function mediaSlot(label, currentUrl, currentType, onFile) {
     const file = input.files[0];
     if (!file) return;
     warn.hidden = file.size <= MAX_RECOMMENDED_BYTES;
-    if (!warn.hidden) warn.textContent = `${(file.size / 1024 / 1024).toFixed(1)}MB — large uploads may fail (~4MB is a safe ceiling on most Vercel plans).`;
+    if (!warn.hidden) warn.textContent = `${(file.size / 1024 / 1024).toFixed(1)}MB — too large to commit reliably from the browser. Compress it below 25MB first.`;
     const objectUrl = URL.createObjectURL(file);
     const type = typeFromMime(file.type);
     preview.classList.remove('empty');
@@ -496,45 +563,103 @@ function renderProjectsPanel() {
 }
 
 /* ============================================================
-   SAVE
+   CONNECTION
+   ============================================================ */
+function renderSettingsPanel() {
+  $('#cfg-token').value = CFG.token;
+  $('#cfg-branch').value = CFG.branch;
+  $('#cfg-repo').value = CFG.repo;
+
+  const status = $('#cfg-status');
+  const setCfgStatus = (msg, kind) => {
+    status.textContent = msg;
+    status.style.color = kind === 'ok' ? '#4ade80' : kind === 'err' ? 'var(--danger)' : 'var(--muted)';
+  };
+  setCfgStatus(CFG.token ? 'Token saved in this browser.' : 'No token set — saving is disabled.');
+
+  $('#cfg-save').onclick = () => {
+    CFG.token = $('#cfg-token').value.trim();
+    CFG.branch = $('#cfg-branch').value.trim();
+    CFG.repo = $('#cfg-repo').value.trim();
+    setCfgStatus('Saved. Try "Test connection".', 'ok');
+    setStatus('');
+  };
+
+  $('#cfg-test').onclick = async () => {
+    setCfgStatus('Testing…');
+    try {
+      CFG.token = $('#cfg-token').value.trim();
+      CFG.branch = $('#cfg-branch').value.trim();
+      CFG.repo = $('#cfg-repo').value.trim();
+      const ref = await gh(`/repos/${CFG.repo}/git/ref/heads/${CFG.branch}`);
+      setCfgStatus(`Connected. Branch "${CFG.branch}" is at ${ref.object.sha.slice(0, 7)}.`, 'ok');
+    } catch (err) {
+      setCfgStatus(err.message, 'err');
+    }
+  };
+
+  $('#cfg-forget').onclick = () => {
+    CFG.token = '';
+    $('#cfg-token').value = '';
+    setCfgStatus('Token removed from this browser.', 'ok');
+  };
+}
+
+/* ============================================================
+   SAVE — one commit containing any new media plus data.json
    ============================================================ */
 $('#save-btn').addEventListener('click', async () => {
   const btn = $('#save-btn');
+
+  if (!CFG.token) {
+    setStatus('No GitHub token set — open the Connection tab.', 'err');
+    return;
+  }
+
   btn.disabled = true;
-  setStatus('Saving…');
+  setStatus('Preparing…');
   try {
-    const keys = Object.keys(pendingUploads);
-    for (let i = 0; i < keys.length; i++) {
-      const { file, apply } = pendingUploads[keys[i]];
-      setStatus(`Uploading ${i + 1} of ${keys.length}…`);
+    const files = [];
+    const applies = [];
+
+    for (const key of Object.keys(pendingUploads)) {
+      const { file, apply } = pendingUploads[key];
+      if (file.size > MAX_RECOMMENDED_BYTES) {
+        throw new Error(`${file.name} is ${(file.size / 1024 / 1024).toFixed(1)}MB — too large to commit reliably from the browser. Compress it first.`);
+      }
       const base64 = await fileToBase64(file);
-      const filename = makeFilename(file.name);
-      const res = await fetch('/api/dash-upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: PW, filename, base64, contentType: file.type }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || `Upload failed for ${file.name}`);
-      apply(json.path, typeFromMime(file.type));
+      const path = `assets/${makeFilename(file.name)}`;
+      files.push({ path, base64 });
+      applies.push(() => apply(path, typeFromMime(file.type)));
     }
-    pendingUploads = {};
 
-    setStatus('Saving content…');
-    const res2 = await fetch('/api/dash-save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: PW, data: DATA }),
+    // point the data at its new asset paths before serialising it
+    applies.forEach(fn => fn());
+
+    files.push({
+      path: 'content/data.json',
+      base64: bytesToBase64(new TextEncoder().encode(JSON.stringify(DATA, null, 2) + '\n')),
     });
-    const json2 = await res2.json().catch(() => ({}));
-    if (!res2.ok) throw new Error(json2.error || 'Save failed');
 
-    setStatus('Saved — live on the site in about a minute.', 'ok');
+    await commitFiles(files, 'dash: update site content');
+    pendingUploads = {};
+    setStatus('Saved — the site rebuilds in about a minute.', 'ok');
   } catch (err) {
     setStatus(err.message || 'Something went wrong.', 'err');
   } finally {
     btn.disabled = false;
   }
 });
+
+// btoa() only handles latin-1, so UTF-8 content (em dashes, accents) has
+// to be converted from raw bytes instead
+function bytesToBase64(bytes) {
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
 
 boot();

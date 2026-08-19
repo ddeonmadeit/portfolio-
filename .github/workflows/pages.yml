@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      # the repo's default / production branch
+      - claude/tender-bohr-u27stq
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# let a running deploy finish rather than cancelling it, so a Save from
+# /dash never lands half-published
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # GitHub Pages has no rewrite rules, but it does serve 404.html for
+      # any unknown path. Mirroring index.html into it makes deep links
+      # like /project/atelier-noir render the app instead of a 404 page.
+      # Generated at deploy time so the two can never drift apart.
+      - name: Mirror index.html to 404.html for SPA deep links
+        run: cp index.html 404.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

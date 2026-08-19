@@ -44,14 +44,28 @@ function applyLoopRange(video, start, end) {
 function buildMedia(url, type, alt, eager, loop) {
   if (type === 'video') {
     const v = el('video');
-    v.src = url;
-    v.autoplay = true;
-    v.loop = true;
+    // Some engines (notably iOS Safari) decide autoplay eligibility from the
+    // "muted" content attribute, not just the IDL property — setting only
+    // v.muted can silently fail to autoplay and fall back to a play button.
     v.muted = true;
+    v.defaultMuted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('autoplay', '');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+    v.loop = true;
     v.playsInline = true;
     v.preload = eager ? 'auto' : 'metadata';
     v.setAttribute('aria-label', alt || '');
+    v.src = url;
     if (loop) applyLoopRange(v, loop.start, loop.end);
+    // Belt-and-braces: explicitly kick off playback and retry if the
+    // browser's autoplay attempt was rejected, so nothing is ever left
+    // sitting on its poster frame with a play affordance.
+    const tryPlay = () => v.play().catch(() => {});
+    tryPlay();
+    v.addEventListener('loadeddata', tryPlay);
+    v.addEventListener('canplay', tryPlay);
     return v;
   }
   const img = el('img');

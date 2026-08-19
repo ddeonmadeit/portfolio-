@@ -1,7 +1,7 @@
 // ============================================================
 //  DEON — Polymathic Studio
-//  Static, dependency-free. Content lives in content/data.json.
-//  Routes: "/" = archive, "/project/<id>" = project detail.
+//  Static, dependency-free. Content lives in content/data.json,
+//  edited at /dash. Routes: "/" = archive, "/project/<id>" = detail.
 // ============================================================
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -14,8 +14,29 @@ const el = (tag, cls, text) => {
 };
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let SITE, FILTERS, PROJECTS;
-let activeFilter = 'All';
+let SITE, SECTIONS, PROJECTS;
+let PROJECT_BY_ID = {};
+
+/* ---------------- media: images, gifs (native loop) and video (looped) ---------------- */
+function buildMedia(url, type, alt, eager) {
+  if (type === 'video') {
+    const v = el('video');
+    v.src = url;
+    v.autoplay = true;
+    v.loop = true;
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = eager ? 'auto' : 'metadata';
+    v.setAttribute('aria-label', alt || '');
+    return v;
+  }
+  const img = el('img');
+  img.src = url;
+  img.alt = alt || '';
+  img.loading = eager ? 'eager' : 'lazy';
+  img.decoding = 'async';
+  return img; // covers both photos and GIFs — GIFs loop natively as <img>
+}
 
 /* ---------------- hero + studio ---------------- */
 function fillStatic() {
@@ -33,6 +54,7 @@ function fillStatic() {
   $('#studio-blurb').textContent = SITE.studioBlurb;
 
   const list = $('#disciplines');
+  list.innerHTML = '';
   SITE.disciplines.forEach(d => list.append(el('li', null, d)));
 
   $('#contact-label').textContent = SITE.contactLabel;
@@ -45,53 +67,33 @@ function fillStatic() {
   $('#system-tag').textContent = SITE.systemTag;
 }
 
-/* ---------------- project previews: two looping, image-only rows ---------------- */
+/* ---------------- project previews: one static collage per section ---------------- */
 function buildTile(p, eager) {
   const tile = el('button', 'tile');
   tile.setAttribute('aria-label', p.title);
-  tile.style.aspectRatio = p.aspect.replace('/', ' / ');
-  if (p.cover) {
-    const img = el('img');
-    img.src = p.cover;
-    img.alt = '';
-    img.loading = eager ? 'eager' : 'lazy';
-    img.decoding = 'async';
-    tile.append(img);
-  }
+  tile.style.aspectRatio = (p.aspect || '1/1').replace('/', ' / ');
+  if (p.cover) tile.append(buildMedia(p.cover, p.coverType, '', eager));
   tile.addEventListener('click', () => navigate(`/project/${p.id}`));
   return tile;
 }
 
-function renderPreviews() {
-  const shown = PROJECTS.filter(p => activeFilter === 'All' || p.category === activeFilter);
-  const rows = [[], []];
-  shown.forEach((p, i) => rows[i % 2].push(p));
+function renderSections() {
+  const archive = $('#archive');
+  archive.innerHTML = '';
 
-  ['#track-1', '#track-2'].forEach((sel, rowIdx) => {
-    const track = $(sel);
-    const row = track.closest('.marquee-row');
-    const items = rows[rowIdx];
-    track.innerHTML = '';
-    row.hidden = items.length === 0;
+  SECTIONS.forEach((section, sIdx) => {
+    const items = (section.projectIds || [])
+      .map(id => PROJECT_BY_ID[id])
+      .filter(Boolean);
     if (!items.length) return;
-    // duplicate once for a seamless loop; reduced-motion never scrolls,
-    // so it only needs the single static pass
-    const list = REDUCED ? items : [...items, ...items];
-    list.forEach((p, i) => track.append(buildTile(p, rowIdx === 0 && i < 3)));
-  });
-}
 
-/* ---------------- filters ---------------- */
-function renderFilters() {
-  const wrap = $('#filters');
-  FILTERS.forEach(f => {
-    const b = el('button', 'pill mono' + (f === activeFilter ? ' active' : ''), f);
-    b.addEventListener('click', () => {
-      activeFilter = f;
-      $$('.pill', wrap).forEach(p => p.classList.toggle('active', p.textContent === f));
-      renderPreviews();
-    });
-    wrap.append(b);
+    const block = el('section', 'section-block');
+    if (section.title) block.append(el('h3', 'section-title', section.title));
+
+    const collage = el('div', 'collage');
+    items.forEach((p, i) => collage.append(buildTile(p, sIdx === 0 && i < 3)));
+    block.append(collage);
+    archive.append(block);
   });
 }
 
@@ -101,8 +103,8 @@ function renderDetail(p) {
   $('#d-title').textContent = p.title;
 
   const cover = $('#d-cover');
-  if (p.cover) { cover.src = p.cover; cover.alt = p.title; cover.hidden = false; }
-  else { cover.hidden = true; }
+  cover.innerHTML = '';
+  if (p.cover) cover.append(buildMedia(p.cover, p.coverType, p.title, true));
 
   const specs = $('#d-specs');
   specs.innerHTML = '';
@@ -122,13 +124,9 @@ function renderDetail(p) {
   // gallery beyond the cover; otherwise the "to be added" placeholder
   const gal = $('#d-gallery');
   gal.innerHTML = '';
-  const extra = (p.gallery || []).filter(src => src !== p.cover);
+  const extra = (p.gallery || []).filter(g => g.url !== p.cover);
   if (extra.length) {
-    extra.forEach(src => {
-      const img = el('img');
-      img.src = src; img.alt = p.title; img.loading = 'lazy';
-      gal.append(img);
-    });
+    extra.forEach(g => gal.append(buildMedia(g.url, g.type, p.title)));
   } else {
     gal.append(el('p', 'gallery-note', 'ADDITIONAL MEDIA — TO BE ADDED'));
   }
@@ -142,7 +140,7 @@ function showView(name) {
 
 function route() {
   const m = location.pathname.match(/^\/project\/([\w-]+)\/?$/);
-  const p = m && PROJECTS.find(x => x.id === m[1]);
+  const p = m && PROJECT_BY_ID[m[1]];
   if (p) {
     renderDetail(p);
     showView('detail');
@@ -172,12 +170,12 @@ async function main() {
   }
 
   SITE = data.site;
-  FILTERS = data.filters;
-  PROJECTS = data.projects;
+  SECTIONS = data.sections || [];
+  PROJECTS = data.projects || [];
+  PROJECT_BY_ID = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
 
   fillStatic();
-  renderFilters();
-  renderPreviews();
+  renderSections();
   route();
 
   $('#to-top').addEventListener('click', () =>

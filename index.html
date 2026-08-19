@@ -48,19 +48,11 @@
       </div>
     </header>
 
-    <!-- PROJECT PREVIEWS — directly below the title. Two full-width rows
-         of cover images only (no text), looping horizontally; each tile
-         opens the project. Falls back to a static single pass when the
-         viewer prefers reduced motion. -->
-    <main class="archive" id="archive">
-      <div class="marquee-row" id="row-1"><div class="marquee-track" id="track-1"></div></div>
-      <div class="marquee-row reverse" id="row-2"><div class="marquee-track" id="track-2"></div></div>
-    </main>
-
-    <!-- FILTER BAR -->
-    <nav class="filterbar" id="filterbar" aria-label="Filter by discipline">
-      <div class="filterbar-inner" id="filters"></div>
-    </nav>
+    <!-- PROJECT PREVIEWS — directly below the title. A static (non-
+         scrolling) collage per section: the first section is untitled,
+         every section after it is titled by project type. Content and
+         ordering come entirely from content/data.json, edited at /dash. -->
+    <main class="archive" id="archive"></main>
 
     <!-- STUDIO -->
     <section class="studio" id="studio">
@@ -92,7 +84,7 @@
       <p class="mono dim detail-meta" id="d-meta"></p>
       <h2 class="detail-title display" id="d-title"></h2>
 
-      <div class="detail-cover"><img id="d-cover" alt="" /></div>
+      <div class="detail-cover" id="d-cover"></div>
 
       <p class="label amber" id="d-brief-label">/ THE BRIEF</p>
 

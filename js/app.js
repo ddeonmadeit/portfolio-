@@ -48,8 +48,11 @@ function fillStatic() {
   $('#hero-sub').textContent = SITE.heroSub;
 
   $('.hero-copy').classList.add('rise', 'rise-1');
+  buildIconRow($('#hero-icon-row'));
 
-  $('#studio-label').textContent = SITE.studioLabel;
+  const label = $('#studio-label');
+  label.textContent = SITE.studioLabel || '';
+  label.hidden = !SITE.studioLabel;
   $('#studio-name').textContent = SITE.name;
   $('#studio-blurb').textContent = SITE.studioBlurb;
 
@@ -62,9 +65,33 @@ function fillStatic() {
   mail.textContent = SITE.email;
   mail.href = `mailto:${SITE.email}`;
 
+  const phone = $('#phone-link');
+  if (SITE.phone) {
+    phone.textContent = SITE.phone;
+    phone.href = `tel:${SITE.phone.replace(/[^\d+]/g, '')}`;
+    phone.hidden = false;
+  } else {
+    phone.hidden = true;
+  }
+
   $('#to-top').textContent = SITE.backToTop;
-  $('#copyright').textContent = SITE.copyright;
-  $('#system-tag').textContent = SITE.systemTag;
+  buildIconRow($('#contact-icon-row'));
+}
+
+function buildIconRow(container) {
+  container.innerHTML = '';
+  if (SITE.instagramUrl) {
+    const a = el('a', 'icon-link instagram');
+    a.href = SITE.instagramUrl; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', 'Instagram');
+    container.append(a);
+  }
+  if (SITE.knotsssUrl) {
+    const a = el('a', 'icon-link knotsss');
+    a.href = SITE.knotsssUrl; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', 'knotsss');
+    container.append(a);
+  }
 }
 
 /* ---------------- project previews: one static collage per section ---------------- */

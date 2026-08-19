@@ -167,6 +167,29 @@ img { display: block; max-width: 100%; }
   .logo-mark { animation: none; background-position: 30% 50%; }
 }
 
+/* Instagram + knotsss icon links — same sunset-gradient-through-a-mask
+   treatment as the masthead logo, just smaller and inline. No border,
+   no background box; the icon shape itself is the whole link target. */
+.icon-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.icon-link {
+  width: 24px; height: 24px;
+  display: block;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: contain; mask-size: contain;
+  background: linear-gradient(115deg, #ff8c00, #ffd27a, #ff5f6d, #ffb84d, #ff8c00);
+  background-size: 300% 300%;
+  animation: sunsetShift 9s ease-in-out infinite;
+  transition: opacity 0.25s;
+}
+.icon-link:hover { opacity: 0.75; }
+.icon-link.instagram { -webkit-mask-image: url('../assets/icon-instagram.png'); mask-image: url('../assets/icon-instagram.png'); }
+.icon-link.knotsss { -webkit-mask-image: url('../assets/logo-knotsss.png'); mask-image: url('../assets/logo-knotsss.png'); }
+#hero-icon-row { margin-top: 18px; }
+@media (prefers-reduced-motion: reduce) {
+  .icon-link { animation: none; background-position: 30% 50%; }
+}
+
 /* ============================================================
    TITLE — compact, sits at the very top of the page (no more
    full-viewport centering; the ghost wordmark is now a cropped
@@ -180,10 +203,16 @@ img { display: block; max-width: 100%; }
 }
 .hero-ghost {
   position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
   pointer-events: none; user-select: none;
 }
 .hero-ghost span {
+  /* raised so its centre lands on the title's centre — the ghost
+     scales with viewport width but the title's font-size is capped,
+     so this offset has to grow (and go negative) across breakpoints;
+     tuned per breakpoint below rather than computed, since exact
+     glyph metrics don't match the box model 1:1 */
+  transform: translateY(10px);
   font-size: 22vw;
   line-height: 1;
   letter-spacing: -0.05em;
@@ -264,7 +293,19 @@ img { display: block; max-width: 100%; }
   font-size: clamp(30px, 8vw, 56px);
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--fg);
+  /* same sunset gradient as the masthead logo, via background-clip
+     since this is real text rather than a masked shape */
+  background: linear-gradient(115deg, #ff8c00, #ffd27a, #ff5f6d, #ffb84d, #ff8c00);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  -webkit-text-stroke-color: #ff8c00;
+  animation: sunsetShift 9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-name { animation: none; background-position: 30% 50%; }
 }
 .studio-blurb {
   margin-top: 14px;
@@ -279,13 +320,7 @@ img { display: block; max-width: 100%; }
 .contact a, .contact button { font-size: 15px; color: var(--body); transition: color 0.3s var(--ease); }
 .contact a:hover, .contact button:hover { color: var(--accent); }
 
-.foot {
-  margin-top: clamp(40px, 9vw, 80px);
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  text-align: center;
-}
+#contact-icon-row { margin-top: 20px; justify-content: flex-start; }
 
 /* ============================================================
    PROJECT DETAIL
@@ -361,6 +396,7 @@ img { display: block; max-width: 100%; }
    ============================================================ */
 @media (min-width: 640px) {
   .hero { padding: 36px 24px 28px; }
+  .hero-ghost span { transform: translateY(0px); }
   .hero-head { font-size: 36px; }
   .hero-sub { font-size: 16px; max-width: 24rem; }
   .detail-specs { grid-template-columns: repeat(3, 1fr); }
@@ -368,5 +404,5 @@ img { display: block; max-width: 100%; }
 
 @media (min-width: 900px) {
   .hero-head { font-size: 48px; }
-  .hero-ghost span { font-size: 24vw; }
+  .hero-ghost span { font-size: 24vw; transform: translateY(-82px); }
 }

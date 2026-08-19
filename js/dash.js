@@ -150,13 +150,14 @@ function renderTextPanel() {
     ['heroLead', 'Hero — first line'],
     ['heroAccent', 'Hero — highlighted words'],
     ['heroSub', 'Hero — subtitle', 'textarea'],
-    ['studioLabel', 'Studio section label'],
+    ['studioLabel', 'Studio section label (leave empty to hide it)'],
     ['studioBlurb', 'Studio blurb', 'textarea'],
     ['contactLabel', 'Contact label'],
     ['email', 'Email'],
+    ['phone', 'Phone (leave empty to hide it)'],
     ['backToTop', 'Back-to-top label'],
-    ['copyright', 'Copyright line'],
-    ['systemTag', 'Footer system tag'],
+    ['instagramUrl', 'Instagram URL (leave empty to hide the icon)'],
+    ['knotsssUrl', 'knotsss URL (leave empty to hide the icon)'],
   ];
 
   simpleFields.forEach(([key, label, kind]) => {
@@ -215,6 +216,37 @@ function renderSectionsPanel() {
 
     const head = el('div', 'field');
     head.style.padding = '16px 16px 0';
+
+    // section-level controls sit at the top of the card, right above its
+    // title, so reordering/deleting never needs scrolling past the
+    // project list to find
+    const ctrl = el('div', 'add-row');
+    ctrl.style.marginBottom = '12px';
+    const upSec = el('button', 'icon-btn', '↑');
+    upSec.type = 'button'; upSec.title = 'Move section up'; upSec.disabled = sIdx === 0;
+    upSec.addEventListener('click', () => {
+      [DATA.sections[sIdx - 1], DATA.sections[sIdx]] = [DATA.sections[sIdx], DATA.sections[sIdx - 1]];
+      renderSectionsPanel();
+    });
+    const downSec = el('button', 'icon-btn', '↓');
+    downSec.type = 'button'; downSec.title = 'Move section down'; downSec.disabled = sIdx === DATA.sections.length - 1;
+    downSec.addEventListener('click', () => {
+      [DATA.sections[sIdx + 1], DATA.sections[sIdx]] = [DATA.sections[sIdx], DATA.sections[sIdx + 1]];
+      renderSectionsPanel();
+    });
+    const spacer = el('span', 'row-spacer');
+    const delSec = el('button', 'btn btn-sm', 'Delete section');
+    delSec.type = 'button';
+    delSec.style.color = 'var(--danger)';
+    delSec.addEventListener('click', () => {
+      if (confirm(`Delete the "${section.title || '(untitled)'}" section? Projects stay, only this grouping goes.`)) {
+        DATA.sections.splice(sIdx, 1);
+        renderSectionsPanel();
+      }
+    });
+    ctrl.append(upSec, downSec, spacer, delSec);
+    head.append(ctrl);
+
     const titleField = el('div', 'field');
     titleField.append(el('label', null, sIdx === 0
       ? 'Title (leave empty — first section is untitled)'
@@ -292,33 +324,6 @@ function renderSectionsPanel() {
     });
     addRow.append(select, addBtn);
     body.append(addRow);
-
-    // section-level controls: reorder / delete
-    const ctrl = el('div', 'add-row');
-    ctrl.style.marginTop = '16px';
-    const upSec = el('button', 'btn btn-sm btn-ghost', '↑ Move section up');
-    upSec.type = 'button'; upSec.disabled = sIdx === 0;
-    upSec.addEventListener('click', () => {
-      [DATA.sections[sIdx - 1], DATA.sections[sIdx]] = [DATA.sections[sIdx], DATA.sections[sIdx - 1]];
-      renderSectionsPanel();
-    });
-    const downSec = el('button', 'btn btn-sm btn-ghost', '↓ Move down');
-    downSec.type = 'button'; downSec.disabled = sIdx === DATA.sections.length - 1;
-    downSec.addEventListener('click', () => {
-      [DATA.sections[sIdx + 1], DATA.sections[sIdx]] = [DATA.sections[sIdx], DATA.sections[sIdx + 1]];
-      renderSectionsPanel();
-    });
-    const delSec = el('button', 'btn btn-sm btn-ghost', 'Delete section');
-    delSec.type = 'button';
-    delSec.style.color = 'var(--danger)';
-    delSec.addEventListener('click', () => {
-      if (confirm(`Delete the "${section.title || '(untitled)'}" section? Projects stay, only this grouping goes.`)) {
-        DATA.sections.splice(sIdx, 1);
-        renderSectionsPanel();
-      }
-    });
-    ctrl.append(upSec, downSec, delSec);
-    body.append(ctrl);
 
     card.append(body);
     panel.append(card);

@@ -115,6 +115,14 @@ function fillStatic() {
   list.innerHTML = '';
   SITE.disciplines.forEach(d => list.append(el('li', null, d)));
 
+  const softLabel = $('#soft-label');
+  const softList = $('#softwares');
+  const softwares = SITE.softwares || [];
+  softLabel.hidden = !softwares.length;
+  softList.hidden = !softwares.length;
+  softList.innerHTML = '';
+  softwares.forEach(s => softList.append(el('li', null, s)));
+
   $('#contact-label').textContent = SITE.contactLabel;
   const mail = $('#email-link');
   mail.textContent = SITE.email;
@@ -129,7 +137,6 @@ function fillStatic() {
     phone.hidden = true;
   }
 
-  $('#to-top').textContent = SITE.backToTop;
   buildIconRow($('#contact-icon-row'));
 }
 
@@ -275,9 +282,6 @@ async function main() {
   fillStatic();
   renderSections();
   route();
-
-  $('#to-top').addEventListener('click', () =>
-    window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' }));
 
   $('#back-archive').addEventListener('click', () => navigate('/'));
   $('#back-archive-top').addEventListener('click', () => navigate('/'));

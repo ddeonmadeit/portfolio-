@@ -17,8 +17,8 @@ Two ways:
   project, with reordering and file upload for photos/videos/GIFs. Needs a
   GitHub token; see "Dashboard setup" below.
 - **By hand** — everything lives in **`content/data.json`**:
-  - `site` — name, hero lines, studio blurb, disciplines, email, phone,
-    social URLs.
+  - `site` — name, hero lines, studio blurb, disciplines, softwares, email,
+    phone, social URLs.
   - `sections` — the groups shown on the home page, top to bottom. Each is
     `{ id, title, projectIds }`; `projectIds` is ordered and controls both
     which projects appear in that section and in what order. Leave `title`

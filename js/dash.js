@@ -233,7 +233,6 @@ function renderTextPanel() {
     ['contactLabel', 'Contact label'],
     ['email', 'Email'],
     ['phone', 'Phone (leave empty to hide it)'],
-    ['backToTop', 'Back-to-top label'],
     ['instagramUrl', 'Instagram URL (leave empty to hide the icon)'],
     ['knotsssUrl', 'knotsss URL (leave empty to hide the icon)'],
   ];
@@ -274,6 +273,33 @@ function renderTextPanel() {
   addDisc.addEventListener('click', () => { site.disciplines.push(''); renderDisciplines(); });
   discField.append(addDisc);
   panel.append(discField);
+
+  // softwares — reorderable text list
+  site.softwares = site.softwares || [];
+  const softField = el('div', 'field list-field');
+  softField.append(el('label', null, 'Softwares'));
+  const softUl = el('ul');
+  softField.append(softUl);
+  const renderSoftwares = () => {
+    softUl.innerHTML = '';
+    site.softwares.forEach((s, i) => {
+      const li = el('li');
+      const input = el('input');
+      input.type = 'text'; input.value = s;
+      input.addEventListener('input', () => { site.softwares[i] = input.value; });
+      const rm = el('button', 'icon-btn icon-btn-danger', '✕');
+      rm.type = 'button';
+      rm.addEventListener('click', () => { site.softwares.splice(i, 1); renderSoftwares(); });
+      li.append(input, rm);
+      softUl.append(li);
+    });
+  };
+  renderSoftwares();
+  const addSoft = el('button', 'btn btn-sm btn-ghost', '+ Add software');
+  addSoft.type = 'button';
+  addSoft.addEventListener('click', () => { site.softwares.push(''); renderSoftwares(); });
+  softField.append(addSoft);
+  panel.append(softField);
 }
 
 /* ============================================================

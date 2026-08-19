@@ -55,7 +55,11 @@ function buildMedia(url, type, alt, eager, loop) {
     v.setAttribute('webkit-playsinline', '');
     v.loop = true;
     v.playsInline = true;
-    v.preload = eager ? 'auto' : 'metadata';
+    // Always fetch full data, not just metadata — every cover/gallery video
+    // here is meant to autoplay immediately, and metadata-only preload just
+    // delays the buffering autoplay depends on, widening the window where
+    // WebKit shows its "not yet playing" tap-to-play affordance.
+    v.preload = 'auto';
     v.setAttribute('aria-label', alt || '');
     v.src = url;
     if (loop) applyLoopRange(v, loop.start, loop.end);
@@ -217,8 +221,6 @@ function renderDetail(p) {
   specs.innerHTML = '';
   [
     ['ROLE', p.role],
-    ['YEAR', p.year],
-    ['DISCIPLINE', p.category],
   ].forEach(([k, v]) => {
     const box = el('div', 'spec');
     box.append(el('dt', null, k), el('dd', null, v));
@@ -276,6 +278,17 @@ function navigate(path) {
   route();
 }
 window.addEventListener('popstate', route);
+
+// iOS Safari can silently block programmatic autoplay (Low Power Mode, or a
+// per-site Auto-Play setting) even when muted, leaving its tap-to-play
+// affordance showing — but a genuine user gesture always overrides that.
+// Nudge every still-paused video into playing on the first tap/scroll.
+function unlockVideosOnFirstGesture() {
+  const kick = () => $$('video').forEach(v => { if (v.paused) v.play().catch(() => {}); });
+  ['touchstart', 'click', 'scroll'].forEach(evt =>
+    document.addEventListener(evt, kick, { passive: true }));
+}
+unlockVideosOnFirstGesture();
 
 /* ---------------- boot ---------------- */
 async function main() {

@@ -2,7 +2,7 @@
   "site": {
     "name": "DEON",
     "title": "DEON",
-    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
+    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, music, event curation, and fashion production.",
     "heroLead": "A 7+ Year Journey in",
     "heroAccent": "Visual Architecture",
     "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
@@ -86,7 +86,7 @@
     {
       "id": "atelier-noir",
       "title": "Knots Cypher",
-      "category": "Video / Fashion / Music",
+      "category": "Video / Fashion / Sound / Events",
       "year": "2025",
       "role": "Creative Direction / Video Editing / Music Production / Event Coordination",
       "cover": "assets/1787148227144-0-cypher-002.mov",

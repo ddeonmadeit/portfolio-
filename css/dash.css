@@ -1,0 +1,148 @@
+/* ============================================================
+   DEON — Dashboard (/dash)
+   Reuses the site's palette; a plain, functional admin UI.
+   ============================================================ */
+:root {
+  --bg: #120B09;
+  --panel: #1a1310;
+  --field: #201814;
+  --fg: #FDF9F3;
+  --muted: #B3A089;
+  --border: #2A1B17;
+  --accent: #ff8c00;
+  --danger: #e5484d;
+  --radius: 6px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+input, textarea, select { font: inherit; color: inherit; }
+img, video { display: block; max-width: 100%; }
+h1 { font-size: 18px; font-weight: 700; }
+h2 { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* ---------------- login gate ---------------- */
+.gate { min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.gate-form {
+  width: 100%; max-width: 320px;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 28px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel);
+}
+.gate-form h1 { text-align: center; margin-bottom: 6px; }
+.gate-form input {
+  padding: 12px 14px; background: var(--field); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--fg); font-size: 15px;
+}
+.gate-form input:focus { outline: none; border-color: var(--accent); }
+.gate-form button {
+  padding: 12px; background: var(--accent); color: #120B09; font-weight: 700;
+  border: none; border-radius: var(--radius);
+}
+.gate-error { color: var(--danger); font-size: 13px; text-align: center; }
+
+/* ---------------- shell ---------------- */
+.dash[hidden], .gate[hidden] { display: none; }
+.dash-header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 14px 18px; border-bottom: 1px solid var(--border); background: rgba(18,11,9,0.92); backdrop-filter: blur(10px);
+}
+.dash-header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dash-status { font-size: 12px; color: var(--muted); min-width: 0; }
+.dash-status.ok { color: #4ade80; }
+.dash-status.err { color: var(--danger); }
+
+.btn { padding: 9px 16px; border-radius: 9999px; border: 1px solid var(--border); font-size: 13px; font-weight: 600; }
+.btn-primary { background: var(--accent); color: #120B09; border-color: var(--accent); }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+.btn-ghost { background: transparent; color: var(--fg); text-decoration: none; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.dash-tabs { display: flex; gap: 4px; padding: 10px 18px 0; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.dash-tab {
+  padding: 10px 14px; background: none; border: none; color: var(--muted);
+  font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; white-space: nowrap;
+}
+.dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.dash-main { max-width: 760px; margin: 0 auto; padding: 22px 18px 100px; }
+.dash-panel[hidden] { display: none; }
+
+/* ---------------- forms ---------------- */
+.field { margin-bottom: 16px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.field input[type="text"], .field input[type="email"], .field input[type="url"],
+.field textarea, .field select {
+  width: 100%; padding: 10px 12px; background: var(--field); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--fg); font-size: 14px;
+}
+.field textarea { min-height: 80px; resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.list-field ul { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.list-field li { display: flex; gap: 6px; align-items: center; }
+.list-field li input { flex: 1; }
+
+/* ---------------- cards / accordions ---------------- */
+.card { border: 1px solid var(--border); border-radius: 10px; background: var(--panel); margin-bottom: 14px; overflow: hidden; }
+.card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px; background: none; border: none; width: 100%; text-align: left;
+}
+.card-head-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.card-head-thumb { width: 40px; height: 40px; border-radius: 4px; overflow: hidden; flex: 0 0 auto; background: var(--field); }
+.card-head-thumb img, .card-head-thumb video { width: 100%; height: 100%; object-fit: cover; }
+.card-head-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-head-sub { font-size: 12px; color: var(--muted); }
+.card-chevron { transition: transform 0.2s; color: var(--muted); }
+.card.open .card-chevron { transform: rotate(180deg); }
+.card-body { padding: 0 16px 16px; display: none; }
+.card.open .card-body { display: block; }
+
+/* ---------------- rows (section project lists) ---------------- */
+.row-item {
+  list-style: none;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--field);
+}
+.row-thumb { width: 36px; height: 36px; border-radius: 4px; overflow: hidden; flex: 0 0 auto; background: var(--panel); }
+.row-thumb img, .row-thumb video { width: 100%; height: 100%; object-fit: cover; }
+.row-title { font-size: 13px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-spacer { flex: 1; }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel);
+  color: var(--fg); font-size: 13px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.icon-btn-danger { color: var(--danger); }
+.icon-btn:disabled { opacity: 0.3; }
+
+.add-row { display: flex; gap: 8px; margin-top: 10px; }
+.add-row select { flex: 1; }
+
+/* ---------------- media upload slots ---------------- */
+.media-slot { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.media-preview { width: 84px; height: 84px; border-radius: var(--radius); overflow: hidden; background: var(--field); flex: 0 0 auto; border: 1px solid var(--border); }
+.media-preview img, .media-preview video { width: 100%; height: 100%; object-fit: cover; }
+.media-preview.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 11px; text-align: center; }
+.media-controls { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.media-controls input[type="file"] { font-size: 12px; color: var(--muted); }
+.media-type-tag { font-size: 11px; color: var(--muted); }
+.gallery-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.gallery-item { display: flex; gap: 10px; align-items: center; }
+
+.divider { height: 1px; background: var(--border); margin: 18px 0; }
+
+.empty-note { font-size: 13px; color: var(--muted); padding: 20px 0; text-align: center; }
+
+@media (min-width: 640px) {
+  .dash-main { padding: 28px 24px 100px; }
+}

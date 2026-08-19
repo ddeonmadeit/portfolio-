@@ -32,11 +32,15 @@ content:
           - { name: copyright, label: Copyright line, type: string }
           - { name: systemTag, label: Footer system tag, type: string }
 
-      - name: filters
-        label: Filter categories
-        description: "Keep 'All' first; the rest must match the project categories."
-        type: string
+      - name: sections
+        label: Home page sections
+        description: "Shown top to bottom. Leave title empty for an untitled section (normally the first). projectIds must match a project's id below, in the order they should appear."
+        type: object
         list: true
+        fields:
+          - { name: id, label: Section id, type: string }
+          - { name: title, label: "Title (empty = untitled)", type: string }
+          - { name: projectIds, label: "Project ids, in order", type: string, list: true }
 
       - name: projects
         label: Projects
@@ -45,14 +49,15 @@ content:
         fields:
           - { name: id, label: "URL slug (e.g. atelier-noir)", type: string }
           - { name: title, label: Title, type: string }
-          - name: category
-            label: Category
-            type: select
-            options:
-              values: [Fashion, Sound, Graphics, Video, Events]
+          - { name: category, label: "Category / discipline (shown on the project page)", type: string }
           - { name: year, label: Year, type: string }
           - { name: role, label: Role, type: string }
-          - { name: cover, label: Cover image, type: image }
+          - { name: cover, label: Cover (image or video), type: image }
+          - name: coverType
+            label: Cover type
+            type: select
+            options:
+              values: [image, video]
           - name: aspect
             label: Cover aspect ratio
             type: select
@@ -60,4 +65,14 @@ content:
               values: ["4/5", "16/9", "1/1", "3/4", "3/2"]
           - { name: summary, label: Summary, type: text }
           - { name: narrative, label: Narrative, type: text }
-          - { name: gallery, label: Gallery images, type: image, list: true }
+          - name: gallery
+            label: Gallery (extra photos/videos)
+            type: object
+            list: true
+            fields:
+              - { name: url, label: File, type: image }
+              - name: type
+                label: Type
+                type: select
+                options:
+                  values: [image, video]

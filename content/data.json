@@ -22,7 +22,14 @@
     "systemTag": "LIQUID BRUTALISM"
   },
 
-  "filters": ["All", "Fashion", "Sound", "Graphics", "Video", "Events"],
+  "sections": [
+    { "id": "featured", "title": "", "projectIds": ["atelier-noir", "resonance", "brutalist-system", "after-hours", "void-pavilion", "thread-study"] },
+    { "id": "fashion", "title": "Fashion", "projectIds": ["atelier-noir", "thread-study"] },
+    { "id": "sound", "title": "Sound", "projectIds": ["resonance"] },
+    { "id": "graphics", "title": "Graphics", "projectIds": ["brutalist-system"] },
+    { "id": "video", "title": "Video", "projectIds": ["after-hours"] },
+    { "id": "events", "title": "Events", "projectIds": ["void-pavilion"] }
+  ],
 
   "projects": [
     {
@@ -32,10 +39,14 @@
       "year": "2025",
       "role": "Creative Direction / Production",
       "cover": "assets/atelier-noir.jpg",
+      "coverType": "image",
       "aspect": "4/5",
       "summary": "A monochrome capsule collection exploring weight, drape, and the architecture of heavy fabric under low-key light.",
       "narrative": "Atelier Noir was conceived as a study in restraint — a seven-piece capsule built around the tension between industrial textile and couture finishing. Every seam was lit to expose the structure rather than disguise it, treating the garment as architecture worn close to the body.",
-      "gallery": ["assets/atelier-noir.jpg", "assets/thread-study.jpg"]
+      "gallery": [
+        { "url": "assets/atelier-noir.jpg", "type": "image" },
+        { "url": "assets/thread-study.jpg", "type": "image" }
+      ]
     },
     {
       "id": "resonance",
@@ -44,10 +55,13 @@
       "year": "2024",
       "role": "Sound Design / Mix",
       "cover": "assets/resonance.jpg",
+      "coverType": "image",
       "aspect": "16/9",
       "summary": "An ambient score and sound identity built from granular synthesis, designed for immersive gallery playback.",
       "narrative": "Resonance translates physical space into frequency. Field recordings were decomposed into grains and re-arranged into a continuous ambient bed that reacts to room acoustics, blurring the line between installation and score.",
-      "gallery": ["assets/resonance.jpg"]
+      "gallery": [
+        { "url": "assets/resonance.jpg", "type": "image" }
+      ]
     },
     {
       "id": "brutalist-system",
@@ -56,10 +70,13 @@
       "year": "2025",
       "role": "Graphic Design / Art Direction",
       "cover": "assets/brutalist-system.jpg",
+      "coverType": "image",
       "aspect": "1/1",
       "summary": "A modular identity system for an independent record label — raw grid, cream on cacao, restrained accent.",
       "narrative": "Brutalist System strips the identity back to a single grid and two weights. The system flexes across print, motion, and signage without ever breaking its structural logic, proving that discipline scales further than decoration.",
-      "gallery": ["assets/brutalist-system.jpg"]
+      "gallery": [
+        { "url": "assets/brutalist-system.jpg", "type": "image" }
+      ]
     },
     {
       "id": "after-hours",
@@ -68,10 +85,13 @@
       "year": "2024",
       "role": "Editing / Color Grade",
       "cover": "assets/after-hours.jpg",
+      "coverType": "image",
       "aspect": "16/9",
       "summary": "A nocturnal short film edit — amber rim light, deep shadow, and a pace built for the hour after midnight.",
       "narrative": "After Hours is an exercise in tempo. The edit breathes with the city it documents, holding on shadows longer than expected and cutting only when the light demands it. The grade pushes every frame toward copper and obsidian.",
-      "gallery": ["assets/after-hours.jpg"]
+      "gallery": [
+        { "url": "assets/after-hours.jpg", "type": "image" }
+      ]
     },
     {
       "id": "void-pavilion",
@@ -80,10 +100,13 @@
       "year": "2023",
       "role": "Event Direction / Production",
       "cover": "assets/void-pavilion.jpg",
+      "coverType": "image",
       "aspect": "4/5",
       "summary": "A one-night immersive event staged inside a raw concrete shell, lit with a single directional source.",
       "narrative": "Void Pavilion turned an empty industrial shell into a one-night experience. A single lighting axis carved the space into exposure and concealment, guiding four hundred guests through sound, projection, and movement without a single sign.",
-      "gallery": ["assets/void-pavilion.jpg"]
+      "gallery": [
+        { "url": "assets/void-pavilion.jpg", "type": "image" }
+      ]
     },
     {
       "id": "thread-study",
@@ -92,10 +115,13 @@
       "year": "2023",
       "role": "Material / Production",
       "cover": "assets/thread-study.jpg",
+      "coverType": "image",
       "aspect": "1/1",
       "summary": "A macro investigation of copper metallic thread woven through heavy cacao wool — texture as the subject.",
       "narrative": "Thread Study zooms in until the garment disappears and only the material remains. Shot at macro distance under Rembrandt light, the series treats thread, weave, and sheen as the true craft of fashion production.",
-      "gallery": ["assets/thread-study.jpg"]
+      "gallery": [
+        { "url": "assets/thread-study.jpg", "type": "image" }
+      ]
     }
   ]
 }

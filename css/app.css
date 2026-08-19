@@ -10,8 +10,10 @@
    2. This free release stubs out its numerals — every digit 0-9 draws
       the same placeholder glyph. The unicode-range below deliberately
       excludes U+0030-0039 so digits fall through to the next family in
-      the stack (JetBrains Mono), which matches how the design already
-      sets years and indices. Drop the unicode-range if a full version
+      the stack: Overpass, the open-license typeface "FT Overpass" is
+      itself built on (same name, same highway-gothic-derived letter
+      shapes), so substituted digits sit close to invisible next to the
+      real glyphs around them. Drop the unicode-range if a full version
       of the font with real numerals is ever installed. */
 @font-face {
   font-family: 'FT Overpass';
@@ -21,6 +23,18 @@
   font-style: normal;
   font-display: swap;
   unicode-range: U+0000-002F, U+003A-10FFFF;
+}
+
+/* Overpass (OFL-licensed, self-hosted) — the digit fallback described
+   above. Scoped to numerals only so it never competes with FT Overpass
+   for the letters it does draw correctly. */
+@font-face {
+  font-family: 'Overpass';
+  src: url('../fonts/Overpass-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
 }
 
 :root {
@@ -43,9 +57,9 @@ html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--body);
-  /* JetBrains Mono sits second on purpose — it catches the digits that
+  /* Overpass sits second on purpose — it catches the digits that
      FT Overpass deliberately doesn't cover. See the @font-face note. */
-  font-family: 'FT Overpass', 'JetBrains Mono', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: 'FT Overpass', 'Overpass', 'JetBrains Mono', ui-sans-serif, system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;

@@ -241,8 +241,9 @@ img { display: block; max-width: 100%; }
    PROJECT PREVIEWS — one static (non-scrolling) collage per
    section. The first section is untitled and sits directly under
    the hero; every section after it carries a title (project type,
-   by default) in place of the old filter bar. Positions never
-   move — tiles just wrap to as many rows as the content needs.
+   by default) in place of the old filter bar. Always a fixed
+   2-column grid — a project's aspect ratio only shapes its own
+   tile, mismatched pairs lock to the taller one in their row.
    Content, titles and per-section project order all come from
    content/data.json, edited at /dash.
    ============================================================ */
@@ -257,14 +258,17 @@ img { display: block; max-width: 100%; }
   color: rgba(253, 249, 243, 0.7);
 }
 .collage {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: stretch;
   gap: 6px;
 }
 
 .tile {
-  flex: 1 1 auto;
-  height: clamp(150px, 32vw, 320px);
+  /* height comes from the aspect-ratio set per project (js/app.js); when the
+     two tiles sharing a row differ, grid's default stretch alignment locks
+     them to the taller one and object-fit: cover crops the shorter to match. */
+  width: 100%;
   display: block;
   overflow: hidden;
   cursor: pointer;
@@ -412,7 +416,6 @@ img { display: block; max-width: 100%; }
   .hero-ghost span { transform: translateY(0px); }
   .hero-head { font-size: 36px; }
   .hero-sub { font-size: 16px; max-width: 24rem; }
-  .detail-specs { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (min-width: 900px) {

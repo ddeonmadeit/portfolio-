@@ -2,7 +2,7 @@
   "site": {
     "name": "DEON",
     "title": "DEON",
-    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
+    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, music, event curation, and fashion production.",
     "heroLead": "A 7+ Year Journey in",
     "heroAccent": "Visual Architecture",
     "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
@@ -86,13 +86,13 @@
     {
       "id": "atelier-noir",
       "title": "Knots Cypher",
-      "category": "Video / Fashion / Music",
+      "category": "Video / Fashion / Sound / Event Management",
       "year": "2025",
       "role": "Creative Direction / Video Editing / Music Production / Event Coordination",
       "cover": "assets/1787148227144-0-cypher-002.mov",
       "coverType": "video",
       "aspect": "16/9",
-      "summary": "A cypher performance in my store by 3 underground australian artists (Jonny Chops, Villyszn & zPluto) performing an original song produced by me.\nArtists are all wearing my brand Knots. The editing of the video, lighting, event setup and promotion was all done by me ",
+      "summary": "A cypher performance in my store by 3 underground australian artists (Jonny Chops, Villyszn & zPluto) performing an original song produced by me.\nArtists are all wearing my brand Knots. The editing of the video, lighting, event setup and promotion was all done by me.",
       "narrative": "",
       "gallery": [
         {
@@ -110,18 +110,26 @@
     },
     {
       "id": "resonance",
-      "title": "Resonance",
-      "category": "Sound",
-      "year": "2024",
-      "role": "Sound Design / Mix",
-      "cover": "assets/resonance.jpg",
-      "coverType": "image",
-      "aspect": "16/9",
-      "summary": "An ambient score and sound identity built from granular synthesis, designed for immersive gallery playback.",
-      "narrative": "Resonance translates physical space into frequency. Field recordings were decomposed into grains and re-arranged into a continuous ambient bed that reacts to room acoustics, blurring the line between installation and score.",
+      "title": "Knots Halloween Event",
+      "category": "Event Management / Graphic Design / Video Editing / Fashion",
+      "year": "2025",
+      "role": "Graphic Design / Marketer / Video Editor / Event Management",
+      "cover": "assets/1787182908242-4-draftresource-1761872686-216064.mov",
+      "coverType": "video",
+      "aspect": "4/5",
+      "summary": "In collaboration with bucckk22 and places.save, two community driven brands.\nI hosted a halloween event at my retail store.\nI was in charge of the graphic design, video editing & overall promotion and management of the event.\nOver 200 people attended.",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/resonance.jpg",
+          "url": "assets/1787183245592-7-59daa327-2972-44f4-914b-1244c92cd184.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787183245579-6-fce89483-d6c5-4da0-b348-f7525120693f.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787183245593-8-img-8035.jpeg",
           "type": "image"
         }
       ],

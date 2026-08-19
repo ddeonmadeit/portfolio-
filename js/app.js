@@ -69,11 +69,11 @@ function embedSrc(url) {
   const u = String(url).trim();
 
   const yt = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
-  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}`;
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?autoplay=1&mute=1&playsinline=1`;
 
   // vimeo.com/123456789 and unlisted vimeo.com/123456789/abcdef0123
   const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([0-9a-zA-Z]+))?/);
-  if (vm) return `https://player.vimeo.com/video/${vm[1]}${vm[2] ? `?h=${vm[2]}` : ''}`;
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}?${vm[2] ? `h=${vm[2]}&` : ''}autoplay=1&muted=1`;
 
   return null;
 }

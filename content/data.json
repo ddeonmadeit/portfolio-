@@ -1,8 +1,8 @@
 {
   "site": {
     "name": "DEON",
-    "title": "DEON",
-    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
+    "title": "DEON — Polymathic Studio",
+    "description": "DEON — a seven-year odyssey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
     "heroLead": "A 7+ Year Journey in",
     "heroAccent": "Visual Architecture",
     "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
@@ -17,15 +17,7 @@
       "Photography",
       "Videography"
     ],
-    "softwares": [
-      "Photoshop",
-      "Illustrator",
-      "Premier Pro",
-      "After Effects",
-      "Fl Studio",
-      "Logic Pro X",
-      "Capcut"
-    ],
+    "softwares": [],
     "contactLabel": "CONTACT",
     "email": "ddeonmadeit@gmail.com",
     "phone": "+61451887907",
@@ -85,15 +77,15 @@
   "projects": [
     {
       "id": "atelier-noir",
-      "title": "Knots Cypher",
-      "category": "Video / Fashion / Music",
+      "title": "Atelier Noir",
+      "category": "Fashion",
       "year": "2025",
-      "role": "Creative Direction / Video Editing / Music Production / Event Coordination",
-      "cover": "assets/1787148227144-0-cypher-002.mov",
-      "coverType": "video",
-      "aspect": "16/9",
-      "summary": "A cypher performance in my store by 3 underground australian artists (Jonny Chops, Villyszn & zPluto) performing an original song produced by me.\nArtists are all wearing my brand Knots. The editing of the video, lighting, event setup and promotion was all done by me ",
-      "narrative": "",
+      "role": "Creative Direction / Production",
+      "cover": "assets/atelier-noir.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "summary": "A monochrome capsule collection exploring weight, drape, and the architecture of heavy fabric under low-key light.",
+      "narrative": "Atelier Noir was conceived as a study in restraint — a seven-piece capsule built around the tension between industrial textile and couture finishing. Every seam was lit to expose the structure rather than disguise it, treating the garment as architecture worn close to the body.",
       "gallery": [
         {
           "url": "assets/atelier-noir.jpg",
@@ -104,7 +96,7 @@
           "type": "image"
         }
       ],
-      "embedUrl": "https://m.youtube.com/watch?v=MbqXr349G3g&list=RDMbqXr349G3g&start_radio=1&pp=ygUQa25vdHMgY3lwaGVyIDAwMaAHAQ%3D%3D&ra=m",
+      "embedUrl": "",
       "loopStart": 0,
       "loopEnd": 0
     },

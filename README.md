@@ -1,62 +1,78 @@
-# DEON — creative studio portfolio
+# DEON — Polymathic Studio
 
-A light, minimal, mobile-first portfolio site for a multidisciplinary
-studio — **graphic design, music, web, video, clothing**. Single page:
-sticky header, big statement hero, filterable work grid with a lightbox,
-studio note, disciplines index, collaborators marquee, contact and footer.
+A static portfolio: full-bleed hero with an outlined wordmark, a masonry
+archive of projects, discipline filters, a studio block, and a detail page
+per project at `/project/<slug>`.
 
-No framework, no build step — plain HTML, CSS and ES modules. All content
-lives in one file so it's easy to edit and add your own photos.
+Plain HTML, CSS and ES modules — no framework, no build step. Ported off
+the previous hosted builder so the whole thing is self-contained and
+deploys anywhere static.
 
 ## Edit the content
 
-Everything is in **`js/data.js`**:
+Everything lives in **`content/data.json`**:
 
-- `SITE` — name, hero statement, availability, intro, contact, socials.
-- `DISCIPLINES` — the numbered services index.
-- `CLIENTS` — collaborators marquee (empty the array to hide the section).
-- `FILTERS` / `WORK` — the work grid. Each work has a `title`, `cat`,
-  `year`, `ratio`, optional `img` and `link`, and a `desc`.
+- `site` — name, hero lines, studio blurb, disciplines, email, footer.
+- `filters` — the category chips (keep `All` first).
+- `projects` — one entry per project: `id` (URL slug), `title`,
+  `category`, `year`, `role`, `cover`, `aspect`, `summary`, `narrative`,
+  and a `gallery` list.
 
-## Add photos & your logo
+A project's page is `/project/<id>`, so `"id": "atelier-noir"` →
+`/project/atelier-noir`.
 
-See **`assets/README.md`**. Short version: drop image files in `assets/`
-and set `img: 'assets/your-file.jpg'` on the matching `WORK` item. For a
-logo, add `assets/logo.svg` and swap the wordmark in `index.html`. Until
-then, clean placeholder tiles are shown so the site always looks finished.
+## Swap in your own images
+
+Drop files into **`assets/`** and point `cover` / `gallery` at them, e.g.
+`"cover": "assets/my-shoot.jpg"`. Set `aspect` to match the crop
+(`4/5`, `16/9`, `1/1`, …) so the masonry grid stays tidy.
+
+The images currently in `assets/` are generated placeholders in the site's
+palette — replace them as real work comes in. If a project has no extra
+gallery images beyond its cover, the detail page shows the
+"additional media — to be added" placeholder automatically.
+
+## Typography
+
+Set in **FT Overpass** (`fonts/`, owner-supplied). It ships as a single
+400 weight, so synthetic bolding is switched off and headings are
+thickened with a text stroke instead — see `.display` in `css/app.css`.
+Adjust the per-title `--stroke` value to taste. The small monospace
+labels use JetBrains Mono.
 
 ## Run it locally
-
-ES modules need a server (opening the file directly won't work):
 
 ```bash
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
+Project URLs need the rewrite that `vercel.json` provides, so on the
+plain Python server open a project from the archive rather than typing
+`/project/<slug>` directly.
+
 ## Deploy to Vercel
 
-This repo is ready for Vercel with no configuration — it's a static site.
+Static, no build step:
 
-1. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
-2. **Add New… → Project**, then import this repository.
-3. Framework preset: **Other**. Leave build command and output empty.
-   (Vercel serves the repo root as static files.)
-4. Click **Deploy**. You get a `*.vercel.app` URL immediately.
+1. [vercel.com](https://vercel.com) → sign in with GitHub → **Add New → Project**.
+2. Import this repo. Framework preset: **Other**; leave build command and
+   output directory empty.
+3. **Deploy.**
 
-Every push to the connected branch redeploys automatically. `vercel.json`
-adds long-cache headers for fonts and assets plus basic security headers.
-
-To connect a custom domain: Vercel project → **Settings → Domains**.
+`vercel.json` rewrites `/project/*` to `index.html` for client-side
+routing, long-caches fonts and images, and keeps `content/data.json`
+uncached so edits show up immediately.
 
 ## Structure
 
 ```
-index.html        markup + meta tags
-css/app.css        all styles (Braun Linear @font-faces at the top)
-js/data.js         ← ALL CONTENT LIVES HERE
-js/app.js          rendering, nav, filtering, lightbox, scroll reveals
-fonts/             Braun Linear woff2 (5 weights)
-assets/            your photos + logo + favicon (see assets/README.md)
-vercel.json        static hosting config
+index.html         app shell (home + detail views)
+css/app.css        all styles, design tokens at the top
+js/app.js          rendering, filtering, routing
+content/data.json  ← ALL CONTENT LIVES HERE
+assets/            images + icons
+fonts/             FT Overpass
+vercel.json        static hosting + route rewrites
+.pages.yml         optional visual CMS config (pagescms.org)
 ```

@@ -1,142 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>DEON — Independent Creative</title>
-  <meta name="description" content="DEON — independent creative direction and production across design, music, web, video and clothing." />
-  <meta name="theme-color" content="#0d0c0a" />
+  <!-- keeps relative asset URLs resolving from the root on /project/<slug> routes -->
+  <base href="/" />
+  <title>DEON — Polymathic Studio</title>
+  <meta name="description" content="DEON — a seven-year odyssey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production." />
+  <meta name="theme-color" content="#120B09" />
   <meta name="color-scheme" content="dark" />
 
-  <meta property="og:title" content="DEON — Independent Creative" />
-  <meta property="og:description" content="Creative direction & production across design, music, web, video and clothing." />
+  <meta property="og:title" content="DEON — Polymathic Studio" />
+  <meta property="og:description" content="A seven-year odyssey in visual architecture." />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="assets/og.jpg" />
+  <meta property="og:image" content="assets/atelier-noir.jpg" />
 
   <link rel="icon" href="assets/favicon.png" type="image/png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
-  <link rel="preload" href="fonts/BraunLinear-Medium.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="fonts/BraunLinear-Bold.woff2" as="font" type="font/woff2" crossorigin />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="DEON Portfolio" />
+
+  <link rel="preload" href="fonts/FTOverpass.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
 </head>
-<body class="loading">
-  <!-- ===================== LOADER ===================== -->
-  <div id="loader" aria-hidden="true">
-    <span class="loader-dot"></span>
-    <span id="loader-pct" class="loader-pct">0%</span>
-  </div>
+<body>
+  <!-- ===================== HOME ===================== -->
+  <div id="home" class="view">
+    <!-- HERO -->
+    <header class="hero">
+      <div class="hero-ghost" aria-hidden="true"><span id="ghost-word">DEON</span></div>
+      <div class="hero-copy">
+        <h1 class="sr-only" id="sr-name">DEON</h1>
+        <h2 class="hero-head display">
+          <span id="hero-lead"></span> <span class="amber" id="hero-accent"></span>
+        </h2>
+        <p class="hero-sub" id="hero-sub"></p>
+      </div>
+    </header>
 
-  <!-- ===================== HEADER ===================== -->
-  <header id="header">
-    <a class="wordmark" href="#top" aria-label="DEON home">
-      <span class="wordmark-text">DEON</span>
-    </a>
-    <nav class="nav-desktop" aria-label="Primary">
-      <button type="button" data-scroll-to="#work">Work</button>
-      <button type="button" data-scroll-to="#studio">About</button>
-      <button type="button" id="nav-contact">Contact</button>
+    <!-- ARCHIVE GRID -->
+    <main class="archive" id="archive">
+      <div class="grid" id="grid"></div>
+    </main>
+
+    <!-- FILTER BAR -->
+    <nav class="filterbar" id="filterbar" aria-label="Filter by discipline">
+      <div class="filterbar-inner" id="filters"></div>
     </nav>
-    <button id="menu-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">
-      <span></span><span></span>
-    </button>
-  </header>
 
-  <!-- ===================== MOBILE MENU ===================== -->
-  <div id="menu" class="menu" role="dialog" aria-modal="true" aria-label="Menu" hidden>
-    <ul class="menu-nav">
-      <li><button type="button" data-scroll-to="#work">Work</button></li>
-      <li><button type="button" data-scroll-to="#studio">About</button></li>
-      <li><button type="button" id="menu-contact">Contact</button></li>
-    </ul>
-    <div class="menu-socials" id="menu-socials"></div>
-  </div>
+    <!-- STUDIO -->
+    <section class="studio" id="studio">
+      <p class="label amber" id="studio-label"></p>
+      <h2 class="studio-name display" id="studio-name"></h2>
+      <p class="studio-blurb" id="studio-blurb"></p>
 
-  <!-- ===================== CONTACT MODAL ===================== -->
-  <div id="contact-modal" class="modal" hidden>
-    <div class="modal-backdrop" id="modal-backdrop"></div>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-label="Contact">
-      <button class="modal-close" id="modal-close" aria-label="Close contact">✕</button>
-      <h2 class="modal-heading" id="modal-heading"></h2>
-      <p class="modal-note" id="modal-note"></p>
-      <div class="modal-channels" id="modal-channels"></div>
-      <div class="modal-socials" id="modal-socials"></div>
-    </div>
-  </div>
+      <p class="label dim" id="disc-label">DISCIPLINES</p>
+      <ul class="disciplines" id="disciplines"></ul>
 
-  <main id="top">
-    <!-- ===================== HERO (fixed text over a spacer) ===================== -->
-    <section class="hero-fixed" id="hero-fixed">
-      <h1 class="hero-statement" id="hero-statement"></h1>
-      <button class="hero-scroll" id="hero-scroll-hint" data-scroll-to="#studio">
-        <span id="hero-scroll-label"></span>
-      </button>
-    </section>
-    <div class="hero-runway" id="hero-runway"></div>
+      <p class="label dim" id="contact-label"></p>
+      <ul class="contact">
+        <li><a id="email-link" href="#"></a></li>
+        <li><button type="button" id="to-top"></button></li>
+      </ul>
 
-    <!-- ===================== ABOUT / STUDIO ===================== -->
-    <section class="section studio" id="studio">
-      <p class="eyebrow reveal" id="studio-eyebrow"></p>
-      <div class="studio-row">
-        <p class="studio-lead" id="studio-mission"></p>
-        <canvas class="studio-rock" id="rock" aria-hidden="true"></canvas>
-      </div>
-    </section>
-
-    <!-- ===================== BEHIND THE SCENES ===================== -->
-    <section class="section carousel-section" id="bts">
-      <div class="carousel-head reveal">
-        <h3 class="carousel-title">Behind the scenes</h3>
-        <span class="carousel-rule" aria-hidden="true"></span>
-      </div>
-      <div class="carousel" id="bts-carousel"></div>
-    </section>
-
-    <!-- ===================== WHAT WE DO ===================== -->
-    <section class="section carousel-section" id="services">
-      <div class="carousel-head reveal">
-        <h3 class="carousel-title">What I do</h3>
-        <span class="carousel-rule" aria-hidden="true"></span>
-      </div>
-      <div class="carousel" id="services-carousel"></div>
-    </section>
-
-    <!-- ===================== WORK (project index + preview) ===================== -->
-    <section class="section work" id="work">
-      <h3 class="section-label reveal">Selected work</h3>
-      <div class="work-layout">
-        <div class="work-preview" id="work-preview" aria-hidden="true">
-          <div class="work-preview-ph"></div>
-        </div>
-        <ul class="work-index" id="work-index"></ul>
-      </div>
-    </section>
-
-    <!-- ===================== CTA + FOOTER ===================== -->
-    <section class="cta" id="contact">
-      <p class="cta-kicker cta-kicker-left" id="cta-kicker-left"></p>
-      <div class="cta-center">
-        <p class="cta-heading" id="cta-heading"></p>
-        <button class="cta-link" id="cta-link"></button>
-      </div>
-      <p class="cta-kicker cta-kicker-right" id="cta-kicker-right"></p>
-
-      <footer id="footer">
-        <div class="footer-row">
-          <span id="footer-credit"></span>
-        </div>
+      <footer class="foot">
+        <p class="mono dim" id="copyright"></p>
+        <p class="mono dim" id="system-tag"></p>
       </footer>
     </section>
-  </main>
+  </div>
 
-  <!-- ===================== WORK LIGHTBOX (tap on mobile) ===================== -->
-  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Work detail" hidden>
-    <button class="lightbox-close" id="lightbox-close" aria-label="Close">✕</button>
-    <div class="lightbox-inner">
-      <div class="lightbox-media"><div class="lightbox-ph"></div></div>
-      <div class="lightbox-info">
-        <p class="lightbox-cat" id="lightbox-cat"></p>
-        <h3 class="lightbox-title" id="lightbox-title"></h3>
-      </div>
+  <!-- ===================== PROJECT DETAIL ===================== -->
+  <div id="detail" class="view" hidden>
+    <div class="detail-wrap">
+      <button type="button" class="mono back-link" id="back-archive-top">ARCHIVE</button>
+
+      <p class="mono dim detail-meta" id="d-meta"></p>
+      <h2 class="detail-title display" id="d-title"></h2>
+
+      <div class="detail-cover"><img id="d-cover" alt="" /></div>
+
+      <p class="label amber" id="d-brief-label">/ THE BRIEF</p>
+
+      <dl class="detail-specs" id="d-specs"></dl>
+
+      <p class="detail-summary" id="d-summary"></p>
+      <p class="detail-narrative" id="d-narrative"></p>
+
+      <div class="detail-gallery" id="d-gallery"></div>
+
+      <p class="label amber" id="d-continue-label">/ CONTINUE</p>
+      <button type="button" class="back-big display" id="back-archive">Back to the Archive</button>
     </div>
   </div>
 

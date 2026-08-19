@@ -85,7 +85,7 @@
   "projects": [
     {
       "id": "atelier-noir",
-      "title": "Atelier Noir",
+      "title": "Knots Cypher",
       "category": "Fashion",
       "year": "2025",
       "role": "Creative Direction / Production",
@@ -104,7 +104,7 @@
           "type": "image"
         }
       ],
-      "embedUrl": "",
+      "embedUrl": "https://m.youtube.com/watch?v=MbqXr349G3g&list=RDMbqXr349G3g&start_radio=1&pp=ygUQa25vdHMgY3lwaGVyIDAwMaAHAQ%3D%3D&ra=m",
       "loopStart": 0,
       "loopEnd": 0
     },

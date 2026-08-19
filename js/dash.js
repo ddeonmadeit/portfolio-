@@ -608,7 +608,7 @@ function renderProjectsPanel() {
       ['category', 'Category / discipline (shown on the project page)'],
       ['year', 'Year'],
       ['role', 'Role'],
-      ['aspect', 'Cover aspect ratio (e.g. 4/5, 16/9, 1/1)'],
+      ['aspect', 'Cover aspect ratio (e.g. 4/5, 16/9, 1/1 — 9/16 takes a whole row)'],
       ['summary', 'Summary', 'textarea'],
       ['narrative', 'Narrative', 'textarea'],
     ];

@@ -26,10 +26,10 @@ content:
           - { name: studioLabel, label: "Studio section label (empty hides it)", type: string }
           - { name: studioBlurb, label: Studio blurb, type: text }
           - { name: disciplines, label: Disciplines, type: string, list: true }
+          - { name: softwares, label: Softwares, type: string, list: true }
           - { name: contactLabel, label: Contact label, type: string }
           - { name: email, label: Email, type: string }
           - { name: phone, label: "Phone (empty hides it)", type: string }
-          - { name: backToTop, label: "Back-to-top label", type: string }
           - { name: instagramUrl, label: "Instagram URL (empty hides the icon)", type: string }
           - { name: knotsssUrl, label: "knotsss URL (empty hides the icon)", type: string }
 

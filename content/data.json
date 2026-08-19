@@ -1,57 +1,101 @@
 {
   "site": {
     "name": "DEON",
-    "statement": "I offer creative direction & production across design, music, web, video and clothing.",
-    "scrollHint": "Scroll Down",
-    "eyebrow": "Independent & worldwide",
-    "mission": "I help ideas become real things, through design work, sound, code and film, with hands-on production from first sketch to final file.",
-    "contact": {
-      "heading": "Get in touch",
-      "note": "Based online. Working with people everywhere.",
-      "channels": [
-        { "label": "Work", "email": "ddeonmadeit@gmail.com" },
-        { "label": "General", "email": "ddeonmadeit@gmail.com" }
-      ]
-    },
-    "socials": [
-      { "label": "Instagram", "url": "https://instagram.com/ddeonmadeit" },
-      { "label": "YouTube", "url": "https://youtube.com/@ddeonmadeit" },
-      { "label": "SoundCloud", "url": "https://soundcloud.com/ddeonmadeit" }
+    "title": "DEON — Polymathic Studio",
+    "description": "DEON — a seven-year odyssey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
+    "heroLead": "A Seven-Year Journey in",
+    "heroAccent": "Visual Architecture",
+    "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
+    "studioLabel": "/ STUDIO",
+    "studioBlurb": "A polymathic practice across design, sound, image, and space.",
+    "disciplines": [
+      "Graphic Design",
+      "Video Editing",
+      "Sound Design",
+      "Event Management",
+      "Fashion Design & Production"
     ],
-    "ctaKickerLeft": "Always making something.",
-    "ctaHeading": "Got an idea?",
-    "ctaLink": "Let's talk",
-    "ctaKickerRight": "Reply's usually quick.",
-    "credit": "DEON"
+    "contactLabel": "CONTACT",
+    "email": "hello@deon.studio",
+    "backToTop": "Back to top",
+    "copyright": "© 2026 DEON — ALL RIGHTS RESERVED",
+    "systemTag": "LIQUID BRUTALISM"
   },
 
-  "services": [
-    { "title": "Graphic Design", "desc": "Posters, identities, cover art, layout.", "tint": "a" },
-    { "title": "Music", "desc": "Songs, beats, production, sound.", "tint": "b" },
-    { "title": "Web", "desc": "Websites and interactive experiments.", "tint": "c" },
-    { "title": "Video", "desc": "Music videos, edits, motion.", "tint": "a" },
-    { "title": "Clothing", "desc": "Pieces, drops and one-offs.", "tint": "b" }
-  ],
+  "filters": ["All", "Fashion", "Sound", "Graphics", "Video", "Events"],
 
-  "behindTheScenes": [
-    { "caption": "Studio, late night" },
-    { "caption": "Test prints" },
-    { "caption": "On set" },
-    { "caption": "Rough cut" },
-    { "caption": "Scratch vocals" },
-    { "caption": "First fit" },
-    { "caption": "Location scout" },
-    { "caption": "Color pass" }
-  ],
-
-  "work": [
-    { "title": "Mirage", "cat": "Music", "year": "2025" },
-    { "title": "Identity — Smoke", "cat": "Design", "year": "2025" },
-    { "title": "This Site", "cat": "Web", "year": "2026" },
-    { "title": "Music Video — Mirage", "cat": "Video", "year": "2025" },
-    { "title": "Tee — Dust Run", "cat": "Clothing", "year": "2025" },
-    { "title": "Cover Art — Dust", "cat": "Design", "year": "2024" },
-    { "title": "Heat Haze", "cat": "Music", "year": "2024" },
-    { "title": "Recap Tape 24", "cat": "Video", "year": "2024" }
+  "projects": [
+    {
+      "id": "atelier-noir",
+      "title": "Atelier Noir",
+      "category": "Fashion",
+      "year": "2025",
+      "role": "Creative Direction / Production",
+      "cover": "assets/atelier-noir.jpg",
+      "aspect": "4/5",
+      "summary": "A monochrome capsule collection exploring weight, drape, and the architecture of heavy fabric under low-key light.",
+      "narrative": "Atelier Noir was conceived as a study in restraint — a seven-piece capsule built around the tension between industrial textile and couture finishing. Every seam was lit to expose the structure rather than disguise it, treating the garment as architecture worn close to the body.",
+      "gallery": ["assets/atelier-noir.jpg", "assets/thread-study.jpg"]
+    },
+    {
+      "id": "resonance",
+      "title": "Resonance",
+      "category": "Sound",
+      "year": "2024",
+      "role": "Sound Design / Mix",
+      "cover": "assets/resonance.jpg",
+      "aspect": "16/9",
+      "summary": "An ambient score and sound identity built from granular synthesis, designed for immersive gallery playback.",
+      "narrative": "Resonance translates physical space into frequency. Field recordings were decomposed into grains and re-arranged into a continuous ambient bed that reacts to room acoustics, blurring the line between installation and score.",
+      "gallery": ["assets/resonance.jpg"]
+    },
+    {
+      "id": "brutalist-system",
+      "title": "Brutalist System",
+      "category": "Graphics",
+      "year": "2025",
+      "role": "Graphic Design / Art Direction",
+      "cover": "assets/brutalist-system.jpg",
+      "aspect": "1/1",
+      "summary": "A modular identity system for an independent record label — raw grid, cream on cacao, restrained accent.",
+      "narrative": "Brutalist System strips the identity back to a single grid and two weights. The system flexes across print, motion, and signage without ever breaking its structural logic, proving that discipline scales further than decoration.",
+      "gallery": ["assets/brutalist-system.jpg"]
+    },
+    {
+      "id": "after-hours",
+      "title": "After Hours",
+      "category": "Video",
+      "year": "2024",
+      "role": "Editing / Color Grade",
+      "cover": "assets/after-hours.jpg",
+      "aspect": "16/9",
+      "summary": "A nocturnal short film edit — amber rim light, deep shadow, and a pace built for the hour after midnight.",
+      "narrative": "After Hours is an exercise in tempo. The edit breathes with the city it documents, holding on shadows longer than expected and cutting only when the light demands it. The grade pushes every frame toward copper and obsidian.",
+      "gallery": ["assets/after-hours.jpg"]
+    },
+    {
+      "id": "void-pavilion",
+      "title": "Void Pavilion",
+      "category": "Events",
+      "year": "2023",
+      "role": "Event Direction / Production",
+      "cover": "assets/void-pavilion.jpg",
+      "aspect": "4/5",
+      "summary": "A one-night immersive event staged inside a raw concrete shell, lit with a single directional source.",
+      "narrative": "Void Pavilion turned an empty industrial shell into a one-night experience. A single lighting axis carved the space into exposure and concealment, guiding four hundred guests through sound, projection, and movement without a single sign.",
+      "gallery": ["assets/void-pavilion.jpg"]
+    },
+    {
+      "id": "thread-study",
+      "title": "Thread Study",
+      "category": "Fashion",
+      "year": "2023",
+      "role": "Material / Production",
+      "cover": "assets/thread-study.jpg",
+      "aspect": "1/1",
+      "summary": "A macro investigation of copper metallic thread woven through heavy cacao wool — texture as the subject.",
+      "narrative": "Thread Study zooms in until the garment disappears and only the material remains. Shot at macro distance under Rembrandt light, the series treats thread, weave, and sheen as the true craft of fashion production.",
+      "gallery": ["assets/thread-study.jpg"]
+    }
   ]
 }

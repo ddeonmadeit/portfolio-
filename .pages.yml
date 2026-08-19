@@ -9,7 +9,7 @@ media:
 
 content:
   - name: site
-    label: Site & content
+    label: Site & projects
     type: file
     path: content/data.json
     fields:
@@ -18,67 +18,46 @@ content:
         type: object
         fields:
           - { name: name, label: Studio name, type: string }
-          - { name: statement, label: Hero statement, type: text }
-          - { name: scrollHint, label: "Hero \"scroll down\" label", type: string }
-          - { name: eyebrow, label: About eyebrow label, type: string }
-          - { name: mission, label: About mission paragraph, type: text }
-          - name: contact
-            label: Contact modal
-            type: object
-            fields:
-              - { name: heading, label: Heading, type: string }
-              - { name: note, label: Note, type: string }
-              - name: channels
-                label: Contact emails
-                type: object
-                list: true
-                fields:
-                  - { name: label, label: Label, type: string }
-                  - { name: email, label: Email, type: string }
-          - name: socials
-            label: Social links
-            type: object
-            list: true
-            fields:
-              - { name: label, label: Label, type: string }
-              - { name: url, label: URL, type: string }
-          - { name: ctaKickerLeft, label: "Closing CTA — left kicker (desktop only)", type: string }
-          - { name: ctaHeading, label: Closing CTA heading, type: string }
-          - { name: ctaLink, label: Closing CTA link text, type: string }
-          - { name: ctaKickerRight, label: "Closing CTA — right kicker (desktop only)", type: string }
-          - { name: credit, label: Footer credit, type: string }
+          - { name: title, label: Browser tab title, type: string }
+          - { name: description, label: Meta description, type: text }
+          - { name: heroLead, label: "Hero — first line", type: string }
+          - { name: heroAccent, label: "Hero — highlighted words", type: string }
+          - { name: heroSub, label: "Hero — subtitle", type: text }
+          - { name: studioLabel, label: Studio section label, type: string }
+          - { name: studioBlurb, label: Studio blurb, type: text }
+          - { name: disciplines, label: Disciplines, type: string, list: true }
+          - { name: contactLabel, label: Contact label, type: string }
+          - { name: email, label: Email, type: string }
+          - { name: backToTop, label: "Back-to-top label", type: string }
+          - { name: copyright, label: Copyright line, type: string }
+          - { name: systemTag, label: Footer system tag, type: string }
 
-      - name: services
-        label: What I do (services)
+      - name: filters
+        label: Filter categories
+        description: "Keep 'All' first; the rest must match the project categories."
+        type: string
+        list: true
+
+      - name: projects
+        label: Projects
         type: object
         list: true
         fields:
+          - { name: id, label: "URL slug (e.g. atelier-noir)", type: string }
           - { name: title, label: Title, type: string }
-          - { name: desc, label: Description, type: string }
-          - name: tint
-            label: Card color
-            type: select
-            options:
-              values: [a, b, c]
-
-      - name: behindTheScenes
-        label: Behind the scenes
-        type: object
-        list: true
-        fields:
-          - { name: caption, label: Caption, type: string }
-          - { name: img, label: Photo, type: image }
-
-      - name: work
-        label: Selected work
-        type: object
-        list: true
-        fields:
-          - { name: title, label: Title, type: string }
-          - name: cat
+          - name: category
             label: Category
             type: select
             options:
-              values: [Design, Music, Web, Video, Clothing]
+              values: [Fashion, Sound, Graphics, Video, Events]
           - { name: year, label: Year, type: string }
-          - { name: img, label: Image, type: image }
+          - { name: role, label: Role, type: string }
+          - { name: cover, label: Cover image, type: image }
+          - name: aspect
+            label: Cover aspect ratio
+            type: select
+            options:
+              values: ["4/5", "16/9", "1/1", "3/4", "3/2"]
+          - { name: summary, label: Summary, type: text }
+          - { name: narrative, label: Narrative, type: text }
+          - { name: gallery, label: Gallery images, type: image, list: true }

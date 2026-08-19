@@ -7,8 +7,9 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#120B09" />
   <meta name="color-scheme" content="dark" />
-  <link rel="icon" href="assets/favicon.png" type="image/png" />
-  <link rel="stylesheet" href="css/dash.css" />
+  <!-- absolute paths: this page is served from /dash/ -->
+  <link rel="icon" href="/assets/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="/css/dash.css" />
 </head>
 <body>
   <!-- ===================== LOGIN GATE ===================== -->
@@ -36,12 +37,54 @@
       <button type="button" class="dash-tab active" data-tab="text">Site text</button>
       <button type="button" class="dash-tab" data-tab="sections">Sections</button>
       <button type="button" class="dash-tab" data-tab="projects">Projects</button>
+      <button type="button" class="dash-tab" data-tab="settings">Connection</button>
     </nav>
 
     <main class="dash-main">
       <section class="dash-panel" id="panel-text" data-panel="text"></section>
       <section class="dash-panel" id="panel-sections" data-panel="sections" hidden></section>
       <section class="dash-panel" id="panel-projects" data-panel="projects" hidden></section>
+
+      <!-- ===================== CONNECTION ===================== -->
+      <section class="dash-panel" id="panel-settings" data-panel="settings" hidden>
+        <h2>GitHub connection</h2>
+        <p class="field-hint" style="margin-bottom:16px">
+          The site is hosted on GitHub Pages, which serves files but can't run
+          any code of its own. So Save works by committing straight to the
+          repository from this browser — which needs a GitHub token with
+          permission to write to it. The token is stored only in this browser
+          and never leaves it except to talk to GitHub.
+        </p>
+
+        <div class="field">
+          <label for="cfg-token">GitHub token</label>
+          <input type="password" id="cfg-token" placeholder="github_pat_…" autocomplete="off" />
+          <div class="field-hint">
+            Fine-grained token, this repository only, with
+            <strong>Contents: Read and write</strong>. Create one at
+            <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens</a>.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="cfg-branch">Branch to publish to</label>
+          <input type="text" id="cfg-branch" />
+          <div class="field-hint">Must match the branch the Pages workflow deploys from.</div>
+        </div>
+
+        <div class="field">
+          <label for="cfg-repo">Repository</label>
+          <input type="text" id="cfg-repo" placeholder="owner/repo" />
+        </div>
+
+        <div class="add-row">
+          <button type="button" class="btn btn-primary btn-sm" id="cfg-save">Save connection</button>
+          <button type="button" class="btn btn-sm" id="cfg-test">Test connection</button>
+          <span class="row-spacer"></span>
+          <button type="button" class="btn btn-sm" id="cfg-forget" style="color:var(--danger)">Forget token</button>
+        </div>
+        <p class="field-hint" id="cfg-status" style="margin-top:12px"></p>
+      </section>
     </main>
   </div>
 
@@ -57,6 +100,6 @@
     </li>
   </template>
 
-  <script type="module" src="js/dash.js"></script>
+  <script type="module" src="/js/dash.js"></script>
 </body>
 </html>

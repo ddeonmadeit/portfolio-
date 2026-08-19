@@ -110,8 +110,19 @@ async function gh(path, options = {}) {
   if (!res.ok) {
     let detail = '';
     try { detail = (await res.json()).message || ''; } catch {}
-    if (res.status === 401) throw new Error('GitHub rejected the token (401). Check it hasn\'t expired.');
-    if (res.status === 403) throw new Error('GitHub denied the request (403). The token needs Contents: Read and write on this repo.');
+    if (res.status === 401) {
+      throw new Error('GitHub rejected the token (401) — it\'s expired, revoked, or was pasted incompletely. Generate a new one.');
+    }
+    if (res.status === 403) {
+      // A fine-grained token that doesn't list this repo returns 403 even
+      // though the repo is public, so "no access" and "read-only access"
+      // look identical from here. Spell out both.
+      throw new Error(
+        'GitHub denied the request (403). With a fine-grained token this usually means the repo wasn\'t selected: ' +
+        'under "Repository access" choose "Only select repositories" and pick this repo, AND under "Permissions" set ' +
+        'Contents to "Read and write". A classic token with the "repo" scope avoids both steps.'
+      );
+    }
     if (res.status === 404) throw new Error(`Not found (404) — check the repository and branch names. ${detail}`);
     throw new Error(`GitHub error ${res.status}: ${detail}`);
   }

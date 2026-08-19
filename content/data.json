@@ -3,23 +3,26 @@
     "name": "DEON",
     "title": "DEON — Polymathic Studio",
     "description": "DEON — a seven-year odyssey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
-    "heroLead": "A 7+ Journey in",
+    "heroLead": "A 7+ Year Journey in",
     "heroAccent": "Visual Architecture",
     "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
-    "studioLabel": "/ STUDIO",
-    "studioBlurb": "A polymathic practice across design, sound, image, and space.",
+    "studioLabel": "",
+    "studioBlurb": "Artist in all forms.",
     "disciplines": [
       "Graphic Design",
       "Video Editing",
       "Sound Design",
       "Event Management",
-      "Fashion Design & Production"
+      "Fashion Design & Production",
+      "Photography",
+      "Videography"
     ],
     "contactLabel": "CONTACT",
-    "email": "hello@deon.studio",
+    "email": "ddeonmadeit@gmail.com",
+    "phone": "+61451887907",
     "backToTop": "Back to top",
-    "copyright": "© 2026 DEON — ALL RIGHTS RESERVED",
-    "systemTag": "LIQUID BRUTALISM"
+    "instagramUrl": "https://instagram.com/deonmadeit",
+    "knotsssUrl": "https://knotsss.com"
   },
 
   "sections": [

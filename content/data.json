@@ -1,8 +1,8 @@
 {
   "site": {
     "name": "DEON",
-    "title": "DEON",
-    "description": "DEON - a 7+ year journey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
+    "title": "DEON — Polymathic Studio",
+    "description": "DEON — a seven-year odyssey in visual architecture: graphic design, cinematic editing, sonics, event curation, and fashion production.",
     "heroLead": "A 7+ Year Journey in",
     "heroAccent": "Visual Architecture",
     "heroSub": "Mastering Graphic Design, Cinematic Editing, Sound, Event Curation, and Fashion Production.",
@@ -95,7 +95,10 @@
           "url": "assets/thread-study.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "resonance",
@@ -113,7 +116,10 @@
           "url": "assets/resonance.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "brutalist-system",
@@ -131,7 +137,10 @@
           "url": "assets/brutalist-system.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "after-hours",
@@ -149,7 +158,10 @@
           "url": "assets/after-hours.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "void-pavilion",
@@ -167,7 +179,10 @@
           "url": "assets/void-pavilion.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     },
     {
       "id": "thread-study",
@@ -185,7 +200,10 @@
           "url": "assets/thread-study.jpg",
           "type": "image"
         }
-      ]
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     }
   ]
 }

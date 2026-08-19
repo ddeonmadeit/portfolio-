@@ -420,6 +420,103 @@ function renderSectionsPanel() {
 /* ============================================================
    PROJECTS
    ============================================================ */
+// mirrors embedSrc() in js/app.js — just the yes/no, for inline feedback
+function embedRecognised(url) {
+  return /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|live\/|shorts\/)|youtu\.be\/)[\w-]{6,}/.test(url)
+      || /vimeo\.com\/(?:video\/)?\d+/.test(url);
+}
+
+// Scrub a video cover and mark which slice should loop on the home grid.
+// Returns { node, load(url, type) } so a freshly picked file can replace
+// the preview without rebuilding the whole card.
+function buildLoopPicker(p) {
+  const wrap = el('div', 'field');
+  wrap.append(el('label', null, 'Loop section — the part that plays on the home grid'));
+
+  const video = el('video', 'loop-preview');
+  video.controls = true;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'metadata';
+
+  const empty = el('div', 'field-hint', 'This project\'s cover is an image — loop points only apply to video covers.');
+
+  const mk = (labelText, key) => {
+    const box = el('div', 'loop-field');
+    box.append(el('span', 'loop-label', labelText));
+    const input = el('input');
+    input.type = 'number'; input.min = '0'; input.step = '0.1';
+    input.value = Number(p[key]) || 0;
+    input.addEventListener('input', () => { p[key] = Number(input.value) || 0; });
+    const grab = el('button', 'btn btn-sm', 'Use current');
+    grab.type = 'button';
+    grab.addEventListener('click', () => {
+      const t = Math.round(video.currentTime * 10) / 10;
+      input.value = t;
+      p[key] = t;
+    });
+    box.append(input, grab);
+    return box;
+  };
+
+  const row = el('div', 'loop-row');
+  row.append(mk('Start', 'loopStart'), mk('End', 'loopEnd'));
+
+  const controls = el('div', 'add-row');
+  const play = el('button', 'btn btn-sm btn-primary', '▶ Preview loop');
+  play.type = 'button';
+  const reset = el('button', 'btn btn-sm', 'Whole clip');
+  reset.type = 'button';
+  controls.append(play, reset);
+
+  const hint = el('div', 'field-hint', 'Scrub to a moment, then "Use current". Leave both at 0 to loop the whole clip.');
+
+  // preview the chosen slice, wrapping the same way the site does
+  let watcher = null;
+  const stopWatch = () => { if (watcher) { video.removeEventListener('timeupdate', watcher); watcher = null; } };
+  play.addEventListener('click', () => {
+    stopWatch();
+    const s = Number(p.loopStart) || 0;
+    const e = Number(p.loopEnd) || 0;
+    try { video.currentTime = s; } catch {}
+    video.play().catch(() => {});
+    watcher = () => {
+      const stop = e > s ? e : (video.duration || Infinity);
+      if (video.currentTime >= stop - 0.05) {
+        try { video.currentTime = s; } catch {}
+        video.play().catch(() => {});
+      }
+    };
+    video.addEventListener('timeupdate', watcher);
+  });
+  reset.addEventListener('click', () => {
+    stopWatch();
+    p.loopStart = 0; p.loopEnd = 0;
+    $$('input[type="number"]', row).forEach(i => { i.value = 0; });
+    video.pause();
+  });
+
+  const show = (isVideo) => {
+    video.hidden = !isVideo;
+    row.hidden = !isVideo;
+    controls.hidden = !isVideo;
+    hint.hidden = !isVideo;
+    empty.hidden = isVideo;
+  };
+
+  const load = (url, type) => {
+    stopWatch();
+    const isVideo = type === 'video';
+    if (isVideo && url) video.src = url;
+    show(isVideo);
+  };
+
+  wrap.append(video, empty, row, controls, hint);
+  load(p.cover, p.coverType);
+
+  return { node: wrap, load };
+}
+
 function mediaSlot(label, currentUrl, currentType, onFile) {
   const wrap = el('div', 'field');
   wrap.append(el('label', null, label));
@@ -504,11 +601,36 @@ function renderProjectsPanel() {
       body.append(field);
     });
 
+    // full-piece embed
+    const embedField = el('div', 'field');
+    embedField.append(el('label', null, 'Full video link (YouTube or Vimeo)'));
+    const embedInput = el('input');
+    embedInput.type = 'text';
+    embedInput.value = p.embedUrl || '';
+    embedInput.placeholder = 'https://vimeo.com/… or https://youtube.com/watch?v=…';
+    const embedHint = el('div', 'field-hint');
+    const refreshEmbedHint = () => {
+      const v = embedInput.value.trim();
+      if (!v) { embedHint.textContent = 'Optional. Adds a player to the project page — best for anything too long to self-host.'; embedHint.style.color = ''; }
+      else if (embedRecognised(v)) { embedHint.textContent = '✓ Recognised — a player will show on the project page.'; embedHint.style.color = '#4ade80'; }
+      else { embedHint.textContent = 'Not a YouTube or Vimeo link — nothing will be shown.'; embedHint.style.color = 'var(--danger)'; }
+    };
+    refreshEmbedHint();
+    embedInput.addEventListener('input', () => { p.embedUrl = embedInput.value.trim(); refreshEmbedHint(); });
+    embedField.append(embedInput, embedHint);
+    body.append(embedField);
+
     // cover
-    body.append(mediaSlot('Cover', p.cover, p.coverType, (file) => {
+    let loopPicker;
+    body.append(mediaSlot('Cover', p.cover, p.coverType, (file, type, objectUrl) => {
       const key = `cover:${p.id}`;
-      pendingUploads[key] = { file, apply: (path, type) => { p.cover = path; p.coverType = type; thumb.innerHTML = ''; thumb.append(buildPreviewMedia(path, type)); } };
+      pendingUploads[key] = { file, apply: (path, t) => { p.cover = path; p.coverType = t; thumb.innerHTML = ''; thumb.append(buildPreviewMedia(path, t)); } };
+      loopPicker?.load(objectUrl, type);
     }));
+
+    // loop section (only meaningful when the cover is a video)
+    loopPicker = buildLoopPicker(p);
+    body.append(loopPicker.node);
 
     // gallery
     const galField = el('div', 'field');

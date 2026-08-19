@@ -25,8 +25,8 @@ Two ways:
     empty for an untitled section (the first one, by default).
   - `projects` — one entry per project: `id` (its URL slug), `title`,
     `category`, `year`, `role`, `cover`, `coverType` (`"image"` or
-    `"video"`), `aspect`, `summary`, `narrative`, and a `gallery` list of
-    `{ url, type }`.
+    `"video"`), `aspect`, `summary`, `narrative`, `embedUrl`,
+    `loopStart`/`loopEnd`, and a `gallery` list of `{ url, type }`.
 
 A project's page is `/project/<id>`, so `"id": "atelier-noir"` →
 `/project/atelier-noir`.
@@ -39,13 +39,41 @@ loop natively as `<img>`; videos render as
 everywhere they appear — preview tiles, the project cover, the gallery.
 The dashboard sets the type automatically from the uploaded file.
 
+### Looping only part of a video
+
+`loopStart` and `loopEnd` (seconds) restrict a video cover to one slice
+of itself, so the home grid can show the best few seconds rather than
+starting from frame one. Both `0` means loop the whole clip.
+
+Native `loop` can only replay a whole file, so when a range is set the
+site turns it off and wraps manually on `timeupdate`. Seeking needs HTTP
+range requests — GitHub Pages supports them, so this works in production.
+
+In the dashboard, each project with a video cover gets a scrubber: move
+the playhead, press **Use current** next to Start or End, and **Preview
+loop** to check it. **Whole clip** clears both back to 0.
+
+### Full-length pieces — `embedUrl`
+
+Self-hosting a full film is the wrong tool: it costs repo size forever
+and makes visitors download the whole thing. Put a YouTube or Vimeo link
+in `embedUrl` instead and the project page renders a player under
+**/ WATCH**, while a short compressed loop still does the work on the
+home grid.
+
+Recognised link shapes: `youtube.com/watch?v=…`, `youtu.be/…`,
+`youtube.com/shorts/…`, `vimeo.com/123456789`, and unlisted
+`vimeo.com/123456789/hash`. YouTube is embedded through
+`youtube-nocookie.com`. Anything unrecognised renders nothing, and the
+dashboard says so as you type.
+
 **Size limits.** These are git limits now, not host limits: any single
 file must stay under 100MB, and the published site under 1GB. The
 dashboard caps uploads at 25MB because the browser has to base64-encode
 the whole file into one API request. Worth knowing: every version of
 every file stays in git history permanently, so repeatedly replacing a
 large video grows the repo forever even after the old one is "deleted".
-Compress video before uploading.
+Compress video before uploading — a web-ready loop is usually 1–5MB.
 
 ## Hosting — GitHub Pages
 

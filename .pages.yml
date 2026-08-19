@@ -66,6 +66,9 @@ content:
               values: ["4/5", "16/9", "1/1", "3/4", "3/2"]
           - { name: summary, label: Summary, type: text }
           - { name: narrative, label: Narrative, type: text }
+          - { name: embedUrl, label: "Full video link (YouTube or Vimeo, optional)", type: string }
+          - { name: loopStart, label: "Loop start (seconds into a video cover; 0 = beginning)", type: number }
+          - { name: loopEnd, label: "Loop end (seconds; 0 = play to the end)", type: number }
           - name: gallery
             label: Gallery (extra photos/videos)
             type: object

@@ -18,7 +18,30 @@ let SITE, SECTIONS, PROJECTS;
 let PROJECT_BY_ID = {};
 
 /* ---------------- media: images, gifs (native loop) and video (looped) ---------------- */
-function buildMedia(url, type, alt, eager) {
+// Restrict a video to a slice of itself. Native loop only ever replays the
+// whole clip, so when a range is set we turn it off and wrap manually.
+function applyLoopRange(video, start, end) {
+  const s = Math.max(0, Number(start) || 0);
+  const e = Number(end) || 0;
+  if (!s && !e) return; // whole clip — native loop already does this
+
+  video.loop = false;
+  const stopAt = () => (e > s ? e : (video.duration || Infinity));
+  const toStart = () => {
+    try { video.currentTime = s; } catch {}
+    video.play?.().catch(() => {});
+  };
+
+  if (video.readyState >= 1) toStart();
+  else video.addEventListener('loadedmetadata', toStart, { once: true });
+
+  video.addEventListener('timeupdate', () => {
+    if (video.currentTime >= stopAt() - 0.05) toStart();
+  });
+  video.addEventListener('ended', toStart);
+}
+
+function buildMedia(url, type, alt, eager, loop) {
   if (type === 'video') {
     const v = el('video');
     v.src = url;
@@ -28,6 +51,7 @@ function buildMedia(url, type, alt, eager) {
     v.playsInline = true;
     v.preload = eager ? 'auto' : 'metadata';
     v.setAttribute('aria-label', alt || '');
+    if (loop) applyLoopRange(v, loop.start, loop.end);
     return v;
   }
   const img = el('img');
@@ -36,6 +60,37 @@ function buildMedia(url, type, alt, eager) {
   img.loading = eager ? 'eager' : 'lazy';
   img.decoding = 'async';
   return img; // covers both photos and GIFs — GIFs loop natively as <img>
+}
+
+/* ---------------- video embeds (full pieces live off-site) ---------------- */
+// Returns a player URL for YouTube/Vimeo links, or null if unrecognised.
+function embedSrc(url) {
+  if (!url) return null;
+  const u = String(url).trim();
+
+  const yt = u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|live\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}`;
+
+  // vimeo.com/123456789 and unlisted vimeo.com/123456789/abcdef0123
+  const vm = u.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([0-9a-zA-Z]+))?/);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}${vm[2] ? `?h=${vm[2]}` : ''}`;
+
+  return null;
+}
+
+function buildEmbed(url) {
+  const src = embedSrc(url);
+  if (!src) return null;
+  const wrap = el('div', 'embed');
+  const frame = el('iframe');
+  frame.src = src;
+  frame.loading = 'lazy';
+  frame.title = 'Video';
+  frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';
+  frame.allowFullscreen = true;
+  frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  wrap.append(frame);
+  return wrap;
 }
 
 /* ---------------- hero + studio ---------------- */
@@ -95,11 +150,15 @@ function buildIconRow(container) {
 }
 
 /* ---------------- project previews: one static collage per section ---------------- */
+function coverLoop(p) {
+  return { start: p.loopStart, end: p.loopEnd };
+}
+
 function buildTile(p, eager) {
   const tile = el('button', 'tile');
   tile.setAttribute('aria-label', p.title);
   tile.style.aspectRatio = (p.aspect || '1/1').replace('/', ' / ');
-  if (p.cover) tile.append(buildMedia(p.cover, p.coverType, '', eager));
+  if (p.cover) tile.append(buildMedia(p.cover, p.coverType, '', eager, coverLoop(p)));
   tile.addEventListener('click', () => navigate(`/project/${p.id}`));
   return tile;
 }
@@ -131,7 +190,7 @@ function renderDetail(p) {
 
   const cover = $('#d-cover');
   cover.innerHTML = '';
-  if (p.cover) cover.append(buildMedia(p.cover, p.coverType, p.title, true));
+  if (p.cover) cover.append(buildMedia(p.cover, p.coverType, p.title, true, coverLoop(p)));
 
   const specs = $('#d-specs');
   specs.innerHTML = '';
@@ -148,13 +207,25 @@ function renderDetail(p) {
   $('#d-summary').textContent = p.summary;
   $('#d-narrative').textContent = p.narrative;
 
+  // full piece, embedded from wherever it's hosted
+  const embedWrap = $('#d-embed');
+  embedWrap.innerHTML = '';
+  const embed = buildEmbed(p.embedUrl);
+  if (embed) {
+    embedWrap.append(el('p', 'label amber', '/ WATCH'), embed);
+    embedWrap.hidden = false;
+  } else {
+    embedWrap.hidden = true;
+  }
+
   // gallery beyond the cover; otherwise the "to be added" placeholder
   const gal = $('#d-gallery');
   gal.innerHTML = '';
   const extra = (p.gallery || []).filter(g => g.url !== p.cover);
   if (extra.length) {
     extra.forEach(g => gal.append(buildMedia(g.url, g.type, p.title)));
-  } else {
+  } else if (!embed) {
+    // an embed already gives this project something to show
     gal.append(el('p', 'gallery-note', 'ADDITIONAL MEDIA — TO BE ADDED'));
   }
 }

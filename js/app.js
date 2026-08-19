@@ -45,42 +45,40 @@ function fillStatic() {
   $('#system-tag').textContent = SITE.systemTag;
 }
 
-/* ---------------- archive grid ---------------- */
-function renderGrid() {
-  const grid = $('#grid');
-  grid.innerHTML = '';
+/* ---------------- project previews: two looping, image-only rows ---------------- */
+function buildTile(p, eager) {
+  const tile = el('button', 'tile');
+  tile.setAttribute('aria-label', p.title);
+  tile.style.aspectRatio = p.aspect.replace('/', ' / ');
+  if (p.cover) {
+    const img = el('img');
+    img.src = p.cover;
+    img.alt = '';
+    img.loading = eager ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    tile.append(img);
+  }
+  tile.addEventListener('click', () => navigate(`/project/${p.id}`));
+  return tile;
+}
 
+function renderPreviews() {
   const shown = PROJECTS.filter(p => activeFilter === 'All' || p.category === activeFilter);
+  const rows = [[], []];
+  shown.forEach((p, i) => rows[i % 2].push(p));
 
-  shown.forEach((p, i) => {
-    const idx = String(PROJECTS.indexOf(p) + 1).padStart(2, '0');
-
-    const card = el('button', 'card reveal');
-    card.setAttribute('aria-label', `${p.title} — view project`);
-
-    const top = el('div', 'card-row');
-    top.append(el('span', 'mono dim', idx), el('span', 'mono dim', p.category));
-
-    const media = el('div', 'card-media');
-    media.style.aspectRatio = p.aspect.replace('/', ' / ');
-    if (p.cover) {
-      const img = el('img');
-      img.src = p.cover;
-      img.alt = p.title;
-      img.loading = i < 2 ? 'eager' : 'lazy';
-      img.decoding = 'async';
-      media.append(img);
-    }
-
-    const bottom = el('div', 'card-row');
-    bottom.append(el('span', 'mono dim', p.year), el('span', 'mono card-view', 'VIEW →'));
-
-    card.append(top, media, bottom);
-    card.addEventListener('click', () => navigate(`/project/${p.id}`));
-    grid.append(card);
+  ['#track-1', '#track-2'].forEach((sel, rowIdx) => {
+    const track = $(sel);
+    const row = track.closest('.marquee-row');
+    const items = rows[rowIdx];
+    track.innerHTML = '';
+    row.hidden = items.length === 0;
+    if (!items.length) return;
+    // duplicate once for a seamless loop; reduced-motion never scrolls,
+    // so it only needs the single static pass
+    const list = REDUCED ? items : [...items, ...items];
+    list.forEach((p, i) => track.append(buildTile(p, rowIdx === 0 && i < 3)));
   });
-
-  observeReveals();
 }
 
 /* ---------------- filters ---------------- */
@@ -91,7 +89,7 @@ function renderFilters() {
     b.addEventListener('click', () => {
       activeFilter = f;
       $$('.pill', wrap).forEach(p => p.classList.toggle('active', p.textContent === f));
-      renderGrid();
+      renderPreviews();
     });
     wrap.append(b);
   });
@@ -162,22 +160,6 @@ function navigate(path) {
 }
 window.addEventListener('popstate', route);
 
-/* ---------------- reveals ---------------- */
-let io;
-function observeReveals() {
-  if (REDUCED) { $$('.reveal').forEach(n => n.classList.add('in')); return; }
-  io?.disconnect();
-  io = new IntersectionObserver(entries => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('in'), (i % 4) * 70);
-        io.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
-  $$('.reveal').forEach(n => io.observe(n));
-}
-
 /* ---------------- boot ---------------- */
 async function main() {
   let data;
@@ -195,7 +177,7 @@ async function main() {
 
   fillStatic();
   renderFilters();
-  renderGrid();
+  renderPreviews();
   route();
 
   $('#to-top').addEventListener('click', () =>
@@ -203,6 +185,7 @@ async function main() {
 
   $('#back-archive').addEventListener('click', () => navigate('/'));
   $('#back-archive-top').addEventListener('click', () => navigate('/'));
+  $('#logo-home').addEventListener('click', () => navigate('/'));
 }
 
 main();

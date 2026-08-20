@@ -47,7 +47,8 @@
         "brutalist-system",
         "g",
         "knots-aw24-capsule-campaign",
-        "g-2"
+        "g-2",
+        "g-3"
       ]
     },
     {
@@ -62,7 +63,8 @@
         "knots-leather-jacket-campaign",
         "knots-aw24-capsule-campaign",
         "g",
-        "g-2"
+        "g-2",
+        "g-3"
       ]
     },
     {
@@ -76,7 +78,8 @@
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
-        "resonance"
+        "resonance",
+        "g-3"
       ]
     },
     {
@@ -350,6 +353,21 @@
           "type": "image"
         }
       ]
+    },
+    {
+      "id": "g-3",
+      "title": "Knots AW24 Capsule",
+      "category": "",
+      "year": "2024",
+      "role": "Creative Director / Photo Editor / Graphics",
+      "cover": "assets/1787210672477-0-img-1445.jpeg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "A poster made to promote a small capsule from Knots ",
+      "narrative": "",
+      "gallery": []
     }
   ]
 }

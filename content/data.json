@@ -406,6 +406,34 @@
           "type": "image"
         }
       ]
+    },
+    {
+      "id": "bleko-x-knots-event",
+      "title": "Bleko x Knots Event",
+      "category": "",
+      "year": "2026",
+      "role": "Creative Director / Knots Founder / Event Coordinator / Graphic Designer & Promotion",
+      "cover": "assets/1787214244009-0-img-8057.jpeg",
+      "coverType": "image",
+      "aspect": "3/4",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787214244111-1-img-8055.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787214244220-2-img-8056.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787214244271-3-img-8058.jpeg",
+          "type": "image"
+        }
+      ]
     }
   ]
 }

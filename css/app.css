@@ -257,14 +257,30 @@ img { display: block; max-width: 100%; }
   text-transform: uppercase;
   color: rgba(253, 249, 243, 0.7);
 }
+/* One gap value for every seam on the grid — between columns, between stacked
+   tiles, and between a full-width cover and whatever follows it. */
 .collage {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  /* start, not stretch: every tile keeps the exact ratio it was given rather
-     than being pulled to the height of whatever sits beside it */
-  align-items: start;
-  gap: 6px;
+  --gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
 }
+/* A pair on one line. Each tile's flex-grow is its aspect ratio (set in
+   js/app.js), so the widths land in proportion to the ratios and the heights
+   come out identical — width ÷ ratio is the same for both. Nothing is cropped
+   and the row has no ragged edge to leave a gap under. */
+.row {
+  display: flex;
+  gap: var(--gap);
+  align-items: flex-start;
+}
+.row > .tile {
+  flex-basis: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+/* An odd one left over holds the two-up rhythm instead of stretching wide */
+.row-single > .tile { max-width: calc(50% - var(--gap) / 2); }
 
 .tile {
   /* height comes from the aspect-ratio set per project (js/app.js); when the
@@ -278,14 +294,13 @@ img { display: block; max-width: 100%; }
   background: var(--card);
   border: none;
 }
-/* Wide covers (16/9 and wider) run the full width of their own row. */
-.tile-wide { grid-column: 1 / -1; }
+/* Wide covers (16/9 and wider) run the full width, on their own. */
+.tile-wide { width: 100%; }
 
-/* Tall covers (9/16 and narrower) also get a row to themselves, but capped so
-   a vertical stays full-bleed on a phone without running the height of a
-   desktop screen — true ratio, centred, never cropped. */
+/* Tall covers (9/16 and narrower) also stand alone, but capped so a vertical
+   stays full-bleed on a phone without running the height of a desktop
+   screen — true ratio, centred, never cropped. */
 .tile-tall {
-  grid-column: 1 / -1;
   max-width: min(100%, 400px);
   margin-inline: auto;
 }

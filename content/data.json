@@ -50,7 +50,6 @@
       "title": "Fashion",
       "projectIds": [
         "atelier-noir",
-        "thread-study",
         "brutalist-system",
         "after-hours",
         "void-pavilion"
@@ -59,7 +58,9 @@
     {
       "id": "sound",
       "title": "Sound",
-      "projectIds": []
+      "projectIds": [
+        "thread-study"
+      ]
     },
     {
       "id": "graphics",
@@ -74,7 +75,8 @@
       "projectIds": [
         "after-hours",
         "brutalist-system",
-        "atelier-noir"
+        "atelier-noir",
+        "thread-study"
       ]
     },
     {
@@ -219,15 +221,15 @@
     },
     {
       "id": "thread-study",
-      "title": "Thread Study",
-      "category": "Fashion",
-      "year": "2023",
-      "role": "Material / Production",
-      "cover": "assets/thread-study.jpg",
-      "coverType": "image",
-      "aspect": "1/1",
-      "summary": "A macro investigation of copper metallic thread woven through heavy cacao wool — texture as the subject.",
-      "narrative": "Thread Study zooms in until the garment disappears and only the material remains. Shot at macro distance under Rembrandt light, the series treats thread, weave, and sheen as the true craft of fashion production.",
+      "title": "Runaway Visualiser",
+      "category": "",
+      "year": "2026",
+      "role": "Video Editing / Song Production & Vocalist",
+      "cover": "assets/1787191878448-0-2febc05ba97f4f8fb2c0a6173ac8e851.mov",
+      "coverType": "video",
+      "aspect": "5/4",
+      "summary": "A visualiser I made to promote my song Runaway from my EP MIRAGE DEMO’S.\nI produced the instrumental and was the vocalist on this song.\nI edited every element of thit visualiser ",
+      "narrative": "",
       "gallery": [
         {
           "url": "assets/thread-study.jpg",

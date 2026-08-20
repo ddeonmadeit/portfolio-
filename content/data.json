@@ -42,7 +42,8 @@
         "after-hours",
         "brutalist-system",
         "void-pavilion",
-        "thread-study"
+        "thread-study",
+        "d"
       ]
     },
     {
@@ -52,7 +53,8 @@
         "atelier-noir",
         "brutalist-system",
         "after-hours",
-        "void-pavilion"
+        "void-pavilion",
+        "d"
       ]
     },
     {
@@ -76,7 +78,8 @@
         "after-hours",
         "brutalist-system",
         "atelier-noir",
-        "thread-study"
+        "thread-study",
+        "d"
       ]
     },
     {
@@ -239,6 +242,19 @@
       "embedUrl": "",
       "loopStart": 0,
       "loopEnd": 0
+    },
+    {
+      "id": "d",
+      "title": "Palm Hoodie Campaign",
+      "category": "",
+      "year": "2025",
+      "role": "Videographer / Video Editor / Sound Designer",
+      "cover": "assets/1787194797216-0-copy-3e419910-95b2-4d1c-8057-9c5f534c9b29.mov",
+      "coverType": "video",
+      "aspect": "16/9",
+      "summary": "I setup the scene, filmed the videos, colour graded and edited this campaign to promote the release of the Knots Palm Hoodie",
+      "narrative": "",
+      "gallery": []
     }
   ]
 }

@@ -86,8 +86,10 @@ content:
           - { name: summary, label: Summary, type: text }
           - { name: narrative, label: Narrative, type: text }
           - { name: embedUrl, label: "Full video link (YouTube or Vimeo, optional)", type: string }
-          - { name: loopStart, label: "Loop start (seconds into a video cover; 0 = beginning)", type: number }
-          - { name: loopEnd, label: "Loop end (seconds; 0 = play to the end)", type: number }
+          - { name: loopStart, label: "Loop start — repeats on the project's own page (seconds; 0 = beginning)", type: number }
+          - { name: loopEnd, label: "Loop end — repeats on the project's own page (seconds; 0 = play to the end)", type: number }
+          - { name: previewStart, label: "Home page preview trim start (seconds; 0 = beginning; home grid only)", type: number }
+          - { name: previewEnd, label: "Home page preview trim end (seconds; 0 = play to the end; home grid only)", type: number }
           - name: gallery
             label: Gallery (extra photos/videos)
             type: object

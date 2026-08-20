@@ -27,6 +27,9 @@ const DASH_PASSWORD = 'v';
 const DEFAULTS = { repo: 'ddeonmadeit/portfolio-', branch: 'claude/tender-bohr-u27stq' };
 
 let DATA = null;
+// blob sha of content/data.json as it was when loaded — lets Save detect that
+// something else wrote to the file in the meantime instead of overwriting it
+let baseDataSha = null;
 // key -> { file, apply(path, type) } — resolved into real asset paths on Save
 let pendingUploads = {};
 let uploadSeq = 0;
@@ -185,13 +188,35 @@ $('#gate-form').addEventListener('submit', (e) => {
   enterDashboard();
 });
 
+// Load the content the *repository* currently holds, not what the published
+// site is serving. Pages takes about a minute to redeploy after a commit, so
+// reading the live file means a dashboard opened during that window loads
+// pre-save content — and the next Save would write that stale copy back,
+// silently undoing whatever the previous save added. Read through the API
+// (which is immediately consistent) whenever a token is available, and keep
+// the blob sha so Save can tell whether the file moved underneath us.
+async function loadData() {
+  if (CFG.token) {
+    try {
+      const file = await gh(`/repos/${CFG.repo}/contents/content/data.json?ref=${CFG.branch}`);
+      baseDataSha = file.sha;
+      const json = new TextDecoder().decode(
+        Uint8Array.from(atob(file.content.replace(/\s/g, '')), c => c.charCodeAt(0))
+      );
+      return JSON.parse(json);
+    } catch (err) {
+      setStatus(`Couldn't read the repo (${err.message}) — falling back to the published copy.`, 'err');
+    }
+  }
+  baseDataSha = null;
+  const res = await fetch('/content/data.json', { cache: 'no-cache' });
+  return res.json();
+}
+
 async function enterDashboard() {
   $('#gate').hidden = true;
   $('#dash').hidden = false;
-  if (!DATA) {
-    const res = await fetch('/content/data.json', { cache: 'no-cache' });
-    DATA = await res.json();
-  }
+  if (!DATA) DATA = await loadData();
   renderAll();
   if (!CFG.token) {
     setStatus('No GitHub token yet — open Connection to enable saving.', 'err');
@@ -778,6 +803,21 @@ $('#save-btn').addEventListener('click', async () => {
   btn.disabled = true;
   setStatus('Preparing…');
   try {
+    // Bail out rather than clobber if content/data.json changed since it was
+    // loaded here — another tab, another device, or a push. Overwriting would
+    // wipe whatever that change added, which is exactly the failure this
+    // guard exists to prevent.
+    if (baseDataSha) {
+      const current = await gh(`/repos/${CFG.repo}/contents/content/data.json?ref=${CFG.branch}`);
+      if (current.sha !== baseDataSha) {
+        throw new Error(
+          'The site content changed somewhere else since this page was opened. ' +
+          'Saving now would overwrite it. Reload the dashboard to pick up the ' +
+          'newer version, then redo this edit.'
+        );
+      }
+    }
+
     const files = [];
     const applies = [];
 
@@ -802,6 +842,14 @@ $('#save-btn').addEventListener('click', async () => {
 
     await commitFiles(files, 'dash: update site content');
     pendingUploads = {};
+    // Re-read the sha we just wrote so a second save in the same session
+    // isn't rejected by the guard above as a phantom conflict.
+    if (baseDataSha) {
+      try {
+        const written = await gh(`/repos/${CFG.repo}/contents/content/data.json?ref=${CFG.branch}`);
+        baseDataSha = written.sha;
+      } catch { baseDataSha = null; }
+    }
     setStatus('Saved — the site rebuilds in about a minute.', 'ok');
   } catch (err) {
     setStatus(err.message || 'Something went wrong.', 'err');

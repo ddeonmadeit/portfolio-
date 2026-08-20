@@ -50,7 +50,8 @@
       "title": "Fashion",
       "projectIds": [
         "atelier-noir",
-        "thread-study"
+        "thread-study",
+        "brutalist-system"
       ]
     },
     {
@@ -71,7 +72,8 @@
       "id": "video",
       "title": "Video",
       "projectIds": [
-        "after-hours"
+        "after-hours",
+        "brutalist-system"
       ]
     },
     {
@@ -139,15 +141,15 @@
     },
     {
       "id": "brutalist-system",
-      "title": "Brutalist System",
-      "category": "Graphics",
-      "year": "2025",
-      "role": "Graphic Design / Art Direction",
-      "cover": "assets/brutalist-system.jpg",
-      "coverType": "image",
+      "title": "Trucker Cap Animation",
+      "category": "",
+      "year": "2024",
+      "role": "Fashion Designer & Producer / Motion Graphics / Video Animator",
+      "cover": "assets/1787189754749-0-alchemyopia-1707098338-3295700190337305559-55781804326.mp4",
+      "coverType": "video",
       "aspect": "1/1",
-      "summary": "A modular identity system for an independent record label — raw grid, cream on cacao, restrained accent.",
-      "narrative": "Brutalist System strips the identity back to a single grid and two weights. The system flexes across print, motion, and signage without ever breaking its structural logic, proving that discipline scales further than decoration.",
+      "summary": "A short looped animation showing the patch-switch features of the trucker caps from Knots.",
+      "narrative": "",
       "gallery": [
         {
           "url": "assets/brutalist-system.jpg",

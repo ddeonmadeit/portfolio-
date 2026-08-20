@@ -411,7 +411,6 @@ function fillSection(block, section, items, first) {
 const ICON_PATHS = {
   spotify: 'M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.22.36-.68.47-1.04.25-2.85-1.74-6.44-2.13-10.66-1.17-.41.1-.82-.16-.91-.57-.1-.41.16-.82.57-.91 4.62-1.06 8.59-.6 11.79 1.35.36.22.47.69.25 1.05zm1.47-3.27c-.28.45-.86.59-1.31.32-3.26-2-8.24-2.58-12.1-1.41-.51.15-1.04-.13-1.2-.63-.15-.51.13-1.04.64-1.2 4.41-1.34 9.9-.69 13.65 1.62.44.27.58.86.31 1.3zm.13-3.4C15.24 8.3 8.82 8.09 5.09 9.22c-.6.18-1.23-.16-1.41-.75-.18-.6.16-1.23.75-1.41 4.29-1.3 11.4-1.05 15.9 1.62.54.32.71 1.01.4 1.55-.32.53-1.02.71-1.55.39z',
   youtube: 'M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z',
-  apple: 'M9 3v10.55A3.97 3.97 0 0 0 7 13a4 4 0 1 0 4 4V7h6V3H9z',
 };
 
 const PLAY_ICON_SVG =
@@ -584,7 +583,18 @@ function fillMusic(block) {
     const a = el('a', 'music-link');
     a.href = url; a.target = '_blank'; a.rel = 'noopener';
     a.setAttribute('aria-label', label);
-    a.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
+    // Apple Music's mark is a rounded badge with the note as negative space,
+    // not a single silhouette like Spotify/YouTube's — drawn as shapes filled
+    // in the page background rather than a boolean cutout, so it can't
+    // misrender from a path winding-direction slip.
+    a.innerHTML = key === 'apple'
+      ? `<svg viewBox="0 0 24 24" aria-hidden="true" class="apple-music-mark">
+           <rect x="0" y="0" width="24" height="24" rx="6.5" fill="currentColor"/>
+           <circle class="cut" cx="9.3" cy="17.3" r="2.55"/>
+           <rect class="cut" x="11.05" y="4.6" width="1.35" height="12.9"/>
+           <path class="cut" d="M12.4 4.6c3.35.32 4.95 1.86 4.95 4.53 0 .55-.1 1.06-.3 1.5-.35-1.85-1.85-2.98-4.5-3.28l-.15-2.75z"/>
+         </svg>`
+      : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
     icons.append(a);
   });
   if (icons.children.length) albumCol.append(icons);

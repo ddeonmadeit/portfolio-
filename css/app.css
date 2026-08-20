@@ -472,7 +472,7 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 }
 .track-slot:hover, .track-slot:focus-visible { color: var(--accent); }
 .track-slot .play-icon { width: 52px; height: 52px; display: block; }
-.track-wave { display: none; width: 130px; height: 48px; }
+.track-wave { display: none; width: 104px; height: 38px; }
 .music-track.is-playing .play-icon { display: none; }
 .music-track.is-playing .track-wave { display: block; }
 .track-name {

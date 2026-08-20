@@ -462,10 +462,13 @@ function audioLevels() {
   return levelsOut;
 }
 
-// Organic scribble waveform on a canvas. Four sine layers, each fed by one
-// frequency band of the live signal — bass drives the long slow swells,
-// treble the fine jitter — so every song draws its own shape, and the shape
-// moves with what is actually playing at that instant.
+// Organic scribble waveform on a canvas, laid out like a spectrum: the four
+// frequency bands are spread across the width — bass moves the left edge,
+// low-mids and high-mids the middle, treble the right — with the local
+// height at every point interpolated between them. The texture follows suit:
+// slow rolling movement on the bass side, tightening into faster jitter
+// toward the treble side. So a kick swells the left of the wave while a hat
+// flickers its right, live from the analyser.
 function buildWave(levelsFn) {
   const canvas = el('canvas', 'track-wave');
   const W = 260, H = 96;
@@ -473,19 +476,28 @@ function buildWave(levelsFn) {
   const ctx = canvas.getContext('2d');
   const seed = Math.random() * 100;
   let raf = 0, t = 0;
-  const band = [0.5, 0.4, 0.3, 0.2]; // eased copies of the live bands
+  const band = [0.5, 0.42, 0.34, 0.26]; // eased copies of the live bands
+
+  // three texture layers, weights summing to 1 so the peak deflection is
+  // exactly AMP — which is chosen to clear the canvas edge including the
+  // stroke, so nothing ever clips
+  const AMP = H / 2 - 6;
 
   const draw = () => {
     ctx.clearRect(0, 0, W, H);
     ctx.beginPath();
     const mid = H / 2;
     for (let x = 0; x <= W; x += 3) {
-      const env = Math.pow(Math.sin(Math.PI * x / W), 0.65); // quiet at the ends
-      const y = mid + env * (
-        Math.sin(x * 0.055 + t * 2.1 + seed)     * (4 + band[0] * 30) +
-        Math.sin(x * 0.11  - t * 3.3 + seed * 2) * (3 + band[1] * 22) +
-        Math.sin(x * 0.23  + t * 5.2 + seed * 3) * (2 + band[2] * 15) +
-        Math.sin(x * 0.47  - t * 1.4 + seed * 5) * (1.5 + band[3] * 10)
+      const p = x / W;
+      // local level: bass at the left edge through treble at the right
+      const fi = p * 3;
+      const i0 = Math.min(2, Math.floor(fi));
+      const local = band[i0] + (band[i0 + 1] - band[i0]) * (fi - i0);
+      const env = Math.pow(Math.sin(Math.PI * p), 0.65); // quiet at the ends
+      const y = mid + env * local * AMP * (
+        Math.sin(x * 0.05 + t * 2.0 + seed) * 0.45 +
+        Math.sin(x * (0.09 + p * 0.45) - t * 3.2 + seed * 2) * 0.33 +
+        Math.sin(x * (0.18 + p * 0.85) + t * (4.5 + p * 3) + seed * 3) * 0.22
       );
       x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }

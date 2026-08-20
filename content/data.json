@@ -42,8 +42,10 @@
         "after-hours",
         "d",
         "thread-study",
+        "void-pavilion",
+        "knots-leather-jacket-campaign",
         "brutalist-system",
-        "void-pavilion"
+        "knots-aw24-capsule-campaign"
       ]
     },
     {
@@ -54,7 +56,9 @@
         "brutalist-system",
         "after-hours",
         "void-pavilion",
-        "d"
+        "d",
+        "knots-leather-jacket-campaign",
+        "knots-aw24-capsule-campaign"
       ]
     },
     {
@@ -253,6 +257,67 @@
       "coverType": "video",
       "aspect": "16/9",
       "summary": "I setup the scene, filmed the videos, colour graded and edited this campaign to promote the release of the Knots Palm Hoodie",
+      "narrative": "",
+      "gallery": []
+    },
+    {
+      "id": "knots-leather-jacket-campaign",
+      "title": "Knots Leather Jacket Campaign",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Photo Editor / Clothing Designer",
+      "cover": "assets/1787202365550-0-img-1520.jpeg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "summary": "Scouted location, shot then edited photos to promote Knots’s leather jacket I designed.",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787202365552-1-img-1547.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787202365555-2-img-1512.jpeg",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "knots-aw24-capsule-campaign",
+      "title": "Knots AW24 Capsule Campaign ",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Photo Editor / Clothing Designer",
+      "cover": "assets/1787203972191-0-grass-mohair.jpeg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "summary": "Shot and edited some promo for a small capsule of garments for Knots AW24.\nClothing designed by me",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787203168012-1-img-1553.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787203168014-2-img-1526.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787203168017-3-img-1472.jpeg",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "g",
+      "title": "g",
+      "category": "",
+      "year": "2026",
+      "role": "",
+      "cover": "assets/1787203609422-0-4-seasons-beanie.mp4",
+      "coverType": "video",
+      "aspect": "9/7",
+      "summary": "",
       "narrative": "",
       "gallery": []
     }

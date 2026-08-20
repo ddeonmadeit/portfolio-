@@ -60,6 +60,46 @@ function resolveType(url, type) {
   return url && VIDEO_EXT.test(url) ? 'video' : 'image';
 }
 
+// Videos the device refused to autoplay, standing in as poster images until a
+// gesture lets them run. Hiding WebKit's play button with CSS depends on
+// pseudo-element names Apple can rename or drop; taking the video element out
+// of the document does not. With no <video> there, there is nothing to paint a
+// button on, and the viewer sees a still frame that looks deliberate.
+const STILLS = new Map(); // img -> video
+
+function swapToStill(video) {
+  if (!video.parentNode || video.dataset.stillSwapped) return;
+  const poster = video.poster;
+  if (!poster) return; // nothing to show instead — leave the video in place
+
+  // only swap once the poster is known good, so a missing file can't leave a
+  // broken image where the cover should be
+  const probe = new Image();
+  probe.onload = () => {
+    if (!video.parentNode) return;
+    const img = el('img');
+    img.src = poster;
+    img.alt = '';
+    img.decoding = 'async';
+    video.dataset.stillSwapped = '1';
+    STILLS.set(img, video);
+    video.replaceWith(img);
+  };
+  probe.src = poster;
+}
+
+// A real gesture lifts the autoplay restriction, so put the videos back and
+// start them. Covers the swapped-out ones and any that simply never started.
+function playAllVideos() {
+  STILLS.forEach((video, img) => {
+    if (img.parentNode) img.replaceWith(video);
+    delete video.dataset.stillSwapped;
+    video.play().catch(() => {});
+  });
+  STILLS.clear();
+  $$('video').forEach(v => { if (v.paused) v.play().catch(() => {}); });
+}
+
 function buildMedia(url, type, alt, eager, loop) {
   type = resolveType(url, type);
   if (type === 'video') {
@@ -99,7 +139,13 @@ function buildMedia(url, type, alt, eager, loop) {
     // so flag it and let the spinner stand down.
     const tryPlay = () => v.play().then(
       () => { delete v.dataset.autoplayBlocked; },
-      () => { v.dataset.autoplayBlocked = '1'; }
+      (err) => {
+        v.dataset.autoplayBlocked = '1';
+        // NotAllowedError is the device refusing autoplay outright (Low Power
+        // Mode, per-site Auto-Play). Anything else — AbortError from a load
+        // interrupting playback, say — is transient and worth retrying.
+        if (err && err.name === 'NotAllowedError') swapToStill(v);
+      }
     );
     tryPlay();
     v.addEventListener('loadedmetadata', tryPlay);
@@ -357,9 +403,8 @@ window.addEventListener('popstate', route);
 // affordance showing — but a genuine user gesture always overrides that.
 // Nudge every still-paused video into playing on the first tap/scroll.
 function unlockVideosOnFirstGesture() {
-  const kick = () => $$('video').forEach(v => { if (v.paused) v.play().catch(() => {}); });
   ['touchstart', 'click', 'scroll'].forEach(evt =>
-    document.addEventListener(evt, kick, { passive: true }));
+    document.addEventListener(evt, playAllVideos, { passive: true }));
 }
 unlockVideosOnFirstGesture();
 

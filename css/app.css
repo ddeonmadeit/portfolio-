@@ -295,23 +295,24 @@ img { display: block; max-width: 100%; }
   filter: saturate(0.9);
 }
 
-/* No play affordance, ever. When iOS refuses to autoplay — Low Power Mode,
-   or the per-site Auto-Play setting — WebKit paints its own start-playback
-   button over the video. It isn't reachable from JS, only from these
-   pseudo-elements, so they're the one thing that reliably removes it. The
-   poster frame stays visible underneath, so the cover still reads as an
-   image rather than a black box. */
-video::-webkit-media-controls,
-video::-webkit-media-controls-enclosure,
-video::-webkit-media-controls-panel,
-video::-webkit-media-controls-panel-container,
-video::-webkit-media-controls-overlay-play-button,
-video::-webkit-media-controls-start-playback-button {
-  display: none !important;
-  -webkit-appearance: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
+/* No play affordance, ever. When iOS refuses to autoplay — Low Power Mode, or
+   the per-site Auto-Play setting — WebKit paints its own start-playback button
+   over the video, and JS can't reach it; only these pseudo-elements can.
+
+   Each one gets its own rule on purpose. Grouped into a single selector list,
+   one name the browser doesn't recognise invalidates the whole group and none
+   of them apply — which is exactly how an earlier version of this silently did
+   nothing on iOS. Separate rules degrade one at a time instead.
+
+   This is belt to the braces of the still-image fallback in js/app.js: if
+   autoplay is refused, the video element is swapped out for its poster
+   entirely, so there is no video for a button to be drawn on. */
+video::-webkit-media-controls { display: none !important; -webkit-appearance: none !important; }
+video::-webkit-media-controls-enclosure { display: none !important; -webkit-appearance: none !important; }
+video::-webkit-media-controls-panel { display: none !important; -webkit-appearance: none !important; }
+video::-webkit-media-controls-panel-container { display: none !important; -webkit-appearance: none !important; }
+video::-webkit-media-controls-overlay-play-button { display: none !important; -webkit-appearance: none !important; }
+video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none !important; }
 
 /* Loader over a cover that's still buffering. The lens shape is carried as a
    mask so the brand gradient shows through it exactly the way it does through

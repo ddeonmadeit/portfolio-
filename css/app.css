@@ -260,7 +260,9 @@ img { display: block; max-width: 100%; }
 .collage {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  align-items: stretch;
+  /* start, not stretch: every tile keeps the exact ratio it was given rather
+     than being pulled to the height of whatever sits beside it */
+  align-items: start;
   gap: 6px;
 }
 
@@ -270,18 +272,20 @@ img { display: block; max-width: 100%; }
      them to the taller one and object-fit: cover crops the shorter to match. */
   width: 100%;
   display: block;
+  position: relative;
   overflow: hidden;
   cursor: pointer;
   background: var(--card);
   border: none;
 }
-/* 9/16 covers get the full row to themselves. Capping the width keeps a
-   full-bleed vertical from running metres tall on a wide screen — it stays
-   at its true ratio, centred, instead of being cropped to fit. */
-.tile-solo {
+/* Wide covers (16/9 and wider) run the full width of their own row. */
+.tile-wide { grid-column: 1 / -1; }
+
+/* Tall covers (9/16 and narrower) also get a row to themselves, but capped so
+   a vertical stays full-bleed on a phone without running the height of a
+   desktop screen — true ratio, centred, never cropped. */
+.tile-tall {
   grid-column: 1 / -1;
-  /* full-bleed on a phone, but capped on desktop so a vertical doesn't run
-     the height of the screen — it keeps its true ratio, centred, not cropped */
   max-width: min(100%, 400px);
   margin-inline: auto;
 }
@@ -289,6 +293,26 @@ img { display: block; max-width: 100%; }
   width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
   filter: saturate(0.9);
+}
+
+/* Copper spinner over a cover that's still buffering. Purely additive: it sits
+   on top and is removed the moment the video actually starts playing, so a
+   clip that loads instantly never flashes it. */
+.tile.is-buffering::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 26px; height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 2px solid rgba(255, 140, 0, 0.25);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: tileSpin 0.7s linear infinite;
+  pointer-events: none;
+}
+@keyframes tileSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .tile.is-buffering::after { animation-duration: 2.4s; }
 }
 .tile:hover img, .tile:focus-visible img,
 .tile:hover video, .tile:focus-visible video { transform: scale(1.05); filter: saturate(1.05); }

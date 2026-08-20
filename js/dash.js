@@ -786,9 +786,14 @@ function buildCropper(p) {
   };
 }
 
-function buildLoopPicker(p) {
+// Shared by two independent controls: the loop range that repeats on the
+// project's own page (loopStart/loopEnd), and the trim that decides what
+// shows in the home grid tile (previewStart/previewEnd). Same UI pattern,
+// different fields and each with its own <video> so scrubbing one never
+// disturbs the other.
+function buildTrimPicker(p, { startKey, endKey, label, emptyHint, playLabel, resetLabel, helpHint }) {
   const wrap = el('div', 'field');
-  wrap.append(el('label', null, 'Loop section — the part that plays on the home grid'));
+  wrap.append(el('label', null, label));
 
   const video = el('video', 'loop-preview');
   video.controls = true;
@@ -796,7 +801,7 @@ function buildLoopPicker(p) {
   video.playsInline = true;
   video.preload = 'metadata';
 
-  const empty = el('div', 'field-hint', 'This project\'s cover is an image — loop points only apply to video covers.');
+  const empty = el('div', 'field-hint', emptyHint);
 
   const mk = (labelText, key) => {
     const box = el('div', 'loop-field');
@@ -817,24 +822,24 @@ function buildLoopPicker(p) {
   };
 
   const row = el('div', 'loop-row');
-  row.append(mk('Start', 'loopStart'), mk('End', 'loopEnd'));
+  row.append(mk('Start', startKey), mk('End', endKey));
 
   const controls = el('div', 'add-row');
-  const play = el('button', 'btn btn-sm btn-primary', '▶ Preview loop');
+  const play = el('button', 'btn btn-sm btn-primary', playLabel);
   play.type = 'button';
-  const reset = el('button', 'btn btn-sm', 'Whole clip');
+  const reset = el('button', 'btn btn-sm', resetLabel);
   reset.type = 'button';
   controls.append(play, reset);
 
-  const hint = el('div', 'field-hint', 'Scrub to a moment, then "Use current". Leave both at 0 to loop the whole clip.');
+  const hint = el('div', 'field-hint', helpHint);
 
   // preview the chosen slice, wrapping the same way the site does
   let watcher = null;
   const stopWatch = () => { if (watcher) { video.removeEventListener('timeupdate', watcher); watcher = null; } };
   play.addEventListener('click', () => {
     stopWatch();
-    const s = Number(p.loopStart) || 0;
-    const e = Number(p.loopEnd) || 0;
+    const s = Number(p[startKey]) || 0;
+    const e = Number(p[endKey]) || 0;
     try { video.currentTime = s; } catch {}
     video.play().catch(() => {});
     watcher = () => {
@@ -848,7 +853,7 @@ function buildLoopPicker(p) {
   });
   reset.addEventListener('click', () => {
     stopWatch();
-    p.loopStart = 0; p.loopEnd = 0;
+    p[startKey] = 0; p[endKey] = 0;
     $$('input[type="number"]', row).forEach(i => { i.value = 0; });
     video.pause();
   });
@@ -872,6 +877,28 @@ function buildLoopPicker(p) {
   load(p.cover, p.coverType);
 
   return { node: wrap, load };
+}
+
+function buildLoopPicker(p) {
+  return buildTrimPicker(p, {
+    startKey: 'loopStart', endKey: 'loopEnd',
+    label: 'Loop section — the part that repeats on this project\'s own page',
+    emptyHint: 'This project\'s cover is an image — loop points only apply to video covers.',
+    playLabel: '▶ Preview loop',
+    resetLabel: 'Whole clip',
+    helpHint: 'Scrub to a moment, then "Use current". Leave both at 0 to loop the whole clip.',
+  });
+}
+
+function buildPreviewTrimPicker(p) {
+  return buildTrimPicker(p, {
+    startKey: 'previewStart', endKey: 'previewEnd',
+    label: 'Home page preview — trims what shows in the home grid only',
+    emptyHint: 'This project\'s cover is an image — trimming only applies to video covers.',
+    playLabel: '▶ Preview trim',
+    resetLabel: 'Whole clip',
+    helpHint: 'Scrub to a moment, then "Use current". This only affects the home grid tile — the project\'s own page always plays the loop section above (or the whole clip). Leave both at 0 to show the whole clip on the home grid too.',
+  });
 }
 
 function mediaSlot(label, currentUrl, currentType, onFile) {
@@ -1017,11 +1044,13 @@ function renderProjectsPanel() {
 
     // cover
     let loopPicker;
+    let previewTrimPicker;
     let cropper;
     body.append(mediaSlot('Cover', p.cover, p.coverType, (file, type, objectUrl) => {
       const key = `cover:${p.id}`;
       pendingUploads[key] = { file, apply: (path, t) => { p.cover = path; p.coverType = t; thumb.innerHTML = ''; thumb.append(buildPreviewMedia(path, t)); } };
       loopPicker?.load(objectUrl, type);
+      previewTrimPicker?.load(objectUrl, type);
       cropper?.load(objectUrl, type);
 
       // snap the ratio to whichever the file's own dimensions sit closest to,
@@ -1049,9 +1078,13 @@ function renderProjectsPanel() {
     // typing a ratio by hand should move the crop preview too
     inputs.aspect.addEventListener('input', () => cropper.refresh());
 
-    // loop section (only meaningful when the cover is a video)
+    // loop section — repeats on the project's own page (only meaningful for video covers)
     loopPicker = buildLoopPicker(p);
     body.append(loopPicker.node);
+
+    // home page preview trim — independent of the loop above, home grid only
+    previewTrimPicker = buildPreviewTrimPicker(p);
+    body.append(previewTrimPicker.node);
 
     // gallery
     const galField = el('div', 'field');
@@ -1109,6 +1142,7 @@ function renderProjectsPanel() {
     DATA.projects.push({
       id, title, category: '', year: String(new Date().getFullYear()), role: '',
       cover: '', coverType: 'image', aspect: '1/1', coverX: 50, coverY: 50,
+      loopStart: 0, loopEnd: 0, previewStart: 0, previewEnd: 0,
       summary: '', narrative: '', gallery: [],
     });
     renderProjectsPanel();

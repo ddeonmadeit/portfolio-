@@ -256,8 +256,16 @@ function buildIconRow(container) {
 }
 
 /* ---------------- project previews: one static collage per section ---------------- */
+// Loop range that repeats on the project's own page.
 function coverLoop(p) {
   return { start: p.loopStart, end: p.loopEnd };
+}
+// Independent trim for the home grid tile only — lets a cover show a
+// different slice on the home page than it does on its own project page.
+function previewLoop(p) {
+  const s = p.previewStart, e = p.previewEnd;
+  if (!s && !e) return coverLoop(p); // no explicit trim set — fall back to the page loop
+  return { start: s, end: e };
 }
 
 // Every cover keeps the exact ratio it was given — nothing is ever cropped to
@@ -331,7 +339,7 @@ function buildTile(p, eager) {
   tile.setAttribute('aria-label', p.title);
   tile.style.aspectRatio = aspect.replace('/', ' / ');
   if (p.cover) {
-    const media = buildMedia(p.cover, p.coverType, '', eager, coverLoop(p));
+    const media = buildMedia(p.cover, p.coverType, '', eager, previewLoop(p));
     // Which part of the cover survives the crop. The tile is the chosen ratio
     // and object-fit fills it; this decides what's kept rather than always
     // taking the middle.

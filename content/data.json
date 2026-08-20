@@ -49,8 +49,7 @@
         "knots-aw24-capsule-campaign",
         "g-2",
         "knots-leather-jacket-campaign",
-        "jk",
-        "h"
+        "jk"
       ]
     },
     {
@@ -347,16 +346,7 @@
       "coverY": 50,
       "summary": "An advertisement I made to promote a hoodie from Knots (formerly Alchemy)",
       "narrative": "",
-      "gallery": [
-        {
-          "url": "",
-          "type": "image"
-        },
-        {
-          "url": "",
-          "type": "image"
-        }
-      ]
+      "gallery": []
     },
     {
       "id": "g-3",
@@ -413,10 +403,6 @@
       "gallery": [
         {
           "url": "assets/1787212080128-5-img-8522.jpeg",
-          "type": "image"
-        },
-        {
-          "url": "",
           "type": "image"
         }
       ]

@@ -49,7 +49,8 @@
         "knots-aw24-capsule-campaign",
         "g-2",
         "knots-leather-jacket-campaign",
-        "jk"
+        "jk",
+        "h"
       ]
     },
     {
@@ -66,7 +67,8 @@
         "g",
         "g-2",
         "g-3",
-        "jk"
+        "jk",
+        "h"
       ]
     },
     {
@@ -391,6 +393,30 @@
         },
         {
           "url": "assets/1787211347315-2-img-8326.jpeg",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "h",
+      "title": "Knots SS24 Campaign ",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Editor / Clothing Designer",
+      "cover": "assets/1787212080113-4-sunset-jorts.png",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "Campaign shot in gordon’s bay for a small Knots capsule collection ",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787212080128-5-img-8522.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "",
           "type": "image"
         }
       ]

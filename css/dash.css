@@ -88,6 +88,17 @@ h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: upp
 .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
 .field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
+/* section bubbles inside a project — tap to place it on the home page */
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.chip {
+  padding: 7px 14px; border-radius: 9999px;
+  border: 1px solid var(--border); background: var(--field);
+  color: var(--muted); font-size: 13px; font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--fg); }
+.chip-on { background: var(--accent); border-color: var(--accent); color: #120B09; }
+
 .list-field ul { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .list-field li { display: flex; gap: 6px; align-items: center; }
 .list-field li input { flex: 1; }

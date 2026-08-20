@@ -51,7 +51,8 @@
       "projectIds": [
         "atelier-noir",
         "thread-study",
-        "brutalist-system"
+        "brutalist-system",
+        "after-hours"
       ]
     },
     {
@@ -80,7 +81,8 @@
       "id": "events",
       "title": "Events",
       "projectIds": [
-        "void-pavilion"
+        "void-pavilion",
+        "after-hours"
       ]
     }
   ],
@@ -162,18 +164,26 @@
     },
     {
       "id": "after-hours",
-      "title": "After Hours",
-      "category": "Video",
-      "year": "2024",
-      "role": "Editing / Color Grade",
-      "cover": "assets/after-hours.jpg",
-      "coverType": "image",
-      "aspect": "16/9",
-      "summary": "A nocturnal short film edit — amber rim light, deep shadow, and a pace built for the hour after midnight.",
-      "narrative": "After Hours is an exercise in tempo. The edit breathes with the city it documents, holding on shadows longer than expected and cutting only when the light demands it. The grade pushes every frame toward copper and obsidian.",
+      "title": "Knots AW23 Runway Show",
+      "category": "",
+      "year": "2023",
+      "role": "Event Manager / Promotion & Marketing / Fashion Design & Production / Creative Direction / Music Curation",
+      "cover": "assets/1787190655565-0-savevid-net-aqoqqvtjv4khucn8bhqmxgzchcj5k28prrvykiaiwdttpzfuldhgpze31zoqxqrkcuqmzn3nansruhnttveww2g.mp4",
+      "coverType": "video",
+      "aspect": "4/5",
+      "summary": "In 2023 I through my first runway show to launch my clothing brand Knots (formerly Alchemy), as it was my event I was in charge of all elements with the help of my business partner. We got over 200 people to attend the event and had Sydney hip-hop artist Ayce perform some of his songs to warm the crowd. We also hired a painter to make a large mural, which the runway models later walked through for the runway show.\nOverall a largely successful event",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/after-hours.jpg",
+          "url": "assets/1787190655681-1-img-1548.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787190655682-2-img-8041.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787190655683-3-img-8042.jpeg",
           "type": "image"
         }
       ],

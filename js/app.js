@@ -285,14 +285,20 @@ function showSpinnerWhileBuffering(tile, video) {
   video.addEventListener('waiting', () => { if (!settled) tile.classList.add('is-buffering'); });
 }
 
-function rowSpan(aspect) {
-  const [w, h] = aspect.split('/').map(Number);
+function ratioOf(aspect) {
+  const [w, h] = (aspect || '1/1').split('/').map(Number);
   const r = w / h;
-  if (!isFinite(r) || r <= 0) return '';
+  return isFinite(r) && r > 0 ? r : 1;
+}
+
+function rowSpan(aspect) {
+  const r = ratioOf(aspect);
   if (r >= 1.6) return ' tile-wide';
   if (r <= 0.6) return ' tile-tall';
   return '';
 }
+
+const isSolo = (aspect) => rowSpan(aspect) !== '';
 
 function buildTile(p, eager) {
   const aspect = p.aspect || '1/1';
@@ -308,6 +314,25 @@ function buildTile(p, eager) {
   return tile;
 }
 
+// A pair sharing one row, sized so both come out exactly the same height with
+// their ratios untouched.
+//
+// Equal columns were the problem: two tiles of different ratios forced into
+// the same width end up different heights, and the shorter one leaves a hole.
+// Give each tile a width proportional to its ratio instead and the heights
+// match by definition — width ÷ ratio is then the same for both. flex-grow
+// does the arithmetic, so it holds at every viewport width without measuring
+// anything, and the row's bottom edge is flush.
+function buildRow(entries) {
+  const row = el('div', entries.length === 1 ? 'row row-single' : 'row');
+  entries.forEach(({ project, eager }) => {
+    const tile = buildTile(project, eager);
+    tile.style.flexGrow = String(ratioOf(project.aspect));
+    row.append(tile);
+  });
+  return row;
+}
+
 function renderSections() {
   const archive = $('#archive');
   archive.innerHTML = '';
@@ -321,8 +346,28 @@ function renderSections() {
     const block = el('section', 'section-block');
     if (section.title) block.append(el('h3', 'section-title', section.title));
 
+    // Full-width covers interrupt the columns and sit on their own, so a run
+    // of paired tiles is packed, then the solo one, then the next run —
+    // keeping the order set in the dashboard.
     const collage = el('div', 'collage');
-    items.forEach((p, i) => collage.append(buildTile(p, sIdx === 0 && i < 3)));
+    let pair = [];
+    const flushPair = () => {
+      if (pair.length) collage.append(buildRow(pair));
+      pair = [];
+    };
+
+    items.forEach((project, i) => {
+      const eager = sIdx === 0 && i < 3;
+      if (isSolo(project.aspect)) {
+        flushPair();
+        collage.append(buildTile(project, eager));
+        return;
+      }
+      pair.push({ project, eager });
+      if (pair.length === 2) flushPair();
+    });
+    flushPair();
+
     block.append(collage);
     archive.append(block);
   });

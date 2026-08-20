@@ -53,7 +53,8 @@
         "thread-study",
         "brutalist-system",
         "after-hours",
-        "resonance"
+        "resonance",
+        "void-pavilion"
       ]
     },
     {
@@ -82,7 +83,6 @@
       "id": "events",
       "title": "Events",
       "projectIds": [
-        "void-pavilion",
         "after-hours",
         "atelier-noir",
         "resonance"
@@ -196,18 +196,22 @@
     },
     {
       "id": "void-pavilion",
-      "title": "Void Pavilion",
-      "category": "Events",
-      "year": "2023",
-      "role": "Event Direction / Production",
-      "cover": "assets/void-pavilion.jpg",
+      "title": "Knots Campaign AW25 Capsule ",
+      "category": "",
+      "year": "2025",
+      "role": "Creative Direction / Fashion Design & Production / Photographer / Photo Editor",
+      "cover": "assets/1787191234068-0-img-8044.jpeg",
       "coverType": "image",
       "aspect": "4/5",
-      "summary": "A one-night immersive event staged inside a raw concrete shell, lit with a single directional source.",
-      "narrative": "Void Pavilion turned an empty industrial shell into a one-night experience. A single lighting axis carved the space into exposure and concealment, guiding four hundred guests through sound, projection, and movement without a single sign.",
+      "summary": "A campaign for one of Knots’s AW25 capsule collections. \n",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/void-pavilion.jpg",
+          "url": "assets/1787191234071-1-img-8043.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787191234074-2-img-3224.jpeg",
           "type": "image"
         }
       ],

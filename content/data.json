@@ -46,7 +46,8 @@
         "knots-leather-jacket-campaign",
         "brutalist-system",
         "g",
-        "knots-aw24-capsule-campaign"
+        "knots-aw24-capsule-campaign",
+        "g-2"
       ]
     },
     {
@@ -60,7 +61,8 @@
         "d",
         "knots-leather-jacket-campaign",
         "knots-aw24-capsule-campaign",
-        "g"
+        "g",
+        "g-2"
       ]
     },
     {
@@ -86,7 +88,8 @@
         "atelier-noir",
         "thread-study",
         "d",
-        "g"
+        "g",
+        "g-2"
       ]
     },
     {
@@ -323,6 +326,30 @@
       "summary": "Created this active campaign to promote Knots’s beanie’s",
       "narrative": "",
       "gallery": []
+    },
+    {
+      "id": "g-2",
+      "title": "Ankor Hoodie Promo",
+      "category": "",
+      "year": "2023",
+      "role": "Video Editor / Clothing Designer",
+      "cover": "assets/1787210417824-0-alchemyopia-1682740932-3091374769841430340-55781804326-1.mp4",
+      "coverType": "video",
+      "aspect": "16/9",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "An advertisement I made to promote a hoodie from Knots (formerly Alchemy)",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "",
+          "type": "image"
+        },
+        {
+          "url": "",
+          "type": "image"
+        }
+      ]
     }
   ]
 }

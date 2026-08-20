@@ -401,13 +401,12 @@ function fillSection(block, section, items, first) {
   block.append(collage);
 }
 
-/* ---------------- music: playable tracks, streamed through Spotify ----------------
-   Playback goes through Spotify's embed controller so plays land on the real
-   album — visitors signed into Spotify stream the full songs (and those count
-   as streams); signed-out visitors get Spotify's 30-second previews. Spotify
-   never hands the page the audio signal itself, so the waveform is an organic
-   generated one that runs while a track plays rather than a literal sampling
-   of the sound. */
+/* ---------------- music: playable tracks, self-hosted audio ----------------
+   The songs play straight from files in this repo through an <audio> element
+   routed into a Web Audio analyser, so the waveform is drawn from the actual
+   signal — frequency bands of whatever is coming out of the speakers at that
+   instant. The platform icons above the cover still link out to Spotify /
+   Apple Music / YouTube for anyone who wants the album there. */
 
 const ICON_PATHS = {
   spotify: 'M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.22.36-.68.47-1.04.25-2.85-1.74-6.44-2.13-10.66-1.17-.41.1-.82-.16-.91-.57-.1-.41.16-.82.57-.91 4.62-1.06 8.59-.6 11.79 1.35.36.22.47.69.25 1.05zm1.47-3.27c-.28.45-.86.59-1.31.32-3.26-2-8.24-2.58-12.1-1.41-.51.15-1.04-.13-1.2-.63-.15-.51.13-1.04.64-1.2 4.41-1.34 9.9-.69 13.65 1.62.44.27.58.86.31 1.3zm.13-3.4C15.24 8.3 8.82 8.09 5.09 9.22c-.6.18-1.23-.16-1.41-.75-.18-.6.16-1.23.75-1.41 4.29-1.3 11.4-1.05 15.9 1.62.54.32.71 1.01.4 1.55-.32.53-1.02.71-1.55.39z',
@@ -420,78 +419,73 @@ const PLAY_ICON_SVG =
   '<circle cx="28" cy="28" r="25" fill="none" stroke="currentColor" stroke-width="3.5"/>' +
   '<path d="M23 18.5 39 28l-16 9.5z" fill="currentColor"/></svg>';
 
-function trackUriOf(track) {
-  const m = String(track.url || '').match(/track[/:]([A-Za-z0-9]{16,32})/);
-  return m ? `spotify:track:${m[1]}` : null;
-}
-
-const spotify = {
-  controller: null,
-  ready: false,
-  failed: false,
-  currentUri: null,
-  playing: false,          // what the UI believes (optimistic on tap)
-  confirmedPlaying: false, // what Spotify last reported
-  posMs: 0,                // last reported position…
-  posAt: 0,                // …and when it was reported, for extrapolation
-  kick: 0,
-  pendingPlay: null,
-  trackEls: [], // { uri, item, wave, track }
+const player = {
+  ctx: null,       // shared AudioContext, created on the first tap (a gesture,
+                   // which is what unlocks audio on iOS)
+  analyser: null,
+  bins: null,
+  current: null,   // the entry whose audio owns the speakers right now
+  entries: [],     // { track, item, wave, audio, source }
 };
 
-/* Loudness contours, precomputed offline from the tracks' audio and stored in
-   the repo (assets/waveforms.json). Spotify's iframe exposes no audio signal,
-   so this is how the waveform follows the actual music: Spotify reports the
-   playback position, and the contour says how loud the song is at that
-   moment. Contours built from preview audio are looped when full-track
-   playback runs past their end. */
-let WAVEDATA = null;
-function loadWaveData() {
-  if (WAVEDATA !== null) return;
-  WAVEDATA = {};
-  fetch('/assets/waveforms.json')
-    .then(r => (r.ok ? r.json() : {}))
-    .then(d => { WAVEDATA = d || {}; })
-    .catch(() => {});
+function ensureAudioGraph() {
+  if (!player.ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return; // no Web Audio — tracks still play, waves just idle
+    player.ctx = new AC();
+    player.analyser = player.ctx.createAnalyser();
+    player.analyser.fftSize = 256;
+    player.analyser.smoothingTimeConstant = 0.7;
+    player.bins = new Uint8Array(player.analyser.frequencyBinCount);
+    player.analyser.connect(player.ctx.destination);
+  }
+  // suspended until a user gesture — every call here happens inside one
+  if (player.ctx.state === 'suspended') player.ctx.resume().catch(() => {});
 }
 
-function ampForUri(uri) {
-  const id = String(uri).split(':').pop();
-  const env = WAVEDATA && WAVEDATA[id];
-  if (!env || !env.amp || !env.amp.length) return null;
-  let pos = spotify.posMs;
-  if (spotify.playing) pos += performance.now() - spotify.posAt;
-  let idx = (pos / 1000) * (env.sps || 20);
-  const n = env.amp.length;
-  idx = ((idx % n) + n) % n; // loop preview-length contours over full songs
-  const lo = Math.floor(idx), hi = (lo + 1) % n;
-  return env.amp[lo] + (env.amp[hi] - env.amp[lo]) * (idx - lo);
+// Four frequency bands of whatever is playing right now, each 0..1.
+// Bin width is sampleRate/fftSize ≈ 172Hz at 44.1k.
+const BANDS = [[0, 3], [3, 9], [9, 26], [26, 88]]; // bass, low-mid, high-mid, treble
+const levelsOut = [0, 0, 0, 0];
+function audioLevels() {
+  if (!player.analyser) return null;
+  player.analyser.getByteFrequencyData(player.bins);
+  BANDS.forEach(([a, b], i) => {
+    // the loudest bin in the band, not the average — averages smear a kick or
+    // a hat across empty bins and flatten the swing
+    let mx = 0;
+    for (let j = a; j < b; j++) if (player.bins[j] > mx) mx = player.bins[j];
+    // byte values are dB-mapped and sit compressed near the top; expanding
+    // them restores the contrast between a hit and the space after it
+    levelsOut[i] = Math.pow(mx / 255, 1.7);
+  });
+  return levelsOut;
 }
 
-// Organic scribble waveform on a canvas — layered sines with per-track
-// character, tapered at the ends. While the track plays, its overall size
-// follows the song's loudness contour at the current playback position, so
-// choruses swell and quiet passages settle.
-function buildWave(ampFn) {
+// Organic scribble waveform on a canvas. Four sine layers, each fed by one
+// frequency band of the live signal — bass drives the long slow swells,
+// treble the fine jitter — so every song draws its own shape, and the shape
+// moves with what is actually playing at that instant.
+function buildWave(levelsFn) {
   const canvas = el('canvas', 'track-wave');
   const W = 260, H = 96;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const seed = Math.random() * 100;
-  let raf = 0, t = 0, level = 0.7;
+  let raf = 0, t = 0;
+  const band = [0.5, 0.4, 0.3, 0.2]; // eased copies of the live bands
 
   const draw = () => {
     ctx.clearRect(0, 0, W, H);
     ctx.beginPath();
     const mid = H / 2;
-    const gain = 0.35 + level * 1.05; // never fully flat while playing
     for (let x = 0; x <= W; x += 3) {
       const env = Math.pow(Math.sin(Math.PI * x / W), 0.65); // quiet at the ends
-      const y = mid + env * gain * (
-        Math.sin(x * 0.055 + t * 2.1 + seed) * 14 +
-        Math.sin(x * 0.11 - t * 3.3 + seed * 2) * 9 +
-        Math.sin(x * 0.23 + t * 5.2 + seed * 3) * 6 +
-        Math.sin(x * 0.47 - t * 1.4 + seed * 5) * 3.5
+      const y = mid + env * (
+        Math.sin(x * 0.055 + t * 2.1 + seed)     * (4 + band[0] * 30) +
+        Math.sin(x * 0.11  - t * 3.3 + seed * 2) * (3 + band[1] * 22) +
+        Math.sin(x * 0.23  + t * 5.2 + seed * 3) * (2 + band[2] * 15) +
+        Math.sin(x * 0.47  - t * 1.4 + seed * 5) * (1.5 + band[3] * 10)
       );
       x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     }
@@ -504,9 +498,13 @@ function buildWave(ampFn) {
 
   const tick = () => {
     t += 0.016;
-    const target = (ampFn && ampFn()) ?? 0.7;
-    // ease towards the contour: quick to rise on a hit, slower to fall away
-    level += (target - level) * (target > level ? 0.35 : 0.12);
+    const L = levelsFn ? levelsFn() : null;
+    if (L) {
+      for (let i = 0; i < 4; i++) {
+        // quick to jump on a hit, slower to fall away
+        band[i] += (L[i] - band[i]) * (L[i] > band[i] ? 0.5 : 0.15);
+      }
+    }
     draw();
     raf = requestAnimationFrame(tick);
   };
@@ -518,105 +516,46 @@ function buildWave(ampFn) {
   };
 }
 
-function updateTrackUI() {
-  spotify.trackEls.forEach(({ uri, item, wave }) => {
-    const active = spotify.playing && uri === spotify.currentUri;
-    item.classList.toggle('is-playing', active);
-    active ? wave.start() : wave.stop();
+function updateMusicUI() {
+  player.entries.forEach((entry) => {
+    const active = entry === player.current && entry.audio && !entry.audio.paused;
+    entry.item.classList.toggle('is-playing', active);
+    active ? entry.wave.start() : entry.wave.stop();
   });
 }
 
-function playUri(uri) {
-  const c = spotify.controller;
-  if (!c) return;
-  clearInterval(spotify.kick);
-  if (spotify.currentUri === uri) {
-    c.togglePlay();
-    return;
-  }
-  spotify.currentUri = uri;
-  spotify.confirmedPlaying = false;
-  spotify.posMs = 0;
-  spotify.posAt = performance.now();
-  c.loadUri(uri);
-  c.play();
-  spotify.playing = true; // optimistic; playback_update corrects it
-  updateTrackUI();
+function onTrackClick(entry) {
+  ensureAudioGraph();
 
-  // loadUri reloads Spotify's iframe, and a play() sent straight after can be
-  // swallowed by that reload — which used to mean the first tap did nothing
-  // and only a second tap started playback. Keep nudging until Spotify
-  // reports the track actually running.
-  let tries = 0;
-  spotify.kick = setInterval(() => {
-    if (spotify.confirmedPlaying || spotify.currentUri !== uri || ++tries > 12) {
-      clearInterval(spotify.kick);
-      return;
+  // one voice at a time
+  if (player.current && player.current !== entry) player.current.audio?.pause();
+
+  if (!entry.audio) {
+    const a = new Audio();
+    a.src = entry.track.file;
+    a.preload = 'auto';
+    entry.audio = a;
+    ['play', 'pause', 'ended'].forEach(ev => a.addEventListener(ev, updateMusicUI));
+    a.addEventListener('ended', () => { a.currentTime = 0; });
+    // Route through the analyser so the waveform sees the real signal. Once
+    // connected, the element's sound flows only through the graph — if Web
+    // Audio isn't available the element just plays directly and the wave
+    // falls back to its idle motion.
+    if (player.ctx) {
+      try {
+        entry.source = player.ctx.createMediaElementSource(a);
+        entry.source.connect(player.analyser);
+      } catch {}
     }
-    c.play();
-  }, 500);
-}
-
-function onTrackClick(track) {
-  const uri = trackUriOf(track);
-  // No controller (script blocked, or Spotify down): the play button still
-  // does the honest thing and opens the song on Spotify itself.
-  if (!uri || spotify.failed) {
-    if (track.url) window.open(track.url, '_blank', 'noopener');
-    return;
   }
-  if (!spotify.ready) { spotify.pendingPlay = uri; return; }
-  playUri(uri);
-}
 
-function initSpotify(target, wrapEl) {
-  if (spotify.controller || spotify.failed || !MUSIC) return;
-
-  const albumMatch = String(MUSIC.spotifyUrl || '').match(/album[/:]([A-Za-z0-9]{16,32})/);
-  const startUri = albumMatch
-    ? `spotify:album:${albumMatch[1]}`
-    : trackUriOf((MUSIC.tracks || [])[0] || {});
-  if (!startUri) { spotify.failed = true; wrapEl.hidden = true; return; }
-
-  const fail = () => {
-    spotify.failed = true;
-    wrapEl.hidden = true;
-    updateTrackUI();
-  };
-  const failTimer = setTimeout(fail, 8000);
-
-  window.onSpotifyIframeApiReady = (IFrameAPI) => {
-    clearTimeout(failTimer);
-    IFrameAPI.createController(target, { width: '100%', height: '80', uri: startUri }, (controller) => {
-      spotify.controller = controller;
-      spotify.ready = true;
-      controller.addListener('playback_update', (e) => {
-        const d = (e && e.data) || {};
-        spotify.playing = !d.isPaused;
-        spotify.confirmedPlaying = !d.isPaused;
-        if (typeof d.position === 'number') {
-          spotify.posMs = d.position;
-          spotify.posAt = performance.now();
-        }
-        updateTrackUI();
-      });
-      if (spotify.pendingPlay) {
-        const u = spotify.pendingPlay;
-        spotify.pendingPlay = null;
-        playUri(u);
-      }
-    });
-  };
-
-  const s = document.createElement('script');
-  s.src = 'https://open.spotify.com/embed/iframe-api/v1';
-  s.async = true;
-  s.onerror = () => { clearTimeout(failTimer); fail(); };
-  document.head.append(s);
+  player.current = entry;
+  if (entry.audio.paused) entry.audio.play().catch(() => {});
+  else entry.audio.pause();
+  updateMusicUI();
 }
 
 function fillMusic(block) {
-  loadWaveData();
   block.classList.add('music-section');
   block.append(el('h3', 'section-title', 'Music'));
 
@@ -626,8 +565,8 @@ function fillMusic(block) {
   const icons = el('div', 'music-links');
   [
     [MUSIC.spotifyUrl, 'spotify', 'Listen on Spotify'],
-    [MUSIC.youtubeUrl, 'youtube', 'Watch on YouTube'],
     [MUSIC.appleMusicUrl, 'apple', 'Listen on Apple Music'],
+    [MUSIC.youtubeUrl, 'youtube', 'Watch on YouTube'],
   ].forEach(([url, key, label]) => {
     if (!url) return;
     const a = el('a', 'music-link');
@@ -649,31 +588,23 @@ function fillMusic(block) {
 
   const trackRow = el('div', 'music-tracks');
   (MUSIC.tracks || []).forEach((track) => {
-    if (!track.title && !track.url) return;
+    if (!track.file) return; // a track with no audio has nothing to play
     const item = el('div', 'music-track');
     const btn = el('button', 'track-slot');
     btn.type = 'button';
     btn.setAttribute('aria-label', `Play ${track.title || 'track'}`);
     btn.innerHTML = PLAY_ICON_SVG;
-    const uri = trackUriOf(track);
-    const wave = buildWave(uri ? () => ampForUri(uri) : null);
+    const wave = buildWave(audioLevels);
     btn.append(wave.canvas);
-    btn.addEventListener('click', () => onTrackClick(track));
     item.append(btn, el('p', 'track-name', track.title || ''));
     trackRow.append(item);
 
-    if (uri) spotify.trackEls.push({ uri, item, wave, track });
+    const entry = { track, item, wave, audio: null, source: null };
+    player.entries.push(entry);
+    btn.addEventListener('click', () => onTrackClick(entry));
   });
   wrap.append(trackRow);
   block.append(wrap);
-
-  // The real Spotify player, kept small but visible — it's what actually
-  // plays, and it's the visitor's way to like/save/open the album.
-  const embedWrap = el('div', 'music-embed');
-  const target = el('div');
-  embedWrap.append(target);
-  block.append(embedWrap);
-  initSpotify(target, embedWrap);
 }
 
 function renderSections() {

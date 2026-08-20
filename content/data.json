@@ -326,7 +326,9 @@
       "aspect": "4/3",
       "summary": "Created this active campaign to promote Knots’s beanie’s",
       "narrative": "",
-      "gallery": []
+      "gallery": [],
+      "previewStart": 3,
+      "previewEnd": 7
     },
     {
       "id": "g-2",
@@ -341,7 +343,8 @@
       "coverY": 50,
       "summary": "An advertisement I made to promote a hoodie from Knots (formerly Alchemy)",
       "narrative": "",
-      "gallery": []
+      "gallery": [],
+      "previewEnd": 12
     },
     {
       "id": "g-3",
@@ -444,19 +447,19 @@
     "cover": "assets/mirage-demos.jpg",
     "spotifyUrl": "https://open.spotify.com/album/6ZYzs5vgOEzcBGOBUAWvEJ",
     "youtubeUrl": "",
-    "appleMusicUrl": "",
+    "appleMusicUrl": "https://music.apple.com/au/album/mirage-demos-single/1880282105?l=en-GB",
     "tracks": [
       {
         "title": "SAHARA",
-        "url": "https://open.spotify.com/track/2IgNR75mte3wpUKWNsAhqp"
+        "file": "assets/music/sahara.m4a"
       },
       {
         "title": "THIS TIME",
-        "url": "https://open.spotify.com/track/7uNFgIMraxYw3coAofe85f"
+        "file": "assets/music/this-time.m4a"
       },
       {
         "title": "RUNAWAY",
-        "url": "https://open.spotify.com/track/622JcKUArdUJqqvwC1coco"
+        "file": "assets/music/runaway.m4a"
       }
     ]
   }

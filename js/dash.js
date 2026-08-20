@@ -394,9 +394,9 @@ function renderMusicPanel() {
   intro.style.marginBottom = '16px';
   intro.textContent =
     'Shown as its own section right after the first one on the home page. ' +
-    'Songs play through Spotify, so visitors signed into Spotify stream the ' +
-    'full tracks and the plays count towards your streams; anyone signed out ' +
-    'hears Spotify’s 30-second preview.';
+    'Songs play right on the page from the audio files uploaded below, and ' +
+    'the waveform reacts to the actual sound. The platform links only feed ' +
+    'the icons above the album cover.';
   panel.append(intro);
 
   const textField = (label, key, hint) => {
@@ -420,10 +420,11 @@ function renderMusicPanel() {
     pendingUploads['music:cover'] = { file, apply: (path) => { m.cover = path; } };
   }));
 
-  // tracks — title + Spotify song link, reorderable
+  // tracks — title + audio file, reorderable
   const trackField = el('div', 'field');
   trackField.append(el('label', null, 'Tracks'));
   const list = el('div', 'gallery-list');
+  let trackKey = 0;
   const renderTracks = () => {
     list.innerHTML = '';
     m.tracks.forEach((t, i) => {
@@ -431,9 +432,23 @@ function renderMusicPanel() {
       const title = el('input');
       title.type = 'text'; title.placeholder = 'Song name'; title.value = t.title || '';
       title.addEventListener('input', () => { t.title = title.value; });
-      const url = el('input');
-      url.type = 'text'; url.placeholder = 'https://open.spotify.com/track/…'; url.value = t.url || '';
-      url.addEventListener('input', () => { t.url = url.value.trim(); });
+
+      const fileWrap = el('div', 'music-track-file');
+      const file = el('input');
+      file.type = 'file';
+      file.accept = 'audio/*';
+      const fileHint = el('div', 'field-hint',
+        t.file ? `Current: ${t.file.split('/').pop()}` : 'No audio yet — the song won\'t show until one is uploaded.');
+      file.addEventListener('change', () => {
+        const f = file.files[0];
+        if (!f) return;
+        // key survives reordering because apply closes over this track object
+        if (!t._key) t._key = `music:track:${++trackKey}:${Date.now()}`;
+        pendingUploads[t._key] = { file: f, apply: (path) => { t.file = path; delete t._key; } };
+        fileHint.textContent = `Will upload: ${f.name} (${(f.size / 1e6).toFixed(1)}MB)`;
+      });
+      fileWrap.append(file, fileHint);
+
       const up = el('button', 'icon-btn', '↑');
       up.type = 'button'; up.disabled = i === 0;
       up.addEventListener('click', () => { m.tracks.splice(i - 1, 0, m.tracks.splice(i, 1)[0]); renderTracks(); });
@@ -442,8 +457,12 @@ function renderMusicPanel() {
       down.addEventListener('click', () => { m.tracks.splice(i + 1, 0, m.tracks.splice(i, 1)[0]); renderTracks(); });
       const rm = el('button', 'icon-btn icon-btn-danger', '✕');
       rm.type = 'button';
-      rm.addEventListener('click', () => { m.tracks.splice(i, 1); renderTracks(); });
-      row.append(title, url, up, down, rm);
+      rm.addEventListener('click', () => {
+        if (t._key) delete pendingUploads[t._key];
+        m.tracks.splice(i, 1);
+        renderTracks();
+      });
+      row.append(title, fileWrap, up, down, rm);
       list.append(row);
     });
   };
@@ -452,10 +471,10 @@ function renderMusicPanel() {
   const addTrack = el('button', 'btn btn-sm btn-ghost', '+ Add track');
   addTrack.type = 'button';
   addTrack.style.marginTop = '8px';
-  addTrack.addEventListener('click', () => { m.tracks.push({ title: '', url: '' }); renderTracks(); });
+  addTrack.addEventListener('click', () => { m.tracks.push({ title: '', file: '' }); renderTracks(); });
   trackField.append(addTrack);
   trackField.append(el('div', 'field-hint',
-    'Get a song’s link in Spotify via Share → Copy Song Link. The section is hidden if there are no tracks.'));
+    'MP3 or M4A/AAC, ideally under 10MB a song. A track without an audio file is hidden from the site.'));
   panel.append(trackField);
 }
 

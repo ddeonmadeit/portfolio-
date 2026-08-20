@@ -48,7 +48,7 @@ content:
             list: true
             fields:
               - { name: title, label: Song name, type: string }
-              - { name: url, label: Spotify song link, type: string }
+              - { name: file, label: "Audio file (path under assets/, e.g. assets/music/song.m4a)", type: string }
 
       - name: sections
         label: Home page sections

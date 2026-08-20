@@ -257,6 +257,47 @@ img { display: block; max-width: 100%; }
   text-transform: uppercase;
   color: rgba(253, 249, 243, 0.7);
 }
+
+/* Reveals the next section, then re-seats itself below it. Deliberately quiet:
+   it borrows the section-title's type so it reads as part of the structure
+   rather than as a call to action, and only picks up colour on approach. */
+.more-btn {
+  display: block;
+  align-self: center; /* #archive is a flex column — otherwise this stretches */
+  text-align: center;
+  margin: 34px auto 0;
+  padding: 12px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: rgba(253, 249, 243, 0.45);
+  transition: color 0.3s var(--ease);
+}
+.more-btn:hover, .more-btn:focus-visible { color: var(--accent); }
+.more-label { position: relative; }
+/* a hairline that grows out from the middle on hover */
+.more-label::after {
+  content: '';
+  position: absolute;
+  left: 50%; right: 50%; bottom: -6px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+  transition: left 0.4s var(--ease), right 0.4s var(--ease);
+}
+.more-btn:hover .more-label::after,
+.more-btn:focus-visible .more-label::after { left: 0; right: 0; }
+
+.section-block[hidden] { display: none; }
+.reveal { animation: revealIn 0.7s var(--ease) both; }
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
 /* One gap value for every seam on the grid — between columns, between stacked
    tiles, and between a full-width cover and whatever follows it. */
 .collage {

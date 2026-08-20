@@ -43,9 +43,14 @@
         "d",
         "thread-study",
         "void-pavilion",
-        "knots-leather-jacket-campaign",
+        "g-3",
         "brutalist-system",
-        "knots-aw24-capsule-campaign"
+        "g",
+        "knots-aw24-capsule-campaign",
+        "g-2",
+        "knots-leather-jacket-campaign",
+        "jk",
+        "h"
       ]
     },
     {
@@ -58,7 +63,12 @@
         "void-pavilion",
         "d",
         "knots-leather-jacket-campaign",
-        "knots-aw24-capsule-campaign"
+        "knots-aw24-capsule-campaign",
+        "g",
+        "g-2",
+        "g-3",
+        "jk",
+        "h"
       ]
     },
     {
@@ -72,7 +82,8 @@
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
-        "resonance"
+        "resonance",
+        "g-3"
       ]
     },
     {
@@ -83,7 +94,9 @@
         "brutalist-system",
         "atelier-noir",
         "thread-study",
-        "d"
+        "d",
+        "g",
+        "g-2"
       ]
     },
     {
@@ -128,7 +141,7 @@
       "category": "Event Management / Graphic Design / Video Editing / Fashion",
       "year": "2025",
       "role": "Graphic Design / Marketer / Video Editor / Event Management",
-      "cover": "assets/1787187821330-0-59daa327-2972-44f4-914b-1244c92cd184.jpeg",
+      "cover": "assets/1787204507330-0-img-8053.jpeg",
       "coverType": "image",
       "aspect": "4/5",
       "summary": "In collaboration with bucckk22 and places.save, two community driven brands.\nI hosted a halloween event at my retail store.\nI was in charge of the graphic design, video editing & overall promotion and management of the event.\nOver 200 people attended.",
@@ -310,16 +323,103 @@
     },
     {
       "id": "g",
-      "title": "g",
+      "title": "Knots Active Beanie Campaign",
       "category": "",
-      "year": "2026",
-      "role": "",
-      "cover": "assets/1787203609422-0-4-seasons-beanie.mp4",
+      "year": "2023",
+      "role": "Video Editor / Athlete / Beanie Designer ",
+      "cover": "assets/1787204760486-1-4-seasons-beanie.mp4",
       "coverType": "video",
-      "aspect": "9/7",
-      "summary": "",
+      "aspect": "4/3",
+      "summary": "Created this active campaign to promote Knots’s beanie’s",
       "narrative": "",
       "gallery": []
+    },
+    {
+      "id": "g-2",
+      "title": "Ankor Hoodie Promo",
+      "category": "",
+      "year": "2023",
+      "role": "Video Editor / Clothing Designer",
+      "cover": "assets/1787211078521-0-alchemyopia-1682740932-3091374769841430340-55781804326-1.mov",
+      "coverType": "video",
+      "aspect": "16/9",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "An advertisement I made to promote a hoodie from Knots (formerly Alchemy)",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "",
+          "type": "image"
+        },
+        {
+          "url": "",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "g-3",
+      "title": "Knots AW24 Capsule",
+      "category": "",
+      "year": "2024",
+      "role": "Creative Director / Photo Editor / Graphics",
+      "cover": "assets/1787210672477-0-img-1445.jpeg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "A poster made to promote a small capsule from Knots ",
+      "narrative": "",
+      "gallery": []
+    },
+    {
+      "id": "jk",
+      "title": "Knots SS24 Capsule Campaign",
+      "category": "",
+      "year": "2026",
+      "role": "Photographer / Editor / Clothing Designer & Stylist",
+      "cover": "assets/1787211347291-0-img-8221.jpeg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "Campaign shot in a air-soft warehouse in jakarta.",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787211347306-1-img-8353.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787211347315-2-img-8326.jpeg",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "h",
+      "title": "Knots SS24 Campaign ",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Editor / Clothing Designer",
+      "cover": "assets/1787212080113-4-sunset-jorts.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "Campaign shot in gordon’s bay for a small Knots capsule collection ",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787212080128-5-img-8522.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "",
+          "type": "image"
+        }
+      ]
     }
   ]
 }

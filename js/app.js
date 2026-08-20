@@ -41,7 +41,27 @@ function applyLoopRange(video, start, end) {
   video.addEventListener('ended', toStart);
 }
 
+// Videos get a poster generated alongside them at upload time, named after the
+// clip itself. If one hasn't been made the attribute simply resolves to
+// nothing, which is harmless.
+function posterFor(url) {
+  return url.replace(/\.[^./]+$/, '') + '-poster.jpg';
+}
+
+// coverType is what the dashboard recorded, but fall back to the file
+// extension so a photo swapped in over a video still renders as a still
+// image rather than an empty video element.
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v|ogv)$/i;
+function resolveType(url, type) {
+  if (type === 'video' || type === 'image') {
+    if (type === 'video' && url && !VIDEO_EXT.test(url)) return 'image';
+    return type;
+  }
+  return url && VIDEO_EXT.test(url) ? 'video' : 'image';
+}
+
 function buildMedia(url, type, alt, eager, loop) {
+  type = resolveType(url, type);
   if (type === 'video') {
     const v = el('video');
     // Some engines (notably iOS Safari) decide autoplay eligibility from the
@@ -62,6 +82,9 @@ function buildMedia(url, type, alt, eager, loop) {
     v.preload = 'auto';
     // Covers above the fold shouldn't queue behind lazy images for bandwidth.
     if (eager) v.setAttribute('fetchpriority', 'high');
+    // Something static to show the instant the element exists, and what stays
+    // on screen if the device refuses to autoplay at all.
+    v.poster = posterFor(url);
     v.setAttribute('aria-label', alt || '');
     v.src = url;
     if (loop) applyLoopRange(v, loop.start, loop.end);
@@ -71,7 +94,13 @@ function buildMedia(url, type, alt, eager, loop) {
     // canplay fires as soon as *some* frames are decodable, which is far
     // earlier than canplaythrough — start there rather than waiting for the
     // browser to decide the whole clip can play uninterrupted.
-    const tryPlay = () => v.play().catch(() => {});
+    // A rejected play() means the device is refusing autoplay outright rather
+    // than still fetching — the poster is what the viewer will be looking at,
+    // so flag it and let the spinner stand down.
+    const tryPlay = () => v.play().then(
+      () => { delete v.dataset.autoplayBlocked; },
+      () => { v.dataset.autoplayBlocked = '1'; }
+    );
     tryPlay();
     v.addEventListener('loadedmetadata', tryPlay);
     v.addEventListener('loadeddata', tryPlay);
@@ -194,7 +223,12 @@ function coverLoop(p) {
 function showSpinnerWhileBuffering(tile, video) {
   let settled = false;
   const clear = () => { settled = true; tile.classList.remove('is-buffering'); };
-  const mark = () => { if (!settled && video.paused) tile.classList.add('is-buffering'); };
+  const mark = () => {
+    // Blocked autoplay isn't loading — showing a spinner over a perfectly
+    // good poster frame just looks broken.
+    if (settled || video.dataset.autoplayBlocked) return;
+    if (video.paused) tile.classList.add('is-buffering');
+  };
 
   setTimeout(mark, 250);
   // Give up rather than spin forever if the clip never plays — a codec the
@@ -250,7 +284,6 @@ function renderSections() {
 
 /* ---------------- project detail ---------------- */
 function renderDetail(p) {
-  $('#d-meta').textContent = `${p.category.toUpperCase()} · ${p.year}`;
   $('#d-title').textContent = p.title;
 
   const cover = $('#d-cover');

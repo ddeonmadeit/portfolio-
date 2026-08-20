@@ -81,6 +81,41 @@ function makeFilename(name) {
   const ext = dot > 0 ? name.slice(dot) : '';
   return `${Date.now()}-${uploadSeq++}-${slugify(base)}${ext.toLowerCase()}`;
 }
+// Grab a still from a video the moment it's chosen, so every clip ships with a
+// poster. That frame is what the site shows before playback starts — and what
+// stays on screen on a device that refuses to autoplay at all, instead of a
+// black rectangle with a play button over it.
+function videoPosterBase64(file) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+
+    const done = (result) => { URL.revokeObjectURL(url); resolve(result); };
+    const bail = () => done(null);
+
+    // don't hold up a save if the browser can't decode this format
+    const timer = setTimeout(bail, 8000);
+    v.addEventListener('error', () => { clearTimeout(timer); bail(); }, { once: true });
+
+    v.addEventListener('loadeddata', () => {
+      // a hair into the clip — frame zero is often black on a fade-in
+      v.currentTime = Math.min(0.3, (v.duration || 1) / 10);
+    }, { once: true });
+
+    v.addEventListener('seeked', () => {
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = v.videoWidth;
+        canvas.height = v.videoHeight;
+        canvas.getContext('2d').drawImage(v, 0, 0);
+        done(canvas.toDataURL('image/jpeg', 0.82).split(',')[1] || null);
+      } catch { bail(); }
+    }, { once: true });
+  });
+}
+
 function buildPreviewMedia(url, type) {
   if (type === 'video') {
     const v = el('video');
@@ -630,7 +665,7 @@ function renderProjectsPanel() {
 
     const textFields = [
       ['title', 'Title'],
-      ['category', 'Category / discipline (shown on the project page)'],
+      ['category', 'Category / discipline (for your own reference)'],
       ['year', 'Year'],
       ['role', 'Role'],
       ['aspect', 'Cover aspect ratio (e.g. 4/5, 16/9, 1/1 — 9/16 takes a whole row)'],
@@ -651,6 +686,37 @@ function renderProjectsPanel() {
       field.append(input);
       body.append(field);
     });
+
+    // which home page sections this project appears in — the same
+    // section.projectIds the Sections tab edits, just reachable from the
+    // project you're already looking at
+    const secField = el('div', 'field');
+    secField.append(el('label', null, 'Show in these home page sections'));
+    const chipRow = el('div', 'chip-row');
+    const renderChips = () => {
+      chipRow.innerHTML = '';
+      DATA.sections.forEach(s => {
+        s.projectIds = s.projectIds || [];
+        const on = s.projectIds.includes(p.id);
+        const chip = el('button', on ? 'chip chip-on' : 'chip', s.title || 'Featured (untitled)');
+        chip.type = 'button';
+        chip.setAttribute('aria-pressed', on ? 'true' : 'false');
+        chip.addEventListener('click', () => {
+          const i = s.projectIds.indexOf(p.id);
+          if (i === -1) s.projectIds.push(p.id); else s.projectIds.splice(i, 1);
+          renderChips();
+          renderSectionsPanel();
+        });
+        chipRow.append(chip);
+      });
+      if (!DATA.sections.length) {
+        chipRow.append(el('div', 'field-hint', 'No sections yet — add one in the Sections tab.'));
+      }
+    };
+    renderChips();
+    secField.append(chipRow);
+    secField.append(el('div', 'field-hint', 'Tap to add or remove. Position within a section is set in the Sections tab.'));
+    body.append(secField);
 
     // full-piece embed
     const embedField = el('div', 'field');
@@ -829,6 +895,14 @@ $('#save-btn').addEventListener('click', async () => {
       const base64 = await fileToBase64(file);
       const path = `assets/${makeFilename(file.name)}`;
       files.push({ path, base64 });
+
+      if (typeFromMime(file.type) === 'video') {
+        setStatus('Making a poster frame…');
+        const poster = await videoPosterBase64(file);
+        // named after the clip — that convention is how the site finds it
+        if (poster) files.push({ path: path.replace(/\.[^./]+$/, '') + '-poster.jpg', base64: poster });
+      }
+
       applies.push(() => apply(path, typeFromMime(file.type)));
     }
 

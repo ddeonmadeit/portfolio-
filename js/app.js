@@ -422,28 +422,64 @@ const spotify = {
   ready: false,
   failed: false,
   currentUri: null,
-  playing: false,
+  playing: false,          // what the UI believes (optimistic on tap)
+  confirmedPlaying: false, // what Spotify last reported
+  posMs: 0,                // last reported position…
+  posAt: 0,                // …and when it was reported, for extrapolation
+  kick: 0,
   pendingPlay: null,
   trackEls: [], // { uri, item, wave, track }
 };
 
+/* Loudness contours, precomputed offline from the tracks' audio and stored in
+   the repo (assets/waveforms.json). Spotify's iframe exposes no audio signal,
+   so this is how the waveform follows the actual music: Spotify reports the
+   playback position, and the contour says how loud the song is at that
+   moment. Contours built from preview audio are looped when full-track
+   playback runs past their end. */
+let WAVEDATA = null;
+function loadWaveData() {
+  if (WAVEDATA !== null) return;
+  WAVEDATA = {};
+  fetch('/assets/waveforms.json')
+    .then(r => (r.ok ? r.json() : {}))
+    .then(d => { WAVEDATA = d || {}; })
+    .catch(() => {});
+}
+
+function ampForUri(uri) {
+  const id = String(uri).split(':').pop();
+  const env = WAVEDATA && WAVEDATA[id];
+  if (!env || !env.amp || !env.amp.length) return null;
+  let pos = spotify.posMs;
+  if (spotify.playing) pos += performance.now() - spotify.posAt;
+  let idx = (pos / 1000) * (env.sps || 20);
+  const n = env.amp.length;
+  idx = ((idx % n) + n) % n; // loop preview-length contours over full songs
+  const lo = Math.floor(idx), hi = (lo + 1) % n;
+  return env.amp[lo] + (env.amp[hi] - env.amp[lo]) * (idx - lo);
+}
+
 // Organic scribble waveform on a canvas — layered sines with per-track
-// character, tapered at the ends, redrawn while the track plays.
-function buildWave() {
+// character, tapered at the ends. While the track plays, its overall size
+// follows the song's loudness contour at the current playback position, so
+// choruses swell and quiet passages settle.
+function buildWave(ampFn) {
   const canvas = el('canvas', 'track-wave');
   const W = 260, H = 96;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   const seed = Math.random() * 100;
-  let raf = 0, t = 0;
+  let raf = 0, t = 0, level = 0.7;
 
   const draw = () => {
     ctx.clearRect(0, 0, W, H);
     ctx.beginPath();
     const mid = H / 2;
+    const gain = 0.35 + level * 1.05; // never fully flat while playing
     for (let x = 0; x <= W; x += 3) {
       const env = Math.pow(Math.sin(Math.PI * x / W), 0.65); // quiet at the ends
-      const y = mid + env * (
+      const y = mid + env * gain * (
         Math.sin(x * 0.055 + t * 2.1 + seed) * 14 +
         Math.sin(x * 0.11 - t * 3.3 + seed * 2) * 9 +
         Math.sin(x * 0.23 + t * 5.2 + seed * 3) * 6 +
@@ -458,7 +494,14 @@ function buildWave() {
     ctx.stroke();
   };
 
-  const tick = () => { t += 0.016; draw(); raf = requestAnimationFrame(tick); };
+  const tick = () => {
+    t += 0.016;
+    const target = (ampFn && ampFn()) ?? 0.7;
+    // ease towards the contour: quick to rise on a hit, slower to fall away
+    level += (target - level) * (target > level ? 0.35 : 0.12);
+    draw();
+    raf = requestAnimationFrame(tick);
+  };
   draw();
   return {
     canvas,
@@ -478,15 +521,32 @@ function updateTrackUI() {
 function playUri(uri) {
   const c = spotify.controller;
   if (!c) return;
+  clearInterval(spotify.kick);
   if (spotify.currentUri === uri) {
     c.togglePlay();
     return;
   }
   spotify.currentUri = uri;
+  spotify.confirmedPlaying = false;
+  spotify.posMs = 0;
+  spotify.posAt = performance.now();
   c.loadUri(uri);
   c.play();
   spotify.playing = true; // optimistic; playback_update corrects it
   updateTrackUI();
+
+  // loadUri reloads Spotify's iframe, and a play() sent straight after can be
+  // swallowed by that reload — which used to mean the first tap did nothing
+  // and only a second tap started playback. Keep nudging until Spotify
+  // reports the track actually running.
+  let tries = 0;
+  spotify.kick = setInterval(() => {
+    if (spotify.confirmedPlaying || spotify.currentUri !== uri || ++tries > 12) {
+      clearInterval(spotify.kick);
+      return;
+    }
+    c.play();
+  }, 500);
 }
 
 function onTrackClick(track) {
@@ -525,6 +585,11 @@ function initSpotify(target, wrapEl) {
       controller.addListener('playback_update', (e) => {
         const d = (e && e.data) || {};
         spotify.playing = !d.isPaused;
+        spotify.confirmedPlaying = !d.isPaused;
+        if (typeof d.position === 'number') {
+          spotify.posMs = d.position;
+          spotify.posAt = performance.now();
+        }
         updateTrackUI();
       });
       if (spotify.pendingPlay) {
@@ -543,6 +608,7 @@ function initSpotify(target, wrapEl) {
 }
 
 function fillMusic(block) {
+  loadWaveData();
   block.classList.add('music-section');
   block.append(el('h3', 'section-title', 'Music'));
 
@@ -581,13 +647,13 @@ function fillMusic(block) {
     btn.type = 'button';
     btn.setAttribute('aria-label', `Play ${track.title || 'track'}`);
     btn.innerHTML = PLAY_ICON_SVG;
-    const wave = buildWave();
+    const uri = trackUriOf(track);
+    const wave = buildWave(uri ? () => ampForUri(uri) : null);
     btn.append(wave.canvas);
     btn.addEventListener('click', () => onTrackClick(track));
     item.append(btn, el('p', 'track-name', track.title || ''));
     trackRow.append(item);
 
-    const uri = trackUriOf(track);
     if (uri) spotify.trackEls.push({ uri, item, wave, track });
   });
   wrap.append(trackRow);

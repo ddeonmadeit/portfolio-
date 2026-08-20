@@ -326,7 +326,9 @@
       "aspect": "4/3",
       "summary": "Created this active campaign to promote Knots’s beanie’s",
       "narrative": "",
-      "gallery": []
+      "gallery": [],
+      "previewStart": 3,
+      "previewEnd": 7
     },
     {
       "id": "g-2",

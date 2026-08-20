@@ -307,6 +307,19 @@
           "type": "image"
         }
       ]
+    },
+    {
+      "id": "g",
+      "title": "g",
+      "category": "",
+      "year": "2026",
+      "role": "",
+      "cover": "assets/1787203609422-0-4-seasons-beanie.mp4",
+      "coverType": "video",
+      "aspect": "9/7",
+      "summary": "",
+      "narrative": "",
+      "gallery": []
     }
   ]
 }

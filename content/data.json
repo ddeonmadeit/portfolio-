@@ -48,7 +48,8 @@
         "g",
         "knots-aw24-capsule-campaign",
         "g-2",
-        "knots-leather-jacket-campaign"
+        "knots-leather-jacket-campaign",
+        "jk"
       ]
     },
     {
@@ -64,7 +65,8 @@
         "knots-aw24-capsule-campaign",
         "g",
         "g-2",
-        "g-3"
+        "g-3",
+        "jk"
       ]
     },
     {
@@ -368,6 +370,30 @@
       "summary": "A poster made to promote a small capsule from Knots ",
       "narrative": "",
       "gallery": []
+    },
+    {
+      "id": "jk",
+      "title": "Knots SS24 Capsule Campaign",
+      "category": "",
+      "year": "2026",
+      "role": "Photographer / Editor / Clothing Designer & Stylist",
+      "cover": "assets/1787211347291-0-img-8221.jpeg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "Campaign shot in a air-soft warehouse in jakarta.",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787211347306-1-img-8353.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787211347315-2-img-8326.jpeg",
+          "type": "image"
+        }
+      ]
     }
   ]
 }

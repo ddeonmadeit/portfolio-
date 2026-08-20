@@ -333,44 +333,86 @@ function buildRow(entries) {
   return row;
 }
 
+function fillSection(block, section, items, first) {
+  if (section.title) block.append(el('h3', 'section-title', section.title));
+
+  // Full-width covers interrupt the columns and sit on their own, so a run
+  // of paired tiles is packed, then the solo one, then the next run —
+  // keeping the order set in the dashboard.
+  const collage = el('div', 'collage');
+  let pair = [];
+  const flushPair = () => {
+    if (pair.length) collage.append(buildRow(pair));
+    pair = [];
+  };
+
+  items.forEach((project, i) => {
+    const eager = first && i < 3;
+    if (isSolo(project.aspect)) {
+      flushPair();
+      collage.append(buildTile(project, eager));
+      return;
+    }
+    pair.push({ project, eager });
+    if (pair.length === 2) flushPair();
+  });
+  flushPair();
+
+  block.append(collage);
+}
+
 function renderSections() {
   const archive = $('#archive');
   archive.innerHTML = '';
 
-  SECTIONS.forEach((section, sIdx) => {
+  const pending = [];
+  let firstDone = false;
+
+  SECTIONS.forEach((section) => {
     const items = (section.projectIds || [])
       .map(id => PROJECT_BY_ID[id])
       .filter(Boolean);
-    if (!items.length) return;
+    if (!items.length) return; // empty sections don't count as the first one
 
     const block = el('section', 'section-block');
-    if (section.title) block.append(el('h3', 'section-title', section.title));
-
-    // Full-width covers interrupt the columns and sit on their own, so a run
-    // of paired tiles is packed, then the solo one, then the next run —
-    // keeping the order set in the dashboard.
-    const collage = el('div', 'collage');
-    let pair = [];
-    const flushPair = () => {
-      if (pair.length) collage.append(buildRow(pair));
-      pair = [];
-    };
-
-    items.forEach((project, i) => {
-      const eager = sIdx === 0 && i < 3;
-      if (isSolo(project.aspect)) {
-        flushPair();
-        collage.append(buildTile(project, eager));
-        return;
-      }
-      pair.push({ project, eager });
-      if (pair.length === 2) flushPair();
-    });
-    flushPair();
-
-    block.append(collage);
     archive.append(block);
+
+    // Only the first section with anything in it is built up front. The rest
+    // stay empty shells until revealed, so their covers — videos especially —
+    // aren't downloaded for a section nobody has asked to see yet.
+    if (!firstDone) {
+      fillSection(block, section, items, true);
+      firstDone = true;
+    } else {
+      block.hidden = true;
+      pending.push({ block, section, items });
+    }
   });
+
+  if (!pending.length) return;
+
+  // One button that walks down the page: it reveals the next section, then
+  // re-seats itself underneath it, until there is nothing left to show.
+  const more = el('button', 'more-btn');
+  more.type = 'button';
+  more.append(el('span', 'more-label', 'View more'));
+
+  let next = 0;
+  const seat = () => {
+    if (next >= pending.length) { more.remove(); return; }
+    const above = next === 0 ? archive.firstElementChild : pending[next - 1].block;
+    above.after(more);
+  };
+
+  more.addEventListener('click', () => {
+    const { block, section, items } = pending[next++];
+    fillSection(block, section, items, false);
+    block.hidden = false;
+    if (!REDUCED) block.classList.add('reveal');
+    seat();
+  });
+
+  seat();
 }
 
 /* ---------------- project detail ---------------- */

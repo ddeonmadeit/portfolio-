@@ -71,13 +71,6 @@
       ]
     },
     {
-      "id": "sound",
-      "title": "Sound",
-      "projectIds": [
-        "thread-study"
-      ]
-    },
-    {
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
@@ -445,5 +438,26 @@
         }
       ]
     }
-  ]
+  ],
+  "music": {
+    "title": "MIRAGE DEMO'S",
+    "cover": "assets/mirage-demos.jpg",
+    "spotifyUrl": "https://open.spotify.com/album/6ZYzs5vgOEzcBGOBUAWvEJ",
+    "youtubeUrl": "",
+    "appleMusicUrl": "",
+    "tracks": [
+      {
+        "title": "SAHARA",
+        "url": "https://open.spotify.com/track/2IgNR75mte3wpUKWNsAhqp"
+      },
+      {
+        "title": "THIS TIME",
+        "url": "https://open.spotify.com/track/7uNFgIMraxYw3coAofe85f"
+      },
+      {
+        "title": "RUNAWAY",
+        "url": "https://open.spotify.com/track/622JcKUArdUJqqvwC1coco"
+      }
+    ]
+  }
 }

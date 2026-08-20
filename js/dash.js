@@ -372,8 +372,91 @@ $$('.dash-tab').forEach(tab => {
 function renderAll() {
   renderTextPanel();
   renderSectionsPanel();
+  renderMusicPanel();
   renderProjectsPanel();
   renderSettingsPanel();
+}
+
+/* ============================================================
+   MUSIC — the playable album on the home page
+   ============================================================ */
+function renderMusicPanel() {
+  const panel = $('#panel-music');
+  panel.innerHTML = '';
+  DATA.music = DATA.music || {
+    title: '', cover: '', spotifyUrl: '', youtubeUrl: '', appleMusicUrl: '', tracks: [],
+  };
+  const m = DATA.music;
+  m.tracks = m.tracks || [];
+
+  panel.append(el('h2', null, 'Music'));
+  const intro = el('p', 'field-hint');
+  intro.style.marginBottom = '16px';
+  intro.textContent =
+    'Shown as its own section right after the first one on the home page. ' +
+    'Songs play through Spotify, so visitors signed into Spotify stream the ' +
+    'full tracks and the plays count towards your streams; anyone signed out ' +
+    'hears Spotify’s 30-second preview.';
+  panel.append(intro);
+
+  const textField = (label, key, hint) => {
+    const field = el('div', 'field');
+    field.append(el('label', null, label));
+    const input = el('input');
+    input.type = 'text';
+    input.value = m[key] || '';
+    input.addEventListener('input', () => { m[key] = input.value.trim(); });
+    field.append(input);
+    if (hint) field.append(el('div', 'field-hint', hint));
+    panel.append(field);
+  };
+
+  textField('Album title', 'title');
+  textField('Spotify album link', 'spotifyUrl', 'Also where the Spotify icon points.');
+  textField('YouTube link (empty hides the icon)', 'youtubeUrl');
+  textField('Apple Music link (empty hides the icon)', 'appleMusicUrl');
+
+  panel.append(mediaSlot('Album cover', m.cover, 'image', (file) => {
+    pendingUploads['music:cover'] = { file, apply: (path) => { m.cover = path; } };
+  }));
+
+  // tracks — title + Spotify song link, reorderable
+  const trackField = el('div', 'field');
+  trackField.append(el('label', null, 'Tracks'));
+  const list = el('div', 'gallery-list');
+  const renderTracks = () => {
+    list.innerHTML = '';
+    m.tracks.forEach((t, i) => {
+      const row = el('div', 'music-track-row');
+      const title = el('input');
+      title.type = 'text'; title.placeholder = 'Song name'; title.value = t.title || '';
+      title.addEventListener('input', () => { t.title = title.value; });
+      const url = el('input');
+      url.type = 'text'; url.placeholder = 'https://open.spotify.com/track/…'; url.value = t.url || '';
+      url.addEventListener('input', () => { t.url = url.value.trim(); });
+      const up = el('button', 'icon-btn', '↑');
+      up.type = 'button'; up.disabled = i === 0;
+      up.addEventListener('click', () => { m.tracks.splice(i - 1, 0, m.tracks.splice(i, 1)[0]); renderTracks(); });
+      const down = el('button', 'icon-btn', '↓');
+      down.type = 'button'; down.disabled = i === m.tracks.length - 1;
+      down.addEventListener('click', () => { m.tracks.splice(i + 1, 0, m.tracks.splice(i, 1)[0]); renderTracks(); });
+      const rm = el('button', 'icon-btn icon-btn-danger', '✕');
+      rm.type = 'button';
+      rm.addEventListener('click', () => { m.tracks.splice(i, 1); renderTracks(); });
+      row.append(title, url, up, down, rm);
+      list.append(row);
+    });
+  };
+  renderTracks();
+  trackField.append(list);
+  const addTrack = el('button', 'btn btn-sm btn-ghost', '+ Add track');
+  addTrack.type = 'button';
+  addTrack.style.marginTop = '8px';
+  addTrack.addEventListener('click', () => { m.tracks.push({ title: '', url: '' }); renderTracks(); });
+  trackField.append(addTrack);
+  trackField.append(el('div', 'field-hint',
+    'Get a song’s link in Spotify via Share → Copy Song Link. The section is hidden if there are no tracks.'));
+  panel.append(trackField);
 }
 
 /* ============================================================

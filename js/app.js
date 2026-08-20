@@ -14,7 +14,7 @@ const el = (tag, cls, text) => {
 };
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let SITE, SECTIONS, PROJECTS;
+let SITE, SECTIONS, PROJECTS, MUSIC;
 let PROJECT_BY_ID = {};
 
 /* ---------------- media: images, gifs (native loop) and video (looped) ---------------- */
@@ -393,12 +393,222 @@ function fillSection(block, section, items, first) {
   block.append(collage);
 }
 
+/* ---------------- music: playable tracks, streamed through Spotify ----------------
+   Playback goes through Spotify's embed controller so plays land on the real
+   album — visitors signed into Spotify stream the full songs (and those count
+   as streams); signed-out visitors get Spotify's 30-second previews. Spotify
+   never hands the page the audio signal itself, so the waveform is an organic
+   generated one that runs while a track plays rather than a literal sampling
+   of the sound. */
+
+const ICON_PATHS = {
+  spotify: 'M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.22.36-.68.47-1.04.25-2.85-1.74-6.44-2.13-10.66-1.17-.41.1-.82-.16-.91-.57-.1-.41.16-.82.57-.91 4.62-1.06 8.59-.6 11.79 1.35.36.22.47.69.25 1.05zm1.47-3.27c-.28.45-.86.59-1.31.32-3.26-2-8.24-2.58-12.1-1.41-.51.15-1.04-.13-1.2-.63-.15-.51.13-1.04.64-1.2 4.41-1.34 9.9-.69 13.65 1.62.44.27.58.86.31 1.3zm.13-3.4C15.24 8.3 8.82 8.09 5.09 9.22c-.6.18-1.23-.16-1.41-.75-.18-.6.16-1.23.75-1.41 4.29-1.3 11.4-1.05 15.9 1.62.54.32.71 1.01.4 1.55-.32.53-1.02.71-1.55.39z',
+  youtube: 'M23.5 6.19a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.5A3.02 3.02 0 0 0 .5 6.19C0 8.07 0 12 0 12s0 3.93.5 5.81a3.02 3.02 0 0 0 2.12 2.14c1.88.5 9.38.5 9.38.5s7.5 0 9.38-.5a3.02 3.02 0 0 0 2.12-2.14C24 15.93 24 12 24 12s0-3.93-.5-5.81zM9.55 15.57V8.43L15.82 12l-6.27 3.57z',
+  apple: 'M9 3v10.55A3.97 3.97 0 0 0 7 13a4 4 0 1 0 4 4V7h6V3H9z',
+};
+
+const PLAY_ICON_SVG =
+  '<svg class="play-icon" viewBox="0 0 56 56" aria-hidden="true">' +
+  '<circle cx="28" cy="28" r="25" fill="none" stroke="currentColor" stroke-width="3.5"/>' +
+  '<path d="M23 18.5 39 28l-16 9.5z" fill="currentColor"/></svg>';
+
+function trackUriOf(track) {
+  const m = String(track.url || '').match(/track[/:]([A-Za-z0-9]{16,32})/);
+  return m ? `spotify:track:${m[1]}` : null;
+}
+
+const spotify = {
+  controller: null,
+  ready: false,
+  failed: false,
+  currentUri: null,
+  playing: false,
+  pendingPlay: null,
+  trackEls: [], // { uri, item, wave, track }
+};
+
+// Organic scribble waveform on a canvas — layered sines with per-track
+// character, tapered at the ends, redrawn while the track plays.
+function buildWave() {
+  const canvas = el('canvas', 'track-wave');
+  const W = 260, H = 96;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  const seed = Math.random() * 100;
+  let raf = 0, t = 0;
+
+  const draw = () => {
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath();
+    const mid = H / 2;
+    for (let x = 0; x <= W; x += 3) {
+      const env = Math.pow(Math.sin(Math.PI * x / W), 0.65); // quiet at the ends
+      const y = mid + env * (
+        Math.sin(x * 0.055 + t * 2.1 + seed) * 14 +
+        Math.sin(x * 0.11 - t * 3.3 + seed * 2) * 9 +
+        Math.sin(x * 0.23 + t * 5.2 + seed * 3) * 6 +
+        Math.sin(x * 0.47 - t * 1.4 + seed * 5) * 3.5
+      );
+      x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = '#FDF9F3';
+    ctx.lineWidth = 4.2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  };
+
+  const tick = () => { t += 0.016; draw(); raf = requestAnimationFrame(tick); };
+  draw();
+  return {
+    canvas,
+    start() { if (!raf && !REDUCED) raf = requestAnimationFrame(tick); },
+    stop()  { cancelAnimationFrame(raf); raf = 0; },
+  };
+}
+
+function updateTrackUI() {
+  spotify.trackEls.forEach(({ uri, item, wave }) => {
+    const active = spotify.playing && uri === spotify.currentUri;
+    item.classList.toggle('is-playing', active);
+    active ? wave.start() : wave.stop();
+  });
+}
+
+function playUri(uri) {
+  const c = spotify.controller;
+  if (!c) return;
+  if (spotify.currentUri === uri) {
+    c.togglePlay();
+    return;
+  }
+  spotify.currentUri = uri;
+  c.loadUri(uri);
+  c.play();
+  spotify.playing = true; // optimistic; playback_update corrects it
+  updateTrackUI();
+}
+
+function onTrackClick(track) {
+  const uri = trackUriOf(track);
+  // No controller (script blocked, or Spotify down): the play button still
+  // does the honest thing and opens the song on Spotify itself.
+  if (!uri || spotify.failed) {
+    if (track.url) window.open(track.url, '_blank', 'noopener');
+    return;
+  }
+  if (!spotify.ready) { spotify.pendingPlay = uri; return; }
+  playUri(uri);
+}
+
+function initSpotify(target, wrapEl) {
+  if (spotify.controller || spotify.failed || !MUSIC) return;
+
+  const albumMatch = String(MUSIC.spotifyUrl || '').match(/album[/:]([A-Za-z0-9]{16,32})/);
+  const startUri = albumMatch
+    ? `spotify:album:${albumMatch[1]}`
+    : trackUriOf((MUSIC.tracks || [])[0] || {});
+  if (!startUri) { spotify.failed = true; wrapEl.hidden = true; return; }
+
+  const fail = () => {
+    spotify.failed = true;
+    wrapEl.hidden = true;
+    updateTrackUI();
+  };
+  const failTimer = setTimeout(fail, 8000);
+
+  window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    clearTimeout(failTimer);
+    IFrameAPI.createController(target, { width: '100%', height: '80', uri: startUri }, (controller) => {
+      spotify.controller = controller;
+      spotify.ready = true;
+      controller.addListener('playback_update', (e) => {
+        const d = (e && e.data) || {};
+        spotify.playing = !d.isPaused;
+        updateTrackUI();
+      });
+      if (spotify.pendingPlay) {
+        const u = spotify.pendingPlay;
+        spotify.pendingPlay = null;
+        playUri(u);
+      }
+    });
+  };
+
+  const s = document.createElement('script');
+  s.src = 'https://open.spotify.com/embed/iframe-api/v1';
+  s.async = true;
+  s.onerror = () => { clearTimeout(failTimer); fail(); };
+  document.head.append(s);
+}
+
+function fillMusic(block) {
+  block.classList.add('music-section');
+  block.append(el('h3', 'section-title', 'Music'));
+
+  const wrap = el('div', 'music-block');
+
+  const albumCol = el('div', 'music-album');
+  const icons = el('div', 'music-links');
+  [
+    [MUSIC.spotifyUrl, 'spotify', 'Listen on Spotify'],
+    [MUSIC.youtubeUrl, 'youtube', 'Watch on YouTube'],
+    [MUSIC.appleMusicUrl, 'apple', 'Listen on Apple Music'],
+  ].forEach(([url, key, label]) => {
+    if (!url) return;
+    const a = el('a', 'music-link');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', label);
+    a.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
+    icons.append(a);
+  });
+  if (icons.children.length) albumCol.append(icons);
+  if (MUSIC.cover) {
+    const cover = el('img', 'music-cover');
+    cover.src = MUSIC.cover;
+    cover.alt = MUSIC.title || 'Album cover';
+    cover.loading = 'lazy';
+    albumCol.append(cover);
+  }
+  if (MUSIC.title) albumCol.append(el('p', 'music-title', MUSIC.title));
+  wrap.append(albumCol);
+
+  const trackRow = el('div', 'music-tracks');
+  (MUSIC.tracks || []).forEach((track) => {
+    if (!track.title && !track.url) return;
+    const item = el('div', 'music-track');
+    const btn = el('button', 'track-slot');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', `Play ${track.title || 'track'}`);
+    btn.innerHTML = PLAY_ICON_SVG;
+    const wave = buildWave();
+    btn.append(wave.canvas);
+    btn.addEventListener('click', () => onTrackClick(track));
+    item.append(btn, el('p', 'track-name', track.title || ''));
+    trackRow.append(item);
+
+    const uri = trackUriOf(track);
+    if (uri) spotify.trackEls.push({ uri, item, wave, track });
+  });
+  wrap.append(trackRow);
+  block.append(wrap);
+
+  // The real Spotify player, kept small but visible — it's what actually
+  // plays, and it's the visitor's way to like/save/open the album.
+  const embedWrap = el('div', 'music-embed');
+  const target = el('div');
+  embedWrap.append(target);
+  block.append(embedWrap);
+  initSpotify(target, embedWrap);
+}
+
 function renderSections() {
   const archive = $('#archive');
   archive.innerHTML = '';
 
   const pending = [];
   let firstDone = false;
+  let musicSeated = false;
 
   SECTIONS.forEach((section) => {
     const items = (section.projectIds || [])
@@ -415,11 +625,28 @@ function renderSections() {
     if (!firstDone) {
       fillSection(block, section, items, true);
       firstDone = true;
+
+      // Music sits directly after the first section, ahead of every project
+      // category, and joins the same reveal chain as the rest.
+      if (MUSIC && (MUSIC.tracks || []).length) {
+        const musicBlock = el('section', 'section-block');
+        musicBlock.hidden = true;
+        archive.append(musicBlock);
+        pending.push({ block: musicBlock, music: true });
+        musicSeated = true;
+      }
     } else {
       block.hidden = true;
       pending.push({ block, section, items });
     }
   });
+
+  // No project sections at all but music exists — show it anyway.
+  if (!musicSeated && MUSIC && (MUSIC.tracks || []).length) {
+    const musicBlock = el('section', 'section-block');
+    archive.append(musicBlock);
+    fillMusic(musicBlock);
+  }
 
   if (!pending.length) return;
 
@@ -437,10 +664,11 @@ function renderSections() {
   };
 
   more.addEventListener('click', () => {
-    const { block, section, items } = pending[next++];
-    fillSection(block, section, items, false);
-    block.hidden = false;
-    if (!REDUCED) block.classList.add('reveal');
+    const entry = pending[next++];
+    if (entry.music) fillMusic(entry.block);
+    else fillSection(entry.block, entry.section, entry.items, false);
+    entry.block.hidden = false;
+    if (!REDUCED) entry.block.classList.add('reveal');
     seat();
   });
 
@@ -540,6 +768,7 @@ async function main() {
 
   SITE = data.site;
   SECTIONS = data.sections || [];
+  MUSIC = data.music || null;
   PROJECTS = data.projects || [];
   PROJECT_BY_ID = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
 

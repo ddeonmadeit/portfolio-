@@ -307,6 +307,12 @@ function buildTile(p, eager) {
   tile.style.aspectRatio = aspect.replace('/', ' / ');
   if (p.cover) {
     const media = buildMedia(p.cover, p.coverType, '', eager, coverLoop(p));
+    // Which part of the cover survives the crop. The tile is the chosen ratio
+    // and object-fit fills it; this decides what's kept rather than always
+    // taking the middle.
+    const x = p.coverX == null ? 50 : p.coverX;
+    const y = p.coverY == null ? 50 : p.coverY;
+    if (x !== 50 || y !== 50) media.style.objectPosition = `${x}% ${y}%`;
     tile.append(media);
     if (p.coverType === 'video') showSpinnerWhileBuffering(tile, media);
   }

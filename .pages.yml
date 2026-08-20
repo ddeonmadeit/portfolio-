@@ -64,6 +64,8 @@ content:
             type: select
             options:
               values: ["9/16", "2/3", "3/4", "4/5", "1/1", "4/3", "3/2", "16/9"]
+          - { name: coverX, label: "Crop across (0 = left, 50 = centre, 100 = right)", type: number }
+          - { name: coverY, label: "Crop down (0 = top, 50 = centre, 100 = bottom)", type: number }
           - { name: summary, label: Summary, type: text }
           - { name: narrative, label: Narrative, type: text }
           - { name: embedUrl, label: "Full video link (YouTube or Vimeo, optional)", type: string }

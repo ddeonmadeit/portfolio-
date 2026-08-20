@@ -81,6 +81,47 @@ function makeFilename(name) {
   const ext = dot > 0 ? name.slice(dot) : '';
   return `${Date.now()}-${uploadSeq++}-${slugify(base)}${ext.toLowerCase()}`;
 }
+// Phone and camera stills run to several megabytes at dimensions far beyond
+// anything the site displays, which is dead weight on every visit. Redraw them
+// through a canvas at a sensible size before upload. 2000px on the long edge
+// still covers the widest tile on a retina screen, and the original stays on
+// the device untouched — only the web copy is reduced.
+const MAX_IMAGE_EDGE = 2000;
+const IMAGE_QUALITY = 0.85;
+
+function shrinkImage(file) {
+  return new Promise(resolve => {
+    if (!file.type.startsWith('image/') || file.type === 'image/gif') return resolve(file);
+
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    const bail = () => { URL.revokeObjectURL(url); resolve(file); };
+    const timer = setTimeout(bail, 10000);
+
+    img.onerror = () => { clearTimeout(timer); bail(); };
+    img.onload = () => {
+      clearTimeout(timer);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(w, h));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        // keep whichever is smaller — re-encoding an already-lean file can
+        // easily make it bigger
+        if (!blob || blob.size >= file.size) return resolve(file);
+        const name = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+        resolve(new File([blob], name, { type: 'image/jpeg' }));
+      }, 'image/jpeg', IMAGE_QUALITY);
+    };
+    img.src = url;
+  });
+}
+
 // Ratios the site lays out against. A cover is snapped to whichever of these
 // its own dimensions sit closest to.
 const ASPECTS = ['9/16', '2/3', '3/4', '4/5', '1/1', '4/3', '3/2', '16/9'];
@@ -162,14 +203,30 @@ function videoPosterBase64(file) {
   });
 }
 
+// Thumbnails show a video's poster rather than the video itself: a <video>
+// paints black until it has decoded a frame, which for a list of them is both
+// slow and ugly. Blob URLs from a just-picked file have no poster, so those
+// still use the element. If a poster is missing the element takes over.
 function buildPreviewMedia(url, type) {
   if (type === 'video') {
-    const v = el('video');
-    v.src = url; v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
-    return v;
+    const live = () => {
+      const v = el('video');
+      v.src = url; v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+      return v;
+    };
+    if (url.startsWith('blob:') || url.startsWith('data:')) return live();
+
+    const wrap = el('div', 'preview-holder');
+    const img = el('img');
+    img.src = url.replace(/\.[^./]+$/, '') + '-poster.jpg';
+    img.alt = '';
+    img.addEventListener('error', () => { wrap.innerHTML = ''; wrap.append(live()); }, { once: true });
+    wrap.append(img);
+    return wrap;
   }
   const img = el('img');
   img.src = url;
+  img.alt = '';
   return img;
 }
 function setStatus(msg, kind) {
@@ -1054,11 +1111,19 @@ $('#save-btn').addEventListener('click', async () => {
 
     for (const key of Object.keys(pendingUploads)) {
       const { file, apply } = pendingUploads[key];
-      if (file.size > MAX_RECOMMENDED_BYTES) {
-        throw new Error(`${file.name} is ${(file.size / 1024 / 1024).toFixed(1)}MB — too large to commit reliably from the browser. Compress it first.`);
+
+      // Shrink before the size check, not after — a big photo that compresses
+      // to well under the limit shouldn't be turned away for its original size.
+      setStatus(`Preparing ${file.name}…`);
+      const slim = await shrinkImage(file);
+      if (slim !== file) {
+        setStatus(`Compressed ${file.name}: ${(file.size / 1e6).toFixed(1)}MB → ${(slim.size / 1e6).toFixed(1)}MB`);
       }
-      const base64 = await fileToBase64(file);
-      const path = `assets/${makeFilename(file.name)}`;
+      if (slim.size > MAX_RECOMMENDED_BYTES) {
+        throw new Error(`${file.name} is ${(slim.size / 1024 / 1024).toFixed(1)}MB — too large to commit reliably from the browser. Compress it first.`);
+      }
+      const base64 = await fileToBase64(slim);
+      const path = `assets/${makeFilename(slim.name)}`;
       files.push({ path, base64 });
 
       if (typeFromMime(file.type) === 'video') {
@@ -1073,6 +1138,12 @@ $('#save-btn').addEventListener('click', async () => {
 
     // point the data at its new asset paths before serialising it
     applies.forEach(fn => fn());
+
+    // An "+ Add gallery item" slot that never got a file is an empty row; left
+    // in, it renders as a broken image on the project page.
+    DATA.projects.forEach(pr => {
+      if (Array.isArray(pr.gallery)) pr.gallery = pr.gallery.filter(g => g && g.url);
+    });
 
     files.push({
       path: 'content/data.json',

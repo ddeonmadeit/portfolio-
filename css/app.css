@@ -445,6 +445,9 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 .music-link { color: var(--fg); transition: color 0.3s var(--ease); }
 .music-link:hover, .music-link:focus-visible { color: var(--accent); }
 .music-link svg { width: 24px; height: 24px; display: block; fill: currentColor; }
+/* the note is punched out of the badge as page-background-coloured shapes
+   rather than a true cutout, so it always matches the page it sits on */
+.apple-music-mark .cut { fill: var(--bg); }
 .music-cover {
   width: clamp(180px, 34vw, 300px);
   border-radius: 10px;

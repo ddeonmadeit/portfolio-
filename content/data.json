@@ -45,7 +45,8 @@
         "void-pavilion",
         "knots-leather-jacket-campaign",
         "brutalist-system",
-        "knots-aw24-capsule-campaign"
+        "knots-aw24-capsule-campaign",
+        "g"
       ]
     },
     {
@@ -58,7 +59,8 @@
         "void-pavilion",
         "d",
         "knots-leather-jacket-campaign",
-        "knots-aw24-capsule-campaign"
+        "knots-aw24-capsule-campaign",
+        "g"
       ]
     },
     {
@@ -83,7 +85,8 @@
         "brutalist-system",
         "atelier-noir",
         "thread-study",
-        "d"
+        "d",
+        "g"
       ]
     },
     {
@@ -310,14 +313,14 @@
     },
     {
       "id": "g",
-      "title": "g",
+      "title": "Knots Active Beanie Campaign",
       "category": "",
-      "year": "2026",
-      "role": "",
-      "cover": "assets/1787203609422-0-4-seasons-beanie.mp4",
+      "year": "2023",
+      "role": "Video Editor / Athlete / Beanie Designer ",
+      "cover": "assets/1787204760486-1-4-seasons-beanie.mp4",
       "coverType": "video",
-      "aspect": "9/7",
-      "summary": "",
+      "aspect": "4/3",
+      "summary": "Created this active campaign to promote Knots’s beanie’s",
       "narrative": "",
       "gallery": []
     }

@@ -114,22 +114,22 @@
       "category": "Event Management / Graphic Design / Video Editing / Fashion",
       "year": "2025",
       "role": "Graphic Design / Marketer / Video Editor / Event Management",
-      "cover": "assets/1787182908242-4-draftresource-1761872686-216064.mov",
-      "coverType": "video",
+      "cover": "assets/1787187821330-0-59daa327-2972-44f4-914b-1244c92cd184.jpeg",
+      "coverType": "image",
       "aspect": "4/5",
       "summary": "In collaboration with bucckk22 and places.save, two community driven brands.\nI hosted a halloween event at my retail store.\nI was in charge of the graphic design, video editing & overall promotion and management of the event.\nOver 200 people attended.",
       "narrative": "",
       "gallery": [
         {
-          "url": "assets/1787183245592-7-59daa327-2972-44f4-914b-1244c92cd184.jpeg",
+          "url": "assets/1787187821395-1-draftresource-1761872686-216064.mov",
+          "type": "video"
+        },
+        {
+          "url": "assets/1787187821398-2-fce89483-d6c5-4da0-b348-f7525120693f.jpeg",
           "type": "image"
         },
         {
-          "url": "assets/1787183245579-6-fce89483-d6c5-4da0-b348-f7525120693f.jpeg",
-          "type": "image"
-        },
-        {
-          "url": "assets/1787183245593-8-img-8035.jpeg",
+          "url": "assets/1787187821400-3-img-8035.jpeg",
           "type": "image"
         }
       ],

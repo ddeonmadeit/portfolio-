@@ -561,6 +561,91 @@ function embedRecognised(url) {
 // Scrub a video cover and mark which slice should loop on the home grid.
 // Returns { node, load(url, type) } so a freshly picked file can replace
 // the preview without rebuilding the whole card.
+// Crop a cover to a ratio by choosing the ratio and then which part of the
+// picture survives it. Nothing is re-encoded — the file is left alone and the
+// site fills the tile with it, so this stays lossless and reversible, and the
+// same control works for video and stills alike.
+function buildCropper(p) {
+  const wrap = el('div', 'field');
+  wrap.append(el('label', null, 'Crop — the shape of the tile, and what stays in it'));
+
+  const frame = el('div', 'crop-frame');
+  const empty = el('div', 'media-preview empty', 'No cover yet');
+  let media = null;
+  let onAspectChange = null;
+
+  const chips = el('div', 'chip-row');
+  const hint = el('div', 'field-hint');
+
+  const apply = () => {
+    const aspect = p.aspect || '1/1';
+    frame.style.aspectRatio = aspect.replace('/', ' / ');
+    const x = p.coverX == null ? 50 : p.coverX;
+    const y = p.coverY == null ? 50 : p.coverY;
+    if (media) media.style.objectPosition = `${x}% ${y}%`;
+    [...chips.children].forEach(c => {
+      c.classList.toggle('chip-on', c.dataset.aspect === aspect);
+    });
+    hint.textContent = media
+      ? 'Drag the sliders to choose what stays in frame. The file itself is untouched.'
+      : 'Upload a cover above to crop it.';
+  };
+
+  ASPECTS.forEach(a => {
+    const chip = el('button', 'chip', a);
+    chip.type = 'button';
+    chip.dataset.aspect = a;
+    chip.addEventListener('click', () => {
+      p.aspect = a;
+      onAspectChange?.(a);
+      apply();
+    });
+    chips.append(chip);
+  });
+
+  const slider = (labelText, key) => {
+    const row = el('div', 'crop-row');
+    row.append(el('span', 'crop-label', labelText));
+    const input = el('input');
+    input.type = 'range'; input.min = '0'; input.max = '100'; input.step = '1';
+    input.value = String(p[key] == null ? 50 : p[key]);
+    input.addEventListener('input', () => { p[key] = Number(input.value); apply(); });
+    row.append(input);
+    return { row, input };
+  };
+  const across = slider('Across', 'coverX');
+  const down = slider('Down', 'coverY');
+
+  const reset = el('button', 'btn btn-sm btn-ghost', 'Centre it');
+  reset.type = 'button';
+  reset.addEventListener('click', () => {
+    p.coverX = 50; p.coverY = 50;
+    across.input.value = '50'; down.input.value = '50';
+    apply();
+  });
+
+  wrap.append(chips, frame, empty, across.row, down.row, reset, hint);
+
+  const load = (url, type) => {
+    frame.innerHTML = '';
+    if (!url) { frame.hidden = true; empty.hidden = false; media = null; apply(); return; }
+    frame.hidden = false;
+    empty.hidden = true;
+    media = buildPreviewMedia(url, type);
+    frame.append(media);
+    apply();
+  };
+
+  load(p.cover, p.coverType);
+
+  return {
+    node: wrap,
+    load,
+    refresh: apply,
+    set onAspect(fn) { onAspectChange = fn; },
+  };
+}
+
 function buildLoopPicker(p) {
   const wrap = el('div', 'field');
   wrap.append(el('label', null, 'Loop section — the part that plays on the home grid'));
@@ -792,10 +877,12 @@ function renderProjectsPanel() {
 
     // cover
     let loopPicker;
+    let cropper;
     body.append(mediaSlot('Cover', p.cover, p.coverType, (file, type, objectUrl) => {
       const key = `cover:${p.id}`;
       pendingUploads[key] = { file, apply: (path, t) => { p.cover = path; p.coverType = t; thumb.innerHTML = ''; thumb.append(buildPreviewMedia(path, t)); } };
       loopPicker?.load(objectUrl, type);
+      cropper?.load(objectUrl, type);
 
       // snap the ratio to whichever the file's own dimensions sit closest to,
       // so the tile matches the artwork without anyone having to work it out
@@ -808,8 +895,19 @@ function renderProjectsPanel() {
           hints.aspect.textContent =
             `Set to ${match} from this file (${w}×${h}). Change it here to override.`;
         }
+        cropper?.refresh();
       });
     }));
+
+    // crop / framing
+    cropper = buildCropper(p);
+    cropper.onAspect = (a) => {
+      inputs.aspect.value = a;
+      if (hints.aspect) hints.aspect.textContent = `Set to ${a}. Upload a cover to have this chosen automatically.`;
+    };
+    body.append(cropper.node);
+    // typing a ratio by hand should move the crop preview too
+    inputs.aspect.addEventListener('input', () => cropper.refresh());
 
     // loop section (only meaningful when the cover is a video)
     loopPicker = buildLoopPicker(p);
@@ -870,7 +968,8 @@ function renderProjectsPanel() {
     const id = uniqueId(title, DATA.projects.map(p => p.id));
     DATA.projects.push({
       id, title, category: '', year: String(new Date().getFullYear()), role: '',
-      cover: '', coverType: 'image', aspect: '1/1', summary: '', narrative: '', gallery: [],
+      cover: '', coverType: 'image', aspect: '1/1', coverX: 50, coverY: 50,
+      summary: '', narrative: '', gallery: [],
     });
     renderProjectsPanel();
     renderSectionsPanel(); // new project becomes selectable in "add to section"

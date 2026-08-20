@@ -7,7 +7,11 @@
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#120B09" />
   <meta name="color-scheme" content="dark" />
-  <!-- absolute paths: this page is served from /dash/ -->
+  <!-- This page lives at /dash/, but the paths stored in content/data.json are
+       relative to the site root ("assets/…"). Without this they would resolve
+       against /dash/ and every preview would 404 — images showing as broken
+       glyphs, videos as black boxes. -->
+  <base href="/" />
   <link rel="icon" href="/assets/favicon.png" type="image/png" />
   <link rel="stylesheet" href="/css/dash.css" />
 </head>

@@ -357,6 +357,15 @@ img { display: block; max-width: 100%; }
   transition: transform 0.6s var(--ease);
 }
 
+/* Hidden until the whole frame is ready, so a cover arrives complete rather
+   than unrolling down the tile as it downloads. */
+.tile.is-loading img, .tile.is-loading video { opacity: 0; }
+.tile.is-loaded img, .tile.is-loaded video { animation: mediaIn 0.45s var(--ease) both; }
+@keyframes mediaIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .tile.is-loaded img, .tile.is-loaded video { animation: none; }
+}
+
 /* No play affordance, ever. When iOS refuses to autoplay — Low Power Mode, or
    the per-site Auto-Play setting — WebKit paints its own start-playback button
    over the video, and JS can't reach it; only these pseudo-elements can.

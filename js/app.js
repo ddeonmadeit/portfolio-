@@ -291,6 +291,31 @@ function ratioOf(aspect) {
   return isFinite(r) && r > 0 ? r : 1;
 }
 
+// An image left to itself paints as it arrives, wiping down the tile like a
+// curtain. Keep it invisible behind the loader until the whole frame is
+// decoded, then fade it in as one piece.
+function holdUntilDecoded(tile, img) {
+  tile.classList.add('is-loading');
+  const reveal = () => {
+    tile.classList.remove('is-loading', 'is-buffering');
+    tile.classList.add('is-loaded');
+  };
+
+  // Only show the loader if it's actually slow — a cached image is instant and
+  // shouldn't flash one.
+  setTimeout(() => {
+    if (tile.classList.contains('is-loading')) tile.classList.add('is-buffering');
+  }, 250);
+
+  if (img.complete && img.naturalWidth) { reveal(); return; }
+  // decode() resolves once the frame is ready to paint, not merely downloaded
+  (img.decode ? img.decode().then(reveal, reveal) : Promise.resolve())
+    .catch(() => {});
+  img.addEventListener('load', reveal, { once: true });
+  img.addEventListener('error', reveal, { once: true });
+  setTimeout(reveal, 12000); // never strand a tile behind the loader
+}
+
 function rowSpan(aspect) {
   const r = ratioOf(aspect);
   if (r >= 1.6) return ' tile-wide';
@@ -314,7 +339,8 @@ function buildTile(p, eager) {
     const y = p.coverY == null ? 50 : p.coverY;
     if (x !== 50 || y !== 50) media.style.objectPosition = `${x}% ${y}%`;
     tile.append(media);
-    if (p.coverType === 'video') showSpinnerWhileBuffering(tile, media);
+    if (resolveType(p.cover, p.coverType) === 'video') showSpinnerWhileBuffering(tile, media);
+    else holdUntilDecoded(tile, media);
   }
   tile.addEventListener('click', () => navigate(`/project/${p.id}`));
   return tile;

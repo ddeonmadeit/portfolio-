@@ -431,6 +431,72 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 .tile:hover video, .tile:focus-visible video { transform: scale(1.05); }
 
 /* ============================================================
+   MUSIC — the album, streamed through Spotify
+   ============================================================ */
+.music-block {
+  display: flex;
+  align-items: center;
+  gap: clamp(28px, 7vw, 90px);
+  flex-wrap: wrap;
+  padding: 10px var(--pad) 0;
+}
+.music-album { display: flex; flex-direction: column; gap: 16px; }
+.music-links { display: flex; gap: 18px; align-items: center; }
+.music-link { color: var(--fg); transition: color 0.3s var(--ease); }
+.music-link:hover, .music-link:focus-visible { color: var(--accent); }
+.music-link svg { width: 24px; height: 24px; display: block; fill: currentColor; }
+.music-cover {
+  width: clamp(180px, 34vw, 300px);
+  border-radius: 10px;
+  display: block;
+}
+.music-title {
+  font-size: 15px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.music-tracks {
+  display: flex;
+  gap: clamp(20px, 6vw, 70px);
+  flex: 1;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.music-track { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.track-slot {
+  background: none; border: none; cursor: pointer;
+  height: 60px; display: flex; align-items: center; justify-content: center;
+  color: var(--fg);
+  transition: color 0.3s var(--ease);
+}
+.track-slot:hover, .track-slot:focus-visible { color: var(--accent); }
+.track-slot .play-icon { width: 52px; height: 52px; display: block; }
+.track-wave { display: none; width: 130px; height: 48px; }
+.music-track.is-playing .play-icon { display: none; }
+.music-track.is-playing .track-wave { display: block; }
+.track-name {
+  font-size: 13px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+/* the actual Spotify player — small, but present and usable */
+.music-embed {
+  margin: 30px auto 0;
+  padding: 0 var(--pad);
+  max-width: 560px;
+}
+.music-embed[hidden] { display: none; }
+.music-embed iframe { display: block; border-radius: 12px; }
+
+@media (max-width: 640px) {
+  .music-block { flex-direction: column; align-items: center; text-align: center; }
+  .music-album { align-items: center; }
+  .music-tracks { width: 100%; }
+}
+
+/* ============================================================
    STUDIO
    ============================================================ */
 .studio {

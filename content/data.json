@@ -49,8 +49,7 @@
         "knots-aw24-capsule-campaign",
         "g-2",
         "knots-leather-jacket-campaign",
-        "jk",
-        "h"
+        "jk"
       ]
     },
     {
@@ -72,18 +71,12 @@
       ]
     },
     {
-      "id": "sound",
-      "title": "Sound",
-      "projectIds": [
-        "thread-study"
-      ]
-    },
-    {
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
         "resonance",
-        "g-3"
+        "g-3",
+        "bleko-x-knots-event"
       ]
     },
     {
@@ -105,7 +98,8 @@
       "projectIds": [
         "after-hours",
         "atelier-noir",
-        "resonance"
+        "resonance",
+        "bleko-x-knots-event"
       ]
     }
   ],
@@ -347,16 +341,7 @@
       "coverY": 50,
       "summary": "An advertisement I made to promote a hoodie from Knots (formerly Alchemy)",
       "narrative": "",
-      "gallery": [
-        {
-          "url": "",
-          "type": "image"
-        },
-        {
-          "url": "",
-          "type": "image"
-        }
-      ]
+      "gallery": []
     },
     {
       "id": "g-3",
@@ -414,12 +399,65 @@
         {
           "url": "assets/1787212080128-5-img-8522.jpeg",
           "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "bleko-x-knots-event",
+      "title": "Bleko x Knots Event",
+      "category": "",
+      "year": "2026",
+      "role": "Creative Director / Knots Founder / Event Coordinator / Graphic Designer & Promotion",
+      "cover": "assets/1787214244009-0-img-8057.jpeg",
+      "coverType": "image",
+      "aspect": "3/4",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "community driven event hosted by my brand Knots in our store with a collaboration with from Bleko, another community driven brand in sydney ",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787214244111-1-img-8055.jpeg",
+          "type": "image"
         },
         {
-          "url": "",
+          "url": "assets/1787214244220-2-img-8056.jpeg",
           "type": "image"
+        },
+        {
+          "url": "assets/1787214244271-3-img-8058.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787214787495-0-img-4392.jpg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787214787551-1-img-6545.mov",
+          "type": "video"
         }
       ]
     }
-  ]
+  ],
+  "music": {
+    "title": "MIRAGE DEMO'S",
+    "cover": "assets/mirage-demos.jpg",
+    "spotifyUrl": "https://open.spotify.com/album/6ZYzs5vgOEzcBGOBUAWvEJ",
+    "youtubeUrl": "",
+    "appleMusicUrl": "",
+    "tracks": [
+      {
+        "title": "SAHARA",
+        "url": "https://open.spotify.com/track/2IgNR75mte3wpUKWNsAhqp"
+      },
+      {
+        "title": "THIS TIME",
+        "url": "https://open.spotify.com/track/7uNFgIMraxYw3coAofe85f"
+      },
+      {
+        "title": "RUNAWAY",
+        "url": "https://open.spotify.com/track/622JcKUArdUJqqvwC1coco"
+      }
+    ]
+  }
 }

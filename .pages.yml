@@ -33,6 +33,23 @@ content:
           - { name: instagramUrl, label: "Instagram URL (empty hides the icon)", type: string }
           - { name: knotsssUrl, label: "knotsss URL (empty hides the icon)", type: string }
 
+      - name: music
+        label: Music (the playable album)
+        type: object
+        fields:
+          - { name: title, label: Album title, type: string }
+          - { name: cover, label: Album cover, type: image }
+          - { name: spotifyUrl, label: Spotify album link, type: string }
+          - { name: youtubeUrl, label: "YouTube link (empty hides the icon)", type: string }
+          - { name: appleMusicUrl, label: "Apple Music link (empty hides the icon)", type: string }
+          - name: tracks
+            label: Tracks
+            type: object
+            list: true
+            fields:
+              - { name: title, label: Song name, type: string }
+              - { name: url, label: Spotify song link, type: string }
+
       - name: sections
         label: Home page sections
         description: "Shown top to bottom. Leave title empty for an untitled section (normally the first). projectIds must match a project's id below, in the order they should appear."

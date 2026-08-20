@@ -44,7 +44,8 @@
         "thread-study",
         "void-pavilion",
         "knots-leather-jacket-campaign",
-        "brutalist-system"
+        "brutalist-system",
+        "knots-aw24-capsule-campaign"
       ]
     },
     {
@@ -56,7 +57,8 @@
         "after-hours",
         "void-pavilion",
         "d",
-        "knots-leather-jacket-campaign"
+        "knots-leather-jacket-campaign",
+        "knots-aw24-capsule-campaign"
       ]
     },
     {
@@ -276,6 +278,32 @@
         },
         {
           "url": "assets/1787202365555-2-img-1512.jpeg",
+          "type": "image"
+        }
+      ]
+    },
+    {
+      "id": "knots-aw24-capsule-campaign",
+      "title": "Knots AW24 Capsule Campaign ",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Photo Editor / Clothing Designer",
+      "cover": "assets/1787203168006-0-grass-mohair.png",
+      "coverType": "image",
+      "aspect": "2/3",
+      "summary": "Shot and edited some promo for a small capsule of garments for Knots AW24.\nClothing designed by me",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787203168012-1-img-1553.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787203168014-2-img-1526.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787203168017-3-img-1472.jpeg",
           "type": "image"
         }
       ]

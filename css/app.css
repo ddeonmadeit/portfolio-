@@ -100,16 +100,23 @@ img { display: block; max-width: 100%; }
 .dim   { color: rgba(253, 249, 243, 0.7); }
 .amber { color: var(--accent); }
 
-/* copper gradient type — stroked in the accent so it thickens with the
-   rest of the title without flattening the gradient underneath */
+/* copper gradient type — the same drifting sunset as the masthead logo and
+   the studio name, carried through background-clip because this is real text
+   rather than a masked shape. Stroked in the accent so it thickens with the
+   rest of the title without flattening the gradient underneath. */
 .amber.gradient, .hero-head .amber {
-  background: linear-gradient(90deg, #ff8c00, gold);
+  background: linear-gradient(115deg, #ff8c00, #ffd27a, #ff5f6d, #ffb84d, #ff8c00);
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
   paint-order: stroke fill;
   -webkit-text-stroke: 0.5px #ff8c00;
+  animation: sunsetShift 9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .amber.gradient, .hero-head .amber { animation: none; background-position: 30% 50%; }
 }
 
 /* film grain overlay */

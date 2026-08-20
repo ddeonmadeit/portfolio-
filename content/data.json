@@ -39,8 +39,8 @@
       "projectIds": [
         "atelier-noir",
         "resonance",
-        "brutalist-system",
         "after-hours",
+        "brutalist-system",
         "void-pavilion",
         "thread-study"
       ]
@@ -50,35 +50,42 @@
       "title": "Fashion",
       "projectIds": [
         "atelier-noir",
-        "thread-study"
+        "brutalist-system",
+        "after-hours",
+        "void-pavilion"
       ]
     },
     {
       "id": "sound",
       "title": "Sound",
       "projectIds": [
-        "resonance"
+        "thread-study"
       ]
     },
     {
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
-        "brutalist-system"
+        "resonance"
       ]
     },
     {
       "id": "video",
       "title": "Video",
       "projectIds": [
-        "after-hours"
+        "after-hours",
+        "brutalist-system",
+        "atelier-noir",
+        "thread-study"
       ]
     },
     {
       "id": "events",
       "title": "Events",
       "projectIds": [
-        "void-pavilion"
+        "after-hours",
+        "atelier-noir",
+        "resonance"
       ]
     }
   ],
@@ -139,15 +146,15 @@
     },
     {
       "id": "brutalist-system",
-      "title": "Brutalist System",
-      "category": "Graphics",
-      "year": "2025",
-      "role": "Graphic Design / Art Direction",
-      "cover": "assets/brutalist-system.jpg",
-      "coverType": "image",
+      "title": "Trucker Cap Animation",
+      "category": "",
+      "year": "2024",
+      "role": "Fashion Designer & Producer / Motion Graphics / Video Animator",
+      "cover": "assets/1787189754749-0-alchemyopia-1707098338-3295700190337305559-55781804326.mp4",
+      "coverType": "video",
       "aspect": "1/1",
-      "summary": "A modular identity system for an independent record label — raw grid, cream on cacao, restrained accent.",
-      "narrative": "Brutalist System strips the identity back to a single grid and two weights. The system flexes across print, motion, and signage without ever breaking its structural logic, proving that discipline scales further than decoration.",
+      "summary": "A short looped animation showing the patch-switch features of the trucker caps from Knots.",
+      "narrative": "",
       "gallery": [
         {
           "url": "assets/brutalist-system.jpg",
@@ -160,18 +167,26 @@
     },
     {
       "id": "after-hours",
-      "title": "After Hours",
-      "category": "Video",
-      "year": "2024",
-      "role": "Editing / Color Grade",
-      "cover": "assets/after-hours.jpg",
-      "coverType": "image",
-      "aspect": "16/9",
-      "summary": "A nocturnal short film edit — amber rim light, deep shadow, and a pace built for the hour after midnight.",
-      "narrative": "After Hours is an exercise in tempo. The edit breathes with the city it documents, holding on shadows longer than expected and cutting only when the light demands it. The grade pushes every frame toward copper and obsidian.",
+      "title": "Knots AW23 Runway Show",
+      "category": "",
+      "year": "2023",
+      "role": "Event Manager / Promotion & Marketing / Fashion Design & Production / Creative Direction / Music Curation",
+      "cover": "assets/1787190655565-0-savevid-net-aqoqqvtjv4khucn8bhqmxgzchcj5k28prrvykiaiwdttpzfuldhgpze31zoqxqrkcuqmzn3nansruhnttveww2g.mp4",
+      "coverType": "video",
+      "aspect": "4/5",
+      "summary": "In 2023 I through my first runway show to launch my clothing brand Knots (formerly Alchemy), as it was my event I was in charge of all elements with the help of my business partner. We got over 200 people to attend the event and had Sydney hip-hop artist Ayce perform some of his songs to warm the crowd. We also hired a painter to make a large mural, which the runway models later walked through for the runway show.\nOverall a largely successful event",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/after-hours.jpg",
+          "url": "assets/1787190655681-1-img-1548.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787190655682-2-img-8041.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787190655683-3-img-8042.jpeg",
           "type": "image"
         }
       ],
@@ -181,18 +196,22 @@
     },
     {
       "id": "void-pavilion",
-      "title": "Void Pavilion",
-      "category": "Events",
-      "year": "2023",
-      "role": "Event Direction / Production",
-      "cover": "assets/void-pavilion.jpg",
+      "title": "Knots Campaign AW25 Capsule ",
+      "category": "",
+      "year": "2025",
+      "role": "Creative Direction / Fashion Design & Production / Photographer / Photo Editor",
+      "cover": "assets/1787191326962-0-img-8044.jpeg",
       "coverType": "image",
       "aspect": "4/5",
-      "summary": "A one-night immersive event staged inside a raw concrete shell, lit with a single directional source.",
-      "narrative": "Void Pavilion turned an empty industrial shell into a one-night experience. A single lighting axis carved the space into exposure and concealment, guiding four hundred guests through sound, projection, and movement without a single sign.",
+      "summary": "A campaign for one of Knots’s AW25 capsule collections. \n",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/void-pavilion.jpg",
+          "url": "assets/1787191326965-1-img-8043.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787191326968-2-img-3224.jpeg",
           "type": "image"
         }
       ],
@@ -202,19 +221,19 @@
     },
     {
       "id": "thread-study",
-      "title": "Thread Study",
-      "category": "Fashion",
-      "year": "2023",
-      "role": "Material / Production",
-      "cover": "assets/thread-study.jpg",
-      "coverType": "image",
-      "aspect": "1/1",
-      "summary": "A macro investigation of copper metallic thread woven through heavy cacao wool — texture as the subject.",
-      "narrative": "Thread Study zooms in until the garment disappears and only the material remains. Shot at macro distance under Rembrandt light, the series treats thread, weave, and sheen as the true craft of fashion production.",
+      "title": "Runaway Visualiser",
+      "category": "",
+      "year": "2026",
+      "role": "Video Editing / Song Production & Vocalist",
+      "cover": "assets/1787191878448-0-2febc05ba97f4f8fb2c0a6173ac8e851.mov",
+      "coverType": "video",
+      "aspect": "5/4",
+      "summary": "A visualiser I made to promote my song Runaway from my EP MIRAGE DEMO’S.\nI produced the instrumental and was the vocalist on this song.\nI edited every element of thit visualiser ",
+      "narrative": "",
       "gallery": [
         {
-          "url": "assets/thread-study.jpg",
-          "type": "image"
+          "url": "assets/1787191971505-0-2febc05ba97f4f8fb2c0a6173ac8e851.mov",
+          "type": "video"
         }
       ],
       "embedUrl": "",

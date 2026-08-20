@@ -313,24 +313,47 @@ video::-webkit-media-controls-start-playback-button {
   pointer-events: none !important;
 }
 
-/* Copper spinner over a cover that's still buffering. Purely additive: it sits
-   on top and is removed the moment the video actually starts playing, so a
+/* Loader over a cover that's still buffering. The lens shape is carried as a
+   mask so the brand gradient shows through it exactly the way it does through
+   the logo — same colours, same 9s drift — while a second animation spins it.
+   Purely additive: removed the moment the video actually starts playing, so a
    clip that loads instantly never flashes it. */
+/* assets/loader.png is the lookbook loader flattened into a 23-frame strip,
+   its white ground cut to transparency. Used as a mask rather than drawn
+   directly, so what actually shows through the shape is the same animated
+   sunset gradient as the masthead logo. Two animations run together: the
+   gradient drifting, and mask-position stepping through the strip. */
 .tile.is-buffering::after {
   content: '';
   position: absolute;
   top: 50%; left: 50%;
-  width: 26px; height: 26px;
-  margin: -13px 0 0 -13px;
-  border: 2px solid rgba(255, 140, 0, 0.25);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: tileSpin 0.7s linear infinite;
+  width: 46px; height: 46px;
+  margin: -23px 0 0 -23px;
   pointer-events: none;
+  -webkit-mask-image: url('../assets/loader.png');
+  mask-image: url('../assets/loader.png');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 2300% 100%;
+  mask-size: 2300% 100%;
+  background: linear-gradient(115deg, #ff8c00, #ffd27a, #ff5f6d, #ffb84d, #ff8c00);
+  background-size: 300% 300%;
+  animation:
+    sunsetShift 9s ease-in-out infinite,
+    loaderCycle 0.92s steps(23, jump-none) infinite;
 }
-@keyframes tileSpin { to { transform: rotate(360deg); } }
+/* 23 frames across a strip 2300% wide: 0% lands on the first, 100% the last */
+@keyframes loaderCycle {
+  from { -webkit-mask-position: 0% 50%;   mask-position: 0% 50%; }
+  to   { -webkit-mask-position: 100% 50%; mask-position: 100% 50%; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .tile.is-buffering::after { animation-duration: 2.4s; }
+  /* hold a single open frame rather than cycling */
+  .tile.is-buffering::after {
+    animation: sunsetShift 9s ease-in-out infinite;
+    -webkit-mask-position: 41% 50%;
+    mask-position: 41% 50%;
+  }
 }
 .tile:hover img, .tile:focus-visible img,
 .tile:hover video, .tile:focus-visible video { transform: scale(1.05); filter: saturate(1.05); }

@@ -60,14 +60,20 @@ function buildMedia(url, type, alt, eager, loop) {
     // delays the buffering autoplay depends on, widening the window where
     // WebKit shows its "not yet playing" tap-to-play affordance.
     v.preload = 'auto';
+    // Covers above the fold shouldn't queue behind lazy images for bandwidth.
+    if (eager) v.setAttribute('fetchpriority', 'high');
     v.setAttribute('aria-label', alt || '');
     v.src = url;
     if (loop) applyLoopRange(v, loop.start, loop.end);
     // Belt-and-braces: explicitly kick off playback and retry if the
     // browser's autoplay attempt was rejected, so nothing is ever left
     // sitting on its poster frame with a play affordance.
+    // canplay fires as soon as *some* frames are decodable, which is far
+    // earlier than canplaythrough — start there rather than waiting for the
+    // browser to decide the whole clip can play uninterrupted.
     const tryPlay = () => v.play().catch(() => {});
     tryPlay();
+    v.addEventListener('loadedmetadata', tryPlay);
     v.addEventListener('loadeddata', tryPlay);
     v.addEventListener('canplay', tryPlay);
     return v;
@@ -179,14 +185,45 @@ function coverLoop(p) {
   return { start: p.loopStart, end: p.loopEnd };
 }
 
+// Every cover keeps the exact ratio it was given — nothing is ever cropped to
+// match a neighbour. Ratios at either extreme can't share a row and still look
+// right, so they take one to themselves: wide (16/9 and wider) runs the full
+// width, tall (9/16 and narrower) is centred. Everything in between pairs up.
+// Copper spinner while a cover buffers. Only shown if the clip isn't already
+// running after a short grace period, so a fast-loading video never flashes it.
+function showSpinnerWhileBuffering(tile, video) {
+  let settled = false;
+  const clear = () => { settled = true; tile.classList.remove('is-buffering'); };
+  const mark = () => { if (!settled && video.paused) tile.classList.add('is-buffering'); };
+
+  setTimeout(mark, 250);
+  // Give up rather than spin forever if the clip never plays — a codec the
+  // browser can't decode fires no 'playing', and on some engines no 'error'
+  // either, which would otherwise leave the spinner running indefinitely.
+  setTimeout(clear, 12000);
+  ['playing', 'error'].forEach(evt => video.addEventListener(evt, clear, { once: true }));
+  video.addEventListener('waiting', () => { if (!settled) tile.classList.add('is-buffering'); });
+}
+
+function rowSpan(aspect) {
+  const [w, h] = aspect.split('/').map(Number);
+  const r = w / h;
+  if (!isFinite(r) || r <= 0) return '';
+  if (r >= 1.6) return ' tile-wide';
+  if (r <= 0.6) return ' tile-tall';
+  return '';
+}
+
 function buildTile(p, eager) {
   const aspect = p.aspect || '1/1';
-  // 9/16 (vertical video) is too narrow to sit beside anything — it takes a
-  // whole row on its own. Every other ratio pairs up two per row.
-  const tile = el('button', aspect === '9/16' ? 'tile tile-solo' : 'tile');
+  const tile = el('button', 'tile' + rowSpan(aspect));
   tile.setAttribute('aria-label', p.title);
   tile.style.aspectRatio = aspect.replace('/', ' / ');
-  if (p.cover) tile.append(buildMedia(p.cover, p.coverType, '', eager, coverLoop(p)));
+  if (p.cover) {
+    const media = buildMedia(p.cover, p.coverType, '', eager, coverLoop(p));
+    tile.append(media);
+    if (p.coverType === 'video') showSpinnerWhileBuffering(tile, media);
+  }
   tile.addEventListener('click', () => navigate(`/project/${p.id}`));
   return tile;
 }

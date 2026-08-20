@@ -39,8 +39,8 @@
       "projectIds": [
         "atelier-noir",
         "resonance",
-        "brutalist-system",
         "after-hours",
+        "brutalist-system",
         "void-pavilion",
         "thread-study"
       ]
@@ -52,21 +52,21 @@
         "atelier-noir",
         "thread-study",
         "brutalist-system",
-        "after-hours"
+        "after-hours",
+        "resonance"
       ]
     },
     {
       "id": "sound",
       "title": "Sound",
-      "projectIds": [
-        "resonance"
-      ]
+      "projectIds": []
     },
     {
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
-        "brutalist-system"
+        "brutalist-system",
+        "resonance"
       ]
     },
     {
@@ -74,7 +74,8 @@
       "title": "Video",
       "projectIds": [
         "after-hours",
-        "brutalist-system"
+        "brutalist-system",
+        "atelier-noir"
       ]
     },
     {
@@ -82,7 +83,9 @@
       "title": "Events",
       "projectIds": [
         "void-pavilion",
-        "after-hours"
+        "after-hours",
+        "atelier-noir",
+        "resonance"
       ]
     }
   ],

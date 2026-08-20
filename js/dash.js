@@ -81,6 +81,52 @@ function makeFilename(name) {
   const ext = dot > 0 ? name.slice(dot) : '';
   return `${Date.now()}-${uploadSeq++}-${slugify(base)}${ext.toLowerCase()}`;
 }
+// Ratios the site lays out against. A cover is snapped to whichever of these
+// its own dimensions sit closest to.
+const ASPECTS = ['9/16', '2/3', '3/4', '4/5', '1/1', '4/3', '3/2', '16/9'];
+
+// Compared on a log scale, because closeness here is proportional, not
+// additive: 16/9 vs 3/2 differ by 0.28 and 3/4 vs 4/5 by only 0.05, yet both
+// are one step apart to the eye. Linear distance would bias every borderline
+// case towards the wide end.
+function closestAspect(width, height) {
+  if (!width || !height) return null;
+  const target = Math.log(width / height);
+  let best = ASPECTS[0];
+  let bestGap = Infinity;
+  ASPECTS.forEach(a => {
+    const [w, h] = a.split('/').map(Number);
+    const gap = Math.abs(Math.log(w / h) - target);
+    if (gap < bestGap) { bestGap = gap; best = a; }
+  });
+  return best;
+}
+
+// Intrinsic pixel dimensions of a chosen file, read from the file itself
+// rather than trusted from its name.
+function naturalSize(file, type) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const done = (w, h) => { URL.revokeObjectURL(url); resolve({ w, h }); };
+    const timer = setTimeout(() => done(0, 0), 8000);
+
+    if (type === 'video') {
+      const v = document.createElement('video');
+      v.preload = 'metadata';
+      v.addEventListener('loadedmetadata', () => {
+        clearTimeout(timer); done(v.videoWidth, v.videoHeight);
+      }, { once: true });
+      v.addEventListener('error', () => { clearTimeout(timer); done(0, 0); }, { once: true });
+      v.src = url;
+    } else {
+      const img = new Image();
+      img.onload = () => { clearTimeout(timer); done(img.naturalWidth, img.naturalHeight); };
+      img.onerror = () => { clearTimeout(timer); done(0, 0); };
+      img.src = url;
+    }
+  });
+}
+
 // Grab a still from a video the moment it's chosen, so every clip ships with a
 // poster. That frame is what the site shows before playback starts — and what
 // stays on screen on a device that refuses to autoplay at all, instead of a
@@ -668,10 +714,12 @@ function renderProjectsPanel() {
       ['category', 'Category / discipline (for your own reference)'],
       ['year', 'Year'],
       ['role', 'Role'],
-      ['aspect', 'Cover aspect ratio (e.g. 4/5, 16/9, 1/1 — 9/16 takes a whole row)'],
+      ['aspect', 'Cover aspect ratio (16/9 and 9/16 each take a whole row)'],
       ['summary', 'Summary', 'textarea'],
       ['narrative', 'Narrative', 'textarea'],
     ];
+    const inputs = {};
+    const hints = {};
     textFields.forEach(([key, label, kind]) => {
       const field = el('div', 'field');
       field.append(el('label', null, label));
@@ -684,6 +732,11 @@ function renderProjectsPanel() {
         if (key === 'category' || key === 'year') { subEl.textContent = `${p.category || '—'} · ${p.year || '—'}`; }
       });
       field.append(input);
+      inputs[key] = input;
+      if (key === 'aspect') {
+        hints.aspect = el('div', 'field-hint', 'Set automatically from the cover you upload. Change it here to override.');
+        field.append(hints.aspect);
+      }
       body.append(field);
     });
 
@@ -743,6 +796,19 @@ function renderProjectsPanel() {
       const key = `cover:${p.id}`;
       pendingUploads[key] = { file, apply: (path, t) => { p.cover = path; p.coverType = t; thumb.innerHTML = ''; thumb.append(buildPreviewMedia(path, t)); } };
       loopPicker?.load(objectUrl, type);
+
+      // snap the ratio to whichever the file's own dimensions sit closest to,
+      // so the tile matches the artwork without anyone having to work it out
+      naturalSize(file, type).then(({ w, h }) => {
+        const match = closestAspect(w, h);
+        if (!match) return;
+        p.aspect = match;
+        inputs.aspect.value = match;
+        if (hints.aspect) {
+          hints.aspect.textContent =
+            `Set to ${match} from this file (${w}×${h}). Change it here to override.`;
+        }
+      });
     }));
 
     // loop section (only meaningful when the cover is a video)

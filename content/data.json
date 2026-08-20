@@ -82,7 +82,8 @@
       "title": "Graphics",
       "projectIds": [
         "resonance",
-        "g-3"
+        "g-3",
+        "bleko-x-knots-event"
       ]
     },
     {
@@ -104,7 +105,8 @@
       "projectIds": [
         "after-hours",
         "atelier-noir",
-        "resonance"
+        "resonance",
+        "bleko-x-knots-event"
       ]
     }
   ],
@@ -418,7 +420,7 @@
       "aspect": "3/4",
       "coverX": 50,
       "coverY": 50,
-      "summary": "",
+      "summary": "community driven event hosted by my brand Knots in our store with a collaboration with from Bleko, another community driven brand in sydney ",
       "narrative": "",
       "gallery": [
         {
@@ -432,6 +434,14 @@
         {
           "url": "assets/1787214244271-3-img-8058.jpeg",
           "type": "image"
+        },
+        {
+          "url": "assets/1787214787495-0-img-4392.jpg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787214787551-1-img-6545.mov",
+          "type": "video"
         }
       ]
     }

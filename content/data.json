@@ -56,17 +56,12 @@
       "id": "fashion",
       "title": "Fashion",
       "projectIds": [
-        "atelier-noir",
-        "brutalist-system",
-        "after-hours",
         "void-pavilion",
-        "d",
         "knots-leather-jacket-campaign",
         "knots-aw24-capsule-campaign",
-        "g",
-        "g-2",
-        "g-3",
         "jk",
+        "brutalist-system",
+        "g-3",
         "h"
       ]
     },
@@ -90,16 +85,6 @@
         "d",
         "g",
         "g-2"
-      ]
-    },
-    {
-      "id": "events",
-      "title": "Events",
-      "projectIds": [
-        "after-hours",
-        "atelier-noir",
-        "resonance",
-        "bleko-x-knots-event"
       ]
     }
   ],

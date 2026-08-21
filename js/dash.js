@@ -373,6 +373,7 @@ function renderAll() {
   renderTextPanel();
   renderSectionsPanel();
   renderMusicPanel();
+  renderStorePanel();
   renderProjectsPanel();
   renderSettingsPanel();
 }
@@ -380,6 +381,75 @@ function renderAll() {
 /* ============================================================
    MUSIC — the playable album on the home page
    ============================================================ */
+/* ============================================================
+   STORE — the Google Maps listing on the home page
+   ============================================================ */
+function renderStorePanel() {
+  const panel = $('#panel-store');
+  panel.innerHTML = '';
+  DATA.store = DATA.store || {
+    title: '', years: '', address: '', blurb: '', embedUrl: '', mapsUrl: '',
+  };
+  const st = DATA.store;
+
+  panel.append(el('h2', null, 'Store'));
+  const intro = el('p', 'field-hint');
+  intro.style.marginBottom = '16px';
+  intro.textContent =
+    'Shown as the last section on the home page, after every project section. ' +
+    'The map is only loaded once a visitor reveals that far. Clear the map ' +
+    'embed to hide the whole section.';
+  panel.append(intro);
+
+  const field = (label, key, hint, kind) => {
+    const wrap = el('div', 'field');
+    wrap.append(el('label', null, label));
+    const input = el(kind === 'textarea' ? 'textarea' : 'input');
+    if (kind !== 'textarea') input.type = 'text';
+    input.value = st[key] || '';
+    input.addEventListener('input', () => { st[key] = input.value.trim(); });
+    wrap.append(input);
+    if (hint) wrap.append(el('div', 'field-hint', hint));
+    panel.append(wrap);
+    return input;
+  };
+
+  field('Store name', 'title');
+  field('Years open', 'years', 'Shown under the name, e.g. "2025 — 2026".');
+  field('Address', 'address');
+  field('Blurb (optional)', 'blurb', null, 'textarea');
+
+  const embed = field(
+    'Map embed', 'embedUrl',
+    'Paste either a Google Maps URL or the whole <iframe> code from Google Maps → ' +
+    'Share → Embed a map. Only google.com/maps addresses are accepted.'
+  );
+  const status = el('div', 'field-hint');
+  status.style.marginTop = '4px';
+  const checkEmbed = () => {
+    const raw = (st.embedUrl || '').trim();
+    if (!raw) {
+      status.textContent = 'Empty — the Store section is hidden.';
+      status.style.color = '';
+      return;
+    }
+    const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
+    const url = m ? m[1] : raw;
+    if (/^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url)) {
+      status.textContent = m ? '✓ iframe code recognised — its src will be used.' : '✓ Recognised.';
+      status.style.color = '#4ade80';
+    } else {
+      status.textContent = 'Not a google.com/maps address — nothing will be shown.';
+      status.style.color = 'var(--danger)';
+    }
+  };
+  checkEmbed();
+  embed.addEventListener('input', checkEmbed);
+  embed.parentNode.append(status);
+
+  field('"View on Google Maps" link', 'mapsUrl', 'Where the link under the name points. Empty hides it.');
+}
+
 function renderMusicPanel() {
   const panel = $('#panel-music');
   panel.innerHTML = '';

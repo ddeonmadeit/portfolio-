@@ -488,48 +488,164 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 }
 
 /* ============================================================
-   STORE — the Google Maps listing
+   STORE — the Maps listing, in this site's own skin
    ============================================================ */
-.store-block { padding: 4px var(--pad) 0; }
-.store-head { margin-bottom: 18px; }
+.store-card { padding: 4px var(--pad) 0; }
+
 .store-name {
-  font-size: clamp(20px, 4vw, 28px);
+  font-size: clamp(21px, 4.2vw, 30px);
   letter-spacing: -0.01em;
+  line-height: 1.15;
   color: var(--fg);
 }
-.store-meta {
+.store-line {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
   margin-top: 8px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(253, 249, 243, 0.55);
-}
-.store-blurb { margin-top: 12px; max-width: 52ch; color: var(--body); }
-.store-link {
-  display: inline-block;
-  margin-top: 14px;
   font-size: 13px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--accent);
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.3s var(--ease);
+  color: rgba(253, 249, 243, 0.62);
 }
-.store-link:hover, .store-link:focus-visible { border-bottom-color: var(--accent); }
-/* The map keeps a steady shape rather than reflowing with the viewport, and
-   the border ties it to the gallery media on the project pages. */
+.store-rating { color: var(--fg); font-weight: 600; }
+.store-reviews { color: rgba(253, 249, 243, 0.62); }
+.store-dot { color: rgba(253, 249, 243, 0.35); }
+.store-years { color: var(--accent); }
+
+/* stars: a dim row with a clipped bright copy laid over it */
+.store-stars { display: inline-flex; gap: 1px; }
+.store-star {
+  position: relative;
+  color: rgba(253, 249, 243, 0.22);
+  font-size: 13px; line-height: 1;
+}
+.store-star-fill {
+  position: absolute; inset: 0;
+  overflow: hidden; white-space: nowrap;
+  color: var(--accent);
+}
+
+/* tabs */
+.store-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin: 18px 0 16px;
+}
+.store-tab {
+  padding: 7px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: none;
+  color: rgba(253, 249, 243, 0.7);
+  font: inherit; font-size: 13px;
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+.store-tab:hover { color: var(--fg); border-color: rgba(253, 249, 243, 0.35); }
+.store-tab.is-on {
+  color: var(--bg);
+  background: var(--fg);
+  border-color: var(--fg);
+}
+.store-panel[hidden] { display: none; }
+
+/* the scrollable strip, as on Maps */
+.store-strip {
+  display: flex; gap: 6px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.store-strip::-webkit-scrollbar { display: none; }
+.store-strip .store-shot {
+  flex: 0 0 auto;
+  width: clamp(128px, 30vw, 176px);
+  scroll-snap-align: start;
+}
+.store-shot {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.store-shot img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: transform 0.6s var(--ease);
+}
+.store-shot:hover img { transform: scale(1.05); }
+
+.store-viewall {
+  flex: 0 0 auto;
+  width: clamp(96px, 22vw, 120px);
+  aspect-ratio: 1 / 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: none;
+  color: rgba(253, 249, 243, 0.7);
+  font: inherit; font-size: 12px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.store-viewall:hover { color: var(--accent); border-color: var(--accent); }
+.store-viewall-chev { font-size: 22px; line-height: 1; }
+
+/* photos tab */
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+}
+.store-empty { color: rgba(253, 249, 243, 0.55); font-size: 14px; padding: 12px 0; }
+
+/* address + map */
+.store-address {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 18px;
+  font-size: 14px; color: var(--body);
+}
+.store-pin { flex: 0 0 auto; margin-top: 1px; }
+.store-pin svg { width: 17px; height: 17px; display: block; fill: rgba(253, 249, 243, 0.55); }
 .store-map {
+  margin-top: 14px;
   aspect-ratio: 16 / 9;
-  max-height: 460px;
+  max-height: 420px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--card);
 }
 .store-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* about */
+.store-about { max-width: 60ch; color: var(--body); }
+.store-facts { margin-top: 20px; display: grid; gap: 12px; }
+.store-fact dt {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(253, 249, 243, 0.45);
+}
+.store-fact dd { margin-top: 4px; color: var(--body); font-size: 14px; }
+
+/* contact */
+.store-contact { display: grid; gap: 12px; }
+.store-contact-row { display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.store-contact-label {
+  flex: 0 0 88px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(253, 249, 243, 0.45);
+}
+.store-contact-value { color: var(--body); font-size: 14px; }
+a.store-contact-value { transition: color 0.3s var(--ease); }
+a.store-contact-value:hover { color: var(--accent); }
+
 @media (max-width: 640px) {
   .store-map { aspect-ratio: 4 / 3; }
+  .store-grid { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
 }
 
 /* ============================================================

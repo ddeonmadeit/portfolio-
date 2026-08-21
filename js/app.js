@@ -635,54 +635,214 @@ function fillMusic(block) {
   block.append(wrap);
 }
 
-/* ---------------- store: the Google Maps listing ----------------
-   A plain iframe of the business's own Maps listing. The stored value can be
-   either a bare URL or the whole <iframe …> snippet Google's "Share → Embed a
-   map" hands you — the src is pulled out of the latter — so the listing can be
-   swapped from the dashboard without touching this file. */
+/* ---------------- store: the Maps listing, rebuilt in the site's own skin ----
+   Not an iframe of Google's card — Google's chrome can't be restyled, and the
+   listing's own colours would fight the rest of the page. This is the same
+   information (rating, category, photo strip, address, map) laid out the same
+   way, drawn in this site's palette and type, with the actions that only make
+   sense inside the Maps app left out. */
 function storeEmbedSrc(store) {
   const raw = String((store && store.embedUrl) || '').trim();
   if (!raw) return null;
-  // pasted iframe markup → just the src
   const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
   const url = m ? m[1] : raw;
   return /^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url) ? url : null;
 }
 
-function fillStore(block) {
-  const src = storeEmbedSrc(STORE);
-  if (!src) return;
-
-  block.classList.add('store-section');
-  block.append(el('h3', 'section-title', 'Store'));
-
-  const wrap = el('div', 'store-block');
-
-  const head = el('div', 'store-head');
-  if (STORE.title) head.append(el('h4', 'store-name', STORE.title));
-  const meta = [STORE.years, STORE.address].filter(Boolean).join('  ·  ');
-  if (meta) head.append(el('p', 'store-meta', meta));
-  if (STORE.blurb) head.append(el('p', 'store-blurb', STORE.blurb));
-  if (STORE.mapsUrl) {
-    const a = el('a', 'store-link', 'View on Google Maps');
-    a.href = STORE.mapsUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    head.append(a);
+// Five stars, filled to the rating — halves included, so 4.5 reads correctly.
+function buildStars(rating) {
+  const row = el('div', 'store-stars');
+  row.setAttribute('aria-label', `${rating} out of 5`);
+  for (let i = 1; i <= 5; i++) {
+    const pct = Math.max(0, Math.min(1, rating - (i - 1))) * 100;
+    const star = el('span', 'store-star');
+    star.textContent = '★';
+    const fill = el('span', 'store-star-fill');
+    fill.textContent = '★';
+    fill.style.width = `${pct}%`;
+    star.append(fill);
+    row.append(star);
   }
-  wrap.append(head);
+  return row;
+}
 
-  const frameWrap = el('div', 'store-map');
+function buildStoreMap(src) {
+  const wrap = el('div', 'store-map');
   const frame = el('iframe');
   frame.src = src;
   frame.loading = 'lazy';
   frame.title = `${STORE.title || 'Store'} on Google Maps`;
   frame.referrerPolicy = 'no-referrer-when-downgrade';
   frame.setAttribute('allowfullscreen', '');
-  frameWrap.append(frame);
-  wrap.append(frameWrap);
+  wrap.append(frame);
+  return wrap;
+}
 
-  block.append(wrap);
+function buildAddressRow() {
+  const row = el('div', 'store-address');
+  const pin = el('span', 'store-pin');
+  pin.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>';
+  row.append(pin, el('span', 'store-address-text', STORE.address || ''));
+  return row;
+}
+
+function fillStore(block) {
+  const src = storeEmbedSrc(STORE);
+  const photos = (STORE.photos || []).filter(Boolean);
+
+  block.classList.add('store-section');
+  block.append(el('h3', 'section-title', 'Store'));
+
+  const card = el('div', 'store-card');
+
+  /* ---- header: name, rating, category, the years in place of "Open" ---- */
+  const head = el('div', 'store-head');
+  head.append(el('h4', 'store-name', STORE.title || ''));
+
+  const line = el('div', 'store-line');
+  const rating = Number(STORE.rating) || 0;
+  if (rating > 0) {
+    line.append(el('span', 'store-rating', rating.toFixed(1)));
+    line.append(buildStars(rating));
+    if (STORE.reviews) line.append(el('span', 'store-reviews', `(${STORE.reviews})`));
+    line.append(el('span', 'store-dot', '·'));
+  }
+  if (STORE.category) {
+    line.append(el('span', 'store-category', STORE.category));
+    line.append(el('span', 'store-dot', '·'));
+  }
+  // where Maps prints "Open" — this shop is closed, so it carries its run instead
+  if (STORE.years) line.append(el('span', 'store-years', STORE.years));
+  head.append(line);
+  card.append(head);
+
+  /* ---- tabs ---- */
+  const tabsRow = el('div', 'store-tabs');
+  const panels = el('div', 'store-panels');
+
+  const makePanel = (name) => {
+    const p = el('div', 'store-panel');
+    p.dataset.panel = name;
+    panels.append(p);
+    return p;
+  };
+
+  const overview = makePanel('overview');
+  const photosPanel = makePanel('photos');
+  const about = makePanel('about');
+  const contact = makePanel('contact');
+
+  /* Overview — the scrollable strip, then address and map */
+  if (photos.length) {
+    const strip = el('div', 'store-strip');
+    photos.forEach((url, i) => {
+      const cell = el('div', 'store-shot');
+      const img = el('img');
+      img.src = url;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      cell.append(img);
+      // tapping a shot opens the full grid, as it does on Maps
+      cell.addEventListener('click', () => selectTab('photos'));
+      strip.append(cell);
+      if (i === photos.length - 1) {
+        const all = el('button', 'store-viewall');
+        all.type = 'button';
+        all.innerHTML = '<span class="store-viewall-chev">›</span><span>View all</span>';
+        all.addEventListener('click', () => selectTab('photos'));
+        strip.append(all);
+      }
+    });
+    overview.append(strip);
+  }
+  if (STORE.address) overview.append(buildAddressRow());
+  if (src) overview.append(buildStoreMap(src));
+
+  /* Photos — every shot, as a grid */
+  if (photos.length) {
+    const grid = el('div', 'store-grid');
+    photos.forEach((url) => {
+      const cell = el('div', 'store-shot');
+      const img = el('img');
+      img.src = url;
+      img.alt = '';
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      cell.append(img);
+      grid.append(cell);
+    });
+    photosPanel.append(grid);
+  } else {
+    photosPanel.append(el('p', 'store-empty', 'No photos yet.'));
+  }
+
+  /* About */
+  if (STORE.about) about.append(el('p', 'store-about', STORE.about));
+  const facts = el('dl', 'store-facts');
+  [
+    ['Category', STORE.category],
+    ['Open', STORE.years],
+    ['Address', STORE.address],
+  ].forEach(([k, v]) => {
+    if (!v) return;
+    const b = el('div', 'store-fact');
+    b.append(el('dt', null, k), el('dd', null, v));
+    facts.append(b);
+  });
+  if (facts.children.length) about.append(facts);
+
+  /* Contact — the site's own details, plus the listing itself */
+  const list = el('div', 'store-contact');
+  const link = (label, value, href) => {
+    if (!value) return;
+    const rowEl = el('div', 'store-contact-row');
+    rowEl.append(el('span', 'store-contact-label', label));
+    if (href) {
+      const a = el('a', 'store-contact-value', value);
+      a.href = href;
+      if (/^https?:/.test(href)) { a.target = '_blank'; a.rel = 'noopener'; }
+      rowEl.append(a);
+    } else {
+      rowEl.append(el('span', 'store-contact-value', value));
+    }
+    list.append(rowEl);
+  };
+  link('Address', STORE.address, STORE.mapsUrl);
+  link('Email', SITE.email, SITE.email ? `mailto:${SITE.email}` : null);
+  link('Phone', SITE.phone, SITE.phone ? `tel:${String(SITE.phone).replace(/[^\d+]/g, '')}` : null);
+  link('Instagram', '@deonmadeit', SITE.instagramUrl);
+  link('Listing', 'View on Google Maps', STORE.mapsUrl);
+  contact.append(list);
+
+  /* ---- tab wiring ---- */
+  const tabNames = [
+    ['overview', 'Overview'],
+    ['photos', 'Photos'],
+    ['about', 'About'],
+    ['contact', 'Contact'],
+  ];
+  const buttons = {};
+  function selectTab(name) {
+    tabNames.forEach(([key]) => {
+      const on = key === name;
+      buttons[key].classList.toggle('is-on', on);
+      buttons[key].setAttribute('aria-selected', on ? 'true' : 'false');
+      panels.querySelector(`[data-panel="${key}"]`).hidden = !on;
+    });
+  }
+  tabNames.forEach(([key, label]) => {
+    const b = el('button', 'store-tab', label);
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.addEventListener('click', () => selectTab(key));
+    buttons[key] = b;
+    tabsRow.append(b);
+  });
+  card.append(tabsRow, panels);
+  selectTab('overview');
+
+  block.append(card);
 }
 
 function renderSections() {

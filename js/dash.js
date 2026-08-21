@@ -382,23 +382,25 @@ function renderAll() {
    MUSIC — the playable album on the home page
    ============================================================ */
 /* ============================================================
-   STORE — the Google Maps listing on the home page
+   STORE — the Maps-style listing on the home page
    ============================================================ */
 function renderStorePanel() {
   const panel = $('#panel-store');
   panel.innerHTML = '';
   DATA.store = DATA.store || {
-    title: '', years: '', address: '', blurb: '', embedUrl: '', mapsUrl: '',
+    title: '', rating: 0, reviews: 0, category: '', years: '',
+    address: '', about: '', mapsUrl: '', embedUrl: '', photos: [],
   };
   const st = DATA.store;
+  st.photos = st.photos || [];
 
   panel.append(el('h2', null, 'Store'));
   const intro = el('p', 'field-hint');
   intro.style.marginBottom = '16px';
   intro.textContent =
-    'Shown as the last section on the home page, after every project section. ' +
-    'The map is only loaded once a visitor reveals that far. Clear the map ' +
-    'embed to hide the whole section.';
+    'The last section on the home page, laid out like the Google Maps listing ' +
+    'but drawn in the site\'s own colours. Photos are served from this repo, ' +
+    'not from Google. Remove every photo and clear the map to hide the section.';
   panel.append(intro);
 
   const field = (label, key, hint, kind) => {
@@ -406,8 +408,10 @@ function renderStorePanel() {
     wrap.append(el('label', null, label));
     const input = el(kind === 'textarea' ? 'textarea' : 'input');
     if (kind !== 'textarea') input.type = 'text';
-    input.value = st[key] || '';
-    input.addEventListener('input', () => { st[key] = input.value.trim(); });
+    input.value = st[key] == null ? '' : st[key];
+    input.addEventListener('input', () => {
+      st[key] = kind === 'number' ? Number(input.value) || 0 : input.value.trim();
+    });
     wrap.append(input);
     if (hint) wrap.append(el('div', 'field-hint', hint));
     panel.append(wrap);
@@ -415,31 +419,30 @@ function renderStorePanel() {
   };
 
   field('Store name', 'title');
-  field('Years open', 'years', 'Shown under the name, e.g. "2025 — 2026".');
+  field('Rating out of 5', 'rating', 'Shown as stars, e.g. 5 or 4.5.', 'number');
+  field('Number of reviews', 'reviews', 'Shown in brackets after the stars.', 'number');
+  field('Category line', 'category', 'e.g. "Clothing store in Glebe, New South Wales".');
+  field('Years open', 'years', 'Takes the place of Maps\' "Open" — e.g. "2025 – 2026".');
   field('Address', 'address');
-  field('Blurb (optional)', 'blurb', null, 'textarea');
+  field('About', 'about', 'Shown under the About tab.', 'textarea');
+  field('"View on Google Maps" link', 'mapsUrl');
 
   const embed = field(
     'Map embed', 'embedUrl',
-    'Paste either a Google Maps URL or the whole <iframe> code from Google Maps → ' +
-    'Share → Embed a map. Only google.com/maps addresses are accepted.'
+    'A Google Maps URL, or the whole <iframe> code from Maps → Share → Embed a map.'
   );
   const status = el('div', 'field-hint');
   status.style.marginTop = '4px';
   const checkEmbed = () => {
     const raw = (st.embedUrl || '').trim();
-    if (!raw) {
-      status.textContent = 'Empty — the Store section is hidden.';
-      status.style.color = '';
-      return;
-    }
+    if (!raw) { status.textContent = 'Empty — no map is shown.'; status.style.color = ''; return; }
     const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
     const url = m ? m[1] : raw;
     if (/^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url)) {
       status.textContent = m ? '✓ iframe code recognised — its src will be used.' : '✓ Recognised.';
       status.style.color = '#4ade80';
     } else {
-      status.textContent = 'Not a google.com/maps address — nothing will be shown.';
+      status.textContent = 'Not a google.com/maps address — no map will be shown.';
       status.style.color = 'var(--danger)';
     }
   };
@@ -447,7 +450,64 @@ function renderStorePanel() {
   embed.addEventListener('input', checkEmbed);
   embed.parentNode.append(status);
 
-  field('"View on Google Maps" link', 'mapsUrl', 'Where the link under the name points. Empty hides it.');
+  // photos — upload, reorder, remove
+  const photoField = el('div', 'field');
+  photoField.append(el('label', null, 'Photos'));
+  const list = el('div', 'gallery-list');
+  let seq = 0;
+  const renderPhotos = () => {
+    list.innerHTML = '';
+    st.photos.forEach((url, i) => {
+      const row = el('div', 'row-item');
+      const thumb = el('div', 'row-thumb');
+      if (url && !url.startsWith('\u0000pending:')) thumb.append(buildPreviewMedia(url, 'image'));
+      const pending = url.startsWith('\u0000pending:');
+      const name = el('span', 'row-title', pending ? 'New photo — uploads on Save' : (url ? url.split('/').pop() : '(empty)'));
+      const up = el('button', 'icon-btn', '↑');
+      up.type = 'button'; up.disabled = i === 0;
+      up.addEventListener('click', () => { st.photos.splice(i - 1, 0, st.photos.splice(i, 1)[0]); renderPhotos(); });
+      const down = el('button', 'icon-btn', '↓');
+      down.type = 'button'; down.disabled = i === st.photos.length - 1;
+      down.addEventListener('click', () => { st.photos.splice(i + 1, 0, st.photos.splice(i, 1)[0]); renderPhotos(); });
+      const rm = el('button', 'icon-btn icon-btn-danger', '✕');
+      rm.type = 'button';
+      rm.addEventListener('click', () => { st.photos.splice(i, 1); renderPhotos(); });
+      row.append(thumb, name, el('span', 'row-spacer'), up, down, rm);
+      list.append(row);
+    });
+  };
+  renderPhotos();
+  photoField.append(list);
+
+  const addWrap = el('div', 'field');
+  addWrap.style.marginTop = '10px';
+  const addInput = el('input');
+  addInput.type = 'file';
+  addInput.accept = 'image/*';
+  addInput.multiple = true;
+  const addHint = el('div', 'field-hint',
+    'Add photos — download them from your Google Maps listing and upload here. They are compressed on save.');
+  addInput.addEventListener('change', () => {
+    [...addInput.files].forEach((f) => {
+      // A captured index would point at the wrong slot if the list is
+      // reordered before Save, so the placeholder carries a unique marker and
+      // apply() finds it wherever it has ended up.
+      const marker = `\u0000pending:${++seq}:${Date.now()}`;
+      st.photos.push(marker);
+      pendingUploads[`store:photo:${marker}`] = {
+        file: f,
+        apply: (path) => {
+          const at = st.photos.indexOf(marker);
+          if (at !== -1) st.photos[at] = path;
+        },
+      };
+    });
+    renderPhotos();
+    addHint.textContent = `${addInput.files.length} photo(s) will upload on Save.`;
+  });
+  addWrap.append(addInput, addHint);
+  photoField.append(addWrap);
+  panel.append(photoField);
 }
 
 function renderMusicPanel() {
@@ -1350,6 +1410,10 @@ $('#save-btn').addEventListener('click', async () => {
     DATA.projects.forEach(pr => {
       if (Array.isArray(pr.gallery)) pr.gallery = pr.gallery.filter(g => g && g.url);
     });
+    // any store photo whose upload never resolved is a placeholder, not a path
+    if (DATA.store && Array.isArray(DATA.store.photos)) {
+      DATA.store.photos = DATA.store.photos.filter(u => u && !u.startsWith('\u0000pending:'));
+    }
 
     files.push({
       path: 'content/data.json',

@@ -34,15 +34,19 @@ content:
           - { name: knotsssUrl, label: "knotsss URL (empty hides the icon)", type: string }
 
       - name: store
-        label: Store (the Google Maps listing)
+        label: Store (the Maps-style listing)
         type: object
         fields:
           - { name: title, label: Store name, type: string }
-          - { name: years, label: "Years open (e.g. 2025 — 2026)", type: string }
+          - { name: rating, label: "Rating out of 5", type: number }
+          - { name: reviews, label: "Number of reviews", type: number }
+          - { name: category, label: "Category line", type: string }
+          - { name: years, label: "Years open (takes the place of \"Open\")", type: string }
           - { name: address, label: Address, type: string }
-          - { name: blurb, label: Blurb (optional), type: text }
-          - { name: embedUrl, label: "Map embed (Google Maps URL, or the whole iframe code)", type: text }
-          - { name: mapsUrl, label: "\"View on Google Maps\" link (empty hides it)", type: string }
+          - { name: about, label: About, type: text }
+          - { name: mapsUrl, label: "\"View on Google Maps\" link", type: string }
+          - { name: embedUrl, label: "Map embed (Maps URL, or the whole iframe code)", type: text }
+          - { name: photos, label: Photos, type: image, list: true }
 
       - name: music
         label: Music (the playable album)

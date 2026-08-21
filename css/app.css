@@ -591,16 +591,6 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 
 .detail-gallery { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
 .detail-gallery img, .detail-gallery video { width: 100%; display: block; border: 1px solid var(--border); border-radius: var(--radius); }
-.gallery-note {
-  margin-top: 20px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: rgba(253, 249, 243, 0.45);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  text-align: center;
-}
 
 .back-big {
   --stroke: 0.7px;

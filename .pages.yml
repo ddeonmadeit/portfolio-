@@ -45,6 +45,9 @@ content:
           - { name: address, label: Address, type: string }
           - { name: about, label: About, type: text }
           - { name: mapsUrl, label: "\"View on Google Maps\" link", type: string }
+          # A photo is a plain path until it's given a crop in /dash, at which
+          # point it becomes { url, x, y } — x/y are 0-100 and decide what
+          # survives the square tile. Crop them in /dash, not here.
           - { name: photos, label: Photos, type: image, list: true }
 
       - name: music

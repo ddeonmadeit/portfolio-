@@ -666,8 +666,22 @@ function buildAddressRow() {
   return row;
 }
 
+// A photo is either a bare path (centred, the original shape of the data) or
+// { url, x, y } once it's been given a focal point in the dashboard. Tiles are
+// square and the images aren't, so x/y decide what survives the crop.
+function storePhoto(entry) {
+  if (!entry) return null;
+  if (typeof entry === 'string') return { url: entry, x: 50, y: 50 };
+  if (!entry.url) return null;
+  return {
+    url: entry.url,
+    x: entry.x == null ? 50 : Number(entry.x),
+    y: entry.y == null ? 50 : Number(entry.y),
+  };
+}
+
 function fillStore(block) {
-  const photos = (STORE.photos || []).filter(Boolean);
+  const photos = (STORE.photos || []).map(storePhoto).filter(Boolean);
 
   block.classList.add('store-section');
   block.append(el('h3', 'section-title', 'Store'));
@@ -714,13 +728,14 @@ function fillStore(block) {
   /* Overview — the scrollable strip, then address and map */
   if (photos.length) {
     const strip = el('div', 'store-strip');
-    photos.forEach((url, i) => {
+    photos.forEach((shot, i) => {
       const cell = el('div', 'store-shot');
       const img = el('img');
-      img.src = url;
+      img.src = shot.url;
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
+      img.style.objectPosition = `${shot.x}% ${shot.y}%`;
       cell.append(img);
       // tapping a shot opens the full grid, as it does on Maps
       cell.addEventListener('click', () => selectTab('photos'));
@@ -740,13 +755,14 @@ function fillStore(block) {
   /* Photos — every shot, as a grid */
   if (photos.length) {
     const grid = el('div', 'store-grid');
-    photos.forEach((url) => {
+    photos.forEach((shot) => {
       const cell = el('div', 'store-shot');
       const img = el('img');
-      img.src = url;
+      img.src = shot.url;
       img.alt = '';
       img.loading = 'lazy';
       img.decoding = 'async';
+      img.style.objectPosition = `${shot.x}% ${shot.y}%`;
       cell.append(img);
       grid.append(cell);
     });

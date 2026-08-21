@@ -384,6 +384,17 @@ function renderAll() {
 /* ============================================================
    STORE — the Maps-style listing on the home page
    ============================================================ */
+function normStorePhoto(entry) {
+  if (!entry) return null;
+  if (typeof entry === 'string') return { url: entry, x: 50, y: 50 };
+  if (!entry.url) return null;
+  return {
+    url: entry.url,
+    x: entry.x == null ? 50 : Number(entry.x),
+    y: entry.y == null ? 50 : Number(entry.y),
+  };
+}
+
 function renderStorePanel() {
   const panel = $('#panel-store');
   panel.innerHTML = '';
@@ -392,15 +403,18 @@ function renderStorePanel() {
     address: '', about: '', mapsUrl: '', photos: [],
   };
   const st = DATA.store;
-  st.photos = st.photos || [];
+  // A photo is a bare path until it's been cropped, then { url, x, y }. Edit
+  // as objects throughout and let save() drop the coordinates again for any
+  // photo still sitting dead centre.
+  st.photos = (st.photos || []).map(normStorePhoto).filter(Boolean);
 
   panel.append(el('h2', null, 'Store'));
   const intro = el('p', 'field-hint');
   intro.style.marginBottom = '16px';
   intro.textContent =
-    'The last section on the home page, laid out like the Google Maps listing ' +
-    'but drawn in the site\'s own colours. Photos are served from this repo, ' +
-    'not from Google.';
+    'Sits under the music on the home page, laid out like the Google Maps ' +
+    'listing but drawn in the site\'s own colours. Photos are served from ' +
+    'this repo, not from Google.';
   panel.append(intro);
 
   const field = (label, key, hint, kind) => {
@@ -432,14 +446,32 @@ function renderStorePanel() {
   photoField.append(el('label', null, 'Photos'));
   const list = el('div', 'gallery-list');
   let seq = 0;
+  // survives the re-render that reordering causes, so the panel you opened
+  // stays open under the photo it belongs to
+  let openFor = null;
   const renderPhotos = () => {
     list.innerHTML = '';
-    st.photos.forEach((url, i) => {
+    st.photos.forEach((shot, i) => {
+      const pending = shot.url.startsWith('\u0000pending:');
       const row = el('div', 'row-item');
       const thumb = el('div', 'row-thumb');
-      if (url && !url.startsWith('\u0000pending:')) thumb.append(buildPreviewMedia(url, 'image'));
-      const pending = url.startsWith('\u0000pending:');
-      const name = el('span', 'row-title', pending ? 'New photo — uploads on Save' : (url ? url.split('/').pop() : '(empty)'));
+      let thumbImg = null;
+      if (!pending) {
+        thumbImg = buildPreviewMedia(shot.url, 'image');
+        thumbImg.style.objectPosition = `${shot.x}% ${shot.y}%`;
+        thumb.append(thumbImg);
+      }
+      const name = el('span', 'row-title', pending ? 'New photo — uploads on Save' : shot.url.split('/').pop());
+
+      const crop = el('button', 'icon-btn', '⛶');
+      crop.type = 'button';
+      crop.title = 'Crop';
+      crop.disabled = pending;
+      crop.addEventListener('click', () => {
+        openFor = openFor === shot ? null : shot;
+        renderPhotos();
+      });
+
       const up = el('button', 'icon-btn', '↑');
       up.type = 'button'; up.disabled = i === 0;
       up.addEventListener('click', () => { st.photos.splice(i - 1, 0, st.photos.splice(i, 1)[0]); renderPhotos(); });
@@ -448,9 +480,56 @@ function renderStorePanel() {
       down.addEventListener('click', () => { st.photos.splice(i + 1, 0, st.photos.splice(i, 1)[0]); renderPhotos(); });
       const rm = el('button', 'icon-btn icon-btn-danger', '✕');
       rm.type = 'button';
-      rm.addEventListener('click', () => { st.photos.splice(i, 1); renderPhotos(); });
-      row.append(thumb, name, el('span', 'row-spacer'), up, down, rm);
+      rm.addEventListener('click', () => {
+        if (openFor === shot) openFor = null;
+        st.photos.splice(i, 1);
+        renderPhotos();
+      });
+      row.append(thumb, name, el('span', 'row-spacer'), crop, up, down, rm);
       list.append(row);
+
+      if (openFor !== shot) return;
+
+      // The tile on the home page is square and the photo isn't, so the only
+      // real choice is which part survives. The file itself is never touched.
+      const box = el('div', 'field');
+      box.style.margin = '0 0 12px';
+      const frame = el('div', 'crop-frame');
+      frame.style.aspectRatio = '1 / 1';
+      const big = buildPreviewMedia(shot.url, 'image');
+      frame.append(big);
+
+      const paint = () => {
+        const pos = `${shot.x}% ${shot.y}%`;
+        big.style.objectPosition = pos;
+        if (thumbImg) thumbImg.style.objectPosition = pos;
+      };
+      paint();
+
+      const slider = (labelText, key) => {
+        const r = el('div', 'crop-row');
+        r.append(el('span', 'crop-label', labelText));
+        const input = el('input');
+        input.type = 'range'; input.min = '0'; input.max = '100'; input.step = '1';
+        input.value = String(shot[key]);
+        input.addEventListener('input', () => { shot[key] = Number(input.value); paint(); });
+        r.append(input);
+        return { row: r, input };
+      };
+      const across = slider('Across', 'x');
+      const downS = slider('Down', 'y');
+
+      const centre = el('button', 'btn btn-sm btn-ghost', 'Centre it');
+      centre.type = 'button';
+      centre.addEventListener('click', () => {
+        shot.x = 50; shot.y = 50;
+        across.input.value = '50'; downS.input.value = '50';
+        paint();
+      });
+
+      box.append(frame, across.row, downS.row, centre,
+        el('div', 'field-hint', 'Drag to choose what stays in the square tile. The file itself is untouched.'));
+      list.append(box);
     });
   };
   renderPhotos();
@@ -463,20 +542,18 @@ function renderStorePanel() {
   addInput.accept = 'image/*';
   addInput.multiple = true;
   const addHint = el('div', 'field-hint',
-    'Add photos — download them from your Google Maps listing and upload here. They are compressed on save.');
+    'Add photos — they are compressed on save. Use ⛶ on a row to choose what stays in the square tile.');
   addInput.addEventListener('change', () => {
     [...addInput.files].forEach((f) => {
       // A captured index would point at the wrong slot if the list is
       // reordered before Save, so the placeholder carries a unique marker and
       // apply() finds it wherever it has ended up.
       const marker = `\u0000pending:${++seq}:${Date.now()}`;
-      st.photos.push(marker);
+      const shot = { url: marker, x: 50, y: 50 };
+      st.photos.push(shot);
       pendingUploads[`store:photo:${marker}`] = {
         file: f,
-        apply: (path) => {
-          const at = st.photos.indexOf(marker);
-          if (at !== -1) st.photos[at] = path;
-        },
+        apply: (path) => { shot.url = path; },
       };
     });
     renderPhotos();
@@ -1387,9 +1464,13 @@ $('#save-btn').addEventListener('click', async () => {
     DATA.projects.forEach(pr => {
       if (Array.isArray(pr.gallery)) pr.gallery = pr.gallery.filter(g => g && g.url);
     });
-    // any store photo whose upload never resolved is a placeholder, not a path
+    // any store photo whose upload never resolved is a placeholder, not a path;
+    // and a photo still sitting dead centre needs no coordinates saved with it
     if (DATA.store && Array.isArray(DATA.store.photos)) {
-      DATA.store.photos = DATA.store.photos.filter(u => u && !u.startsWith('\u0000pending:'));
+      DATA.store.photos = DATA.store.photos
+        .map(normStorePhoto)
+        .filter(e => e && !e.url.startsWith('\u0000pending:'))
+        .map(e => (e.x === 50 && e.y === 50 ? e.url : e));
     }
 
     files.push({

@@ -830,6 +830,8 @@ function renderSections() {
   const pending = [];
   let firstDone = false;
   let musicSeated = false;
+  let storeSeated = false;
+  const hasStore = () => !!(STORE && (STORE.title || (STORE.photos || []).length));
 
   SECTIONS.forEach((section) => {
     const items = (section.projectIds || [])
@@ -856,6 +858,17 @@ function renderSections() {
         pending.push({ block: musicBlock, music: true });
         musicSeated = true;
       }
+
+      // The store rides with the album rather than trailing the project
+      // categories: it's a place, not a piece of work, and buried at the
+      // very end of the chain nobody tapped far enough to reach it.
+      if (hasStore()) {
+        const storeBlock = el('section', 'section-block');
+        storeBlock.hidden = true;
+        archive.append(storeBlock);
+        pending.push({ block: storeBlock, store: true });
+        storeSeated = true;
+      }
     } else {
       block.hidden = true;
       pending.push({ block, section, items });
@@ -869,20 +882,11 @@ function renderSections() {
     fillMusic(musicBlock);
   }
 
-  // The store closes out the page: it's a place rather than a piece of work,
-  // so it sits after every project section, last in the reveal chain. The map
-  // iframe isn't built until it's revealed, so Google is never contacted for
-  // a visitor who doesn't scroll that far.
-  if (STORE && (STORE.title || (STORE.photos || []).length)) {
+  // No project sections at all — nothing to reveal behind, so show it.
+  if (!storeSeated && hasStore()) {
     const storeBlock = el('section', 'section-block');
-    if (firstDone) {
-      storeBlock.hidden = true;
-      archive.append(storeBlock);
-      pending.push({ block: storeBlock, store: true });
-    } else {
-      archive.append(storeBlock);
-      fillStore(storeBlock);
-    }
+    archive.append(storeBlock);
+    fillStore(storeBlock);
   }
 
   if (!pending.length) return;

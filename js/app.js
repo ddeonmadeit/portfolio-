@@ -14,7 +14,7 @@ const el = (tag, cls, text) => {
 };
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let SITE, SECTIONS, PROJECTS, MUSIC;
+let SITE, SECTIONS, PROJECTS, MUSIC, STORE;
 let PROJECT_BY_ID = {};
 
 /* ---------------- media: images, gifs (native loop) and video (looped) ---------------- */
@@ -635,6 +635,56 @@ function fillMusic(block) {
   block.append(wrap);
 }
 
+/* ---------------- store: the Google Maps listing ----------------
+   A plain iframe of the business's own Maps listing. The stored value can be
+   either a bare URL or the whole <iframe …> snippet Google's "Share → Embed a
+   map" hands you — the src is pulled out of the latter — so the listing can be
+   swapped from the dashboard without touching this file. */
+function storeEmbedSrc(store) {
+  const raw = String((store && store.embedUrl) || '').trim();
+  if (!raw) return null;
+  // pasted iframe markup → just the src
+  const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
+  const url = m ? m[1] : raw;
+  return /^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url) ? url : null;
+}
+
+function fillStore(block) {
+  const src = storeEmbedSrc(STORE);
+  if (!src) return;
+
+  block.classList.add('store-section');
+  block.append(el('h3', 'section-title', 'Store'));
+
+  const wrap = el('div', 'store-block');
+
+  const head = el('div', 'store-head');
+  if (STORE.title) head.append(el('h4', 'store-name', STORE.title));
+  const meta = [STORE.years, STORE.address].filter(Boolean).join('  ·  ');
+  if (meta) head.append(el('p', 'store-meta', meta));
+  if (STORE.blurb) head.append(el('p', 'store-blurb', STORE.blurb));
+  if (STORE.mapsUrl) {
+    const a = el('a', 'store-link', 'View on Google Maps');
+    a.href = STORE.mapsUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    head.append(a);
+  }
+  wrap.append(head);
+
+  const frameWrap = el('div', 'store-map');
+  const frame = el('iframe');
+  frame.src = src;
+  frame.loading = 'lazy';
+  frame.title = `${STORE.title || 'Store'} on Google Maps`;
+  frame.referrerPolicy = 'no-referrer-when-downgrade';
+  frame.setAttribute('allowfullscreen', '');
+  frameWrap.append(frame);
+  wrap.append(frameWrap);
+
+  block.append(wrap);
+}
+
 function renderSections() {
   const archive = $('#archive');
   archive.innerHTML = '';
@@ -681,6 +731,22 @@ function renderSections() {
     fillMusic(musicBlock);
   }
 
+  // The store closes out the page: it's a place rather than a piece of work,
+  // so it sits after every project section, last in the reveal chain. The map
+  // iframe isn't built until it's revealed, so Google is never contacted for
+  // a visitor who doesn't scroll that far.
+  if (STORE && storeEmbedSrc(STORE)) {
+    const storeBlock = el('section', 'section-block');
+    if (firstDone) {
+      storeBlock.hidden = true;
+      archive.append(storeBlock);
+      pending.push({ block: storeBlock, store: true });
+    } else {
+      archive.append(storeBlock);
+      fillStore(storeBlock);
+    }
+  }
+
   if (!pending.length) return;
 
   // One button that walks down the page: it reveals the next section, then
@@ -699,6 +765,7 @@ function renderSections() {
   more.addEventListener('click', () => {
     const entry = pending[next++];
     if (entry.music) fillMusic(entry.block);
+    else if (entry.store) fillStore(entry.block);
     else fillSection(entry.block, entry.section, entry.items, false);
     entry.block.hidden = false;
     if (!REDUCED) entry.block.classList.add('reveal');
@@ -797,6 +864,7 @@ async function main() {
   SITE = data.site;
   SECTIONS = data.sections || [];
   MUSIC = data.music || null;
+  STORE = data.store || null;
   PROJECTS = data.projects || [];
   PROJECT_BY_ID = Object.fromEntries(PROJECTS.map(p => [p.id, p]));
 

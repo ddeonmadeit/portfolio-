@@ -33,6 +33,17 @@ content:
           - { name: instagramUrl, label: "Instagram URL (empty hides the icon)", type: string }
           - { name: knotsssUrl, label: "knotsss URL (empty hides the icon)", type: string }
 
+      - name: store
+        label: Store (the Google Maps listing)
+        type: object
+        fields:
+          - { name: title, label: Store name, type: string }
+          - { name: years, label: "Years open (e.g. 2025 — 2026)", type: string }
+          - { name: address, label: Address, type: string }
+          - { name: blurb, label: Blurb (optional), type: text }
+          - { name: embedUrl, label: "Map embed (Google Maps URL, or the whole iframe code)", type: text }
+          - { name: mapsUrl, label: "\"View on Google Maps\" link (empty hides it)", type: string }
+
       - name: music
         label: Music (the playable album)
         type: object

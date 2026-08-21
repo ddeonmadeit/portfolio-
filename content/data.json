@@ -72,7 +72,12 @@
       "projectIds": [
         "resonance",
         "g-3",
-        "bleko-x-knots-event"
+        "bleko-x-knots-event",
+        "rnb-night",
+        "knots-777",
+        "knots-cypher-flyer",
+        "studio-rats",
+        "mystery-box"
       ]
     },
     {
@@ -458,6 +463,121 @@
           "type": "image"
         }
       ]
+    },
+    {
+      "id": "rnb-night",
+      "title": "Upper Deck R'NB Night",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787272594258-0-rnb-night.jpg",
+      "coverType": "image",
+      "aspect": "9/16",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787272594258-0-rnb-night.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "knots-777",
+      "title": "Knots 777",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787272594258-1-knots-777.jpg",
+      "coverType": "image",
+      "aspect": "16/9",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787272594258-1-knots-777.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "knots-cypher-flyer",
+      "title": "Knots Cypher Flyer",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787272594258-2-knots-cypher-flyer.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787272594258-2-knots-cypher-flyer.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "studio-rats",
+      "title": "Studio Rats",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787272594258-3-studio-rats.jpg",
+      "coverType": "image",
+      "aspect": "16/9",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787272594258-3-studio-rats.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "mystery-box",
+      "title": "Mystery Box",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787272594258-4-mystery-box.jpg",
+      "coverType": "image",
+      "aspect": "3/4",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787272594258-4-mystery-box.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
     }
   ],
   "music": {

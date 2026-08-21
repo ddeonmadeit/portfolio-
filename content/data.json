@@ -723,10 +723,25 @@
   },
   "store": {
     "title": "Knots | Natural Streetwear",
-    "years": "2025 — 2026",
-    "address": "85 Glebe Point Rd, Glebe NSW",
-    "blurb": "",
+    "rating": 5.0,
+    "reviews": 9,
+    "category": "Clothing store in Glebe, New South Wales",
+    "years": "2025 – 2026",
+    "address": "85 Glebe Point Rd, Glebe NSW 2037",
+    "about": "A natural streetwear label and store on Glebe Point Road — exclusive garments, weekly events, cafe pop-ups and performances, run as a creative community space.",
+    "mapsUrl": "https://share.google/CxNnBAv0Vn6tOJyyQ",
     "embedUrl": "https://maps.google.com/maps?q=Knots+%7C+Natural+Streetwear,+85+Glebe+Point+Rd,+Glebe+NSW&output=embed",
-    "mapsUrl": "https://share.google/CxNnBAv0Vn6tOJyyQ"
+    "photos": [
+      "assets/1787214244009-0-img-8057.jpeg",
+      "assets/1787214244111-1-img-8055.jpeg",
+      "assets/1787214244220-2-img-8056.jpeg",
+      "assets/1787214244271-3-img-8058.jpeg",
+      "assets/1787214787495-0-img-4392.jpg",
+      "assets/1787204507330-0-img-8053.jpeg",
+      "assets/1787187821400-3-img-8035.jpeg",
+      "assets/1787190655681-1-img-1548.jpeg",
+      "assets/1787211347291-0-img-8221.jpeg",
+      "assets/1787270362967-1-img-5972.jpg"
+    ]
   }
 }

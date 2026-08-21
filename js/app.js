@@ -740,16 +740,11 @@ function renderDetail(p) {
     embedWrap.hidden = true;
   }
 
-  // gallery beyond the cover; otherwise the "to be added" placeholder
+  // gallery beyond the cover — nothing shown at all if there isn't any
   const gal = $('#d-gallery');
   gal.innerHTML = '';
   const extra = (p.gallery || []).filter(g => g.url !== p.cover);
-  if (extra.length) {
-    extra.forEach(g => gal.append(buildMedia(g.url, g.type, p.title)));
-  } else if (!embed) {
-    // an embed already gives this project something to show
-    gal.append(el('p', 'gallery-note', 'ADDITIONAL MEDIA — TO BE ADDED'));
-  }
+  extra.forEach(g => gal.append(buildMedia(g.url, g.type, p.title)));
 }
 
 /* ---------------- routing ---------------- */

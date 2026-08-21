@@ -62,7 +62,8 @@
         "jk",
         "brutalist-system",
         "g-3",
-        "h"
+        "h",
+        "fa"
       ]
     },
     {
@@ -423,6 +424,38 @@
         {
           "url": "assets/1787214787551-1-img-6545.mov",
           "type": "video"
+        }
+      ]
+    },
+    {
+      "id": "fa",
+      "title": "Ankor Hoodie Campaign",
+      "category": "",
+      "year": "2024",
+      "role": "Photographer / Editor / Clothing Designer",
+      "cover": "assets/1787270362835-0-img-1094.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "loopStart": 0,
+      "loopEnd": 0,
+      "previewStart": 0,
+      "previewEnd": 0,
+      "summary": "Went on a camping trip to test the durability of Knots’s Ankor Hoodie and take some photos.",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787270362967-1-img-5972.jpg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787270363080-2-img-5982.jpg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787270363149-3-img-6010.jpg",
+          "type": "image"
         }
       ]
     }

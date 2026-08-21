@@ -583,16 +583,22 @@ function fillMusic(block) {
     const a = el('a', 'music-link');
     a.href = url; a.target = '_blank'; a.rel = 'noopener';
     a.setAttribute('aria-label', label);
-    // Apple Music's mark is a rounded badge with the note as negative space,
-    // not a single silhouette like Spotify/YouTube's — drawn as shapes filled
-    // in the page background rather than a boolean cutout, so it can't
-    // misrender from a path winding-direction slip.
+    // Apple Music's mark is a bare paired-note glyph, not a badge — no
+    // enclosing chip, filling the icon box directly the way Spotify's and
+    // YouTube's own logos do. Built from plain rectangles and ellipses
+    // rather than one hand-authored path, since simple additive shapes
+    // can't misrender the way a boolean cutout with the wrong winding
+    // direction can.
     a.innerHTML = key === 'apple'
-      ? `<svg viewBox="0 0 24 24" aria-hidden="true" class="apple-music-mark">
-           <rect x="0" y="0" width="24" height="24" rx="6.5" fill="currentColor"/>
-           <circle class="cut" cx="9.3" cy="17.3" r="2.55"/>
-           <rect class="cut" x="11.05" y="4.6" width="1.35" height="12.9"/>
-           <path class="cut" d="M12.4 4.6c3.35.32 4.95 1.86 4.95 4.53 0 .55-.1 1.06-.3 1.5-.35-1.85-1.85-2.98-4.5-3.28l-.15-2.75z"/>
+      ? `<svg viewBox="0 0 24 24" aria-hidden="true">
+           <g fill="currentColor">
+             <ellipse cx="7.0" cy="18.2" rx="3.1" ry="2.5"/>
+             <ellipse cx="16.3" cy="15.9" rx="2.7" ry="2.2"/>
+             <rect x="8.5" y="4.3" width="1.9" height="14"/>
+             <rect x="17.4" y="4.9" width="1.9" height="11"/>
+             <path d="M8.5 4.3 19.3 1.6v3.3L8.5 7.6z"/>
+             <path d="M8.5 8.6 19.3 5.9v3.1L8.5 11.6z"/>
+           </g>
          </svg>`
       : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[key]}"/></svg>`;
     icons.append(a);

@@ -641,14 +641,6 @@ function fillMusic(block) {
    information (rating, category, photo strip, address, map) laid out the same
    way, drawn in this site's palette and type, with the actions that only make
    sense inside the Maps app left out. */
-function storeEmbedSrc(store) {
-  const raw = String((store && store.embedUrl) || '').trim();
-  if (!raw) return null;
-  const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
-  const url = m ? m[1] : raw;
-  return /^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url) ? url : null;
-}
-
 // Five stars, filled to the rating — halves included, so 4.5 reads correctly.
 function buildStars(rating) {
   const row = el('div', 'store-stars');
@@ -666,18 +658,6 @@ function buildStars(rating) {
   return row;
 }
 
-function buildStoreMap(src) {
-  const wrap = el('div', 'store-map');
-  const frame = el('iframe');
-  frame.src = src;
-  frame.loading = 'lazy';
-  frame.title = `${STORE.title || 'Store'} on Google Maps`;
-  frame.referrerPolicy = 'no-referrer-when-downgrade';
-  frame.setAttribute('allowfullscreen', '');
-  wrap.append(frame);
-  return wrap;
-}
-
 function buildAddressRow() {
   const row = el('div', 'store-address');
   const pin = el('span', 'store-pin');
@@ -687,7 +667,6 @@ function buildAddressRow() {
 }
 
 function fillStore(block) {
-  const src = storeEmbedSrc(STORE);
   const photos = (STORE.photos || []).filter(Boolean);
 
   block.classList.add('store-section');
@@ -757,7 +736,6 @@ function fillStore(block) {
     overview.append(strip);
   }
   if (STORE.address) overview.append(buildAddressRow());
-  if (src) overview.append(buildStoreMap(src));
 
   /* Photos — every shot, as a grid */
   if (photos.length) {
@@ -895,7 +873,7 @@ function renderSections() {
   // so it sits after every project section, last in the reveal chain. The map
   // iframe isn't built until it's revealed, so Google is never contacted for
   // a visitor who doesn't scroll that far.
-  if (STORE && storeEmbedSrc(STORE)) {
+  if (STORE && (STORE.title || (STORE.photos || []).length)) {
     const storeBlock = el('section', 'section-block');
     if (firstDone) {
       storeBlock.hidden = true;

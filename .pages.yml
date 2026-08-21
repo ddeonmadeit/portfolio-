@@ -45,7 +45,6 @@ content:
           - { name: address, label: Address, type: string }
           - { name: about, label: About, type: text }
           - { name: mapsUrl, label: "\"View on Google Maps\" link", type: string }
-          - { name: embedUrl, label: "Map embed (Maps URL, or the whole iframe code)", type: text }
           - { name: photos, label: Photos, type: image, list: true }
 
       - name: music

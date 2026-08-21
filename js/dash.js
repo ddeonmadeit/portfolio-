@@ -389,7 +389,7 @@ function renderStorePanel() {
   panel.innerHTML = '';
   DATA.store = DATA.store || {
     title: '', rating: 0, reviews: 0, category: '', years: '',
-    address: '', about: '', mapsUrl: '', embedUrl: '', photos: [],
+    address: '', about: '', mapsUrl: '', photos: [],
   };
   const st = DATA.store;
   st.photos = st.photos || [];
@@ -400,7 +400,7 @@ function renderStorePanel() {
   intro.textContent =
     'The last section on the home page, laid out like the Google Maps listing ' +
     'but drawn in the site\'s own colours. Photos are served from this repo, ' +
-    'not from Google. Remove every photo and clear the map to hide the section.';
+    'not from Google.';
   panel.append(intro);
 
   const field = (label, key, hint, kind) => {
@@ -426,29 +426,6 @@ function renderStorePanel() {
   field('Address', 'address');
   field('About', 'about', 'Shown under the About tab.', 'textarea');
   field('"View on Google Maps" link', 'mapsUrl');
-
-  const embed = field(
-    'Map embed', 'embedUrl',
-    'A Google Maps URL, or the whole <iframe> code from Maps → Share → Embed a map.'
-  );
-  const status = el('div', 'field-hint');
-  status.style.marginTop = '4px';
-  const checkEmbed = () => {
-    const raw = (st.embedUrl || '').trim();
-    if (!raw) { status.textContent = 'Empty — no map is shown.'; status.style.color = ''; return; }
-    const m = raw.match(/src\s*=\s*["']([^"']+)["']/i);
-    const url = m ? m[1] : raw;
-    if (/^https:\/\/(www\.)?(google\.[a-z.]+|maps\.google\.[a-z.]+)\//i.test(url)) {
-      status.textContent = m ? '✓ iframe code recognised — its src will be used.' : '✓ Recognised.';
-      status.style.color = '#4ade80';
-    } else {
-      status.textContent = 'Not a google.com/maps address — no map will be shown.';
-      status.style.color = 'var(--danger)';
-    }
-  };
-  checkEmbed();
-  embed.addEventListener('input', checkEmbed);
-  embed.parentNode.append(status);
 
   // photos — upload, reorder, remove
   const photoField = el('div', 'field');

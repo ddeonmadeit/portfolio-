@@ -76,8 +76,13 @@
         "rnb-night",
         "knots-777",
         "knots-cypher-flyer",
+        "mystery-box",
         "studio-rats",
-        "mystery-box"
+        "knots-emblem",
+        "knots-store",
+        "mix-and-matcha",
+        "smoke-or-die",
+        "sdl-creations-logo"
       ]
     },
     {
@@ -470,9 +475,9 @@
       "category": "",
       "year": "2025",
       "role": "Graphic Designer",
-      "cover": "assets/1787272594258-0-rnb-night.jpg",
+      "cover": "assets/1787273863466-0-8d3c3e90-4b6d-49b1-8f9a-a59b2b066c04.jpg",
       "coverType": "image",
-      "aspect": "9/16",
+      "aspect": "4/5",
       "coverX": 50,
       "coverY": 50,
       "summary": "",
@@ -572,6 +577,121 @@
       "gallery": [
         {
           "url": "assets/1787272594258-4-mystery-box.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "knots-emblem",
+      "title": "Knots Emblem",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787274295762-0-knots-emblem.jpg",
+      "coverType": "image",
+      "aspect": "3/4",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787274295762-0-knots-emblem.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "knots-store",
+      "title": "The Knots Store",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787274295762-1-knots-store.jpg",
+      "coverType": "image",
+      "aspect": "2/3",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787274295762-1-knots-store.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "mix-and-matcha",
+      "title": "Mix & Matcha",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787274295762-2-mix-and-matcha.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787274295762-2-mix-and-matcha.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "smoke-or-die",
+      "title": "Smoke or Die",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787274295762-3-smoke-or-die.jpg",
+      "coverType": "image",
+      "aspect": "4/5",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787274295762-3-smoke-or-die.jpg",
+          "type": "image"
+        }
+      ],
+      "embedUrl": "",
+      "loopStart": 0,
+      "loopEnd": 0
+    },
+    {
+      "id": "sdl-creations-logo",
+      "title": "Sdl Creations Logo",
+      "category": "",
+      "year": "2025",
+      "role": "Graphic Designer",
+      "cover": "assets/1787274295762-4-sdl-creations-logo.jpg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "summary": "",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787274295762-4-sdl-creations-logo.jpg",
           "type": "image"
         }
       ],

@@ -802,10 +802,15 @@ function fillStore(block) {
     }
     list.append(rowEl);
   };
+  // The store's own contact details, not the studio's — Knots is a
+  // separate account from the portfolio's Instagram/email.
+  const storeHandle = STORE.instagramUrl
+    ? '@' + STORE.instagramUrl.replace(/\/+$/, '').split('/').pop()
+    : '';
   link('Address', STORE.address, STORE.mapsUrl);
-  link('Email', SITE.email, SITE.email ? `mailto:${SITE.email}` : null);
+  link('Email', STORE.email, STORE.email ? `mailto:${STORE.email}` : null);
   link('Phone', SITE.phone, SITE.phone ? `tel:${String(SITE.phone).replace(/[^\d+]/g, '')}` : null);
-  link('Instagram', '@deonmadeit', SITE.instagramUrl);
+  link('Instagram', storeHandle, STORE.instagramUrl);
   link('Listing', 'View on Google Maps', STORE.mapsUrl);
   contact.append(list);
 

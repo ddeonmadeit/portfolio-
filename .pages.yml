@@ -43,6 +43,8 @@ content:
           - { name: category, label: "Category line", type: string }
           - { name: years, label: "Years open (takes the place of \"Open\")", type: string }
           - { name: address, label: Address, type: string }
+          - { name: email, label: "Store contact email (separate from the studio's)", type: string }
+          - { name: instagramUrl, label: "Store Instagram URL (separate from the studio's)", type: string }
           - { name: about, label: About, type: text }
           - { name: mapsUrl, label: "\"View on Google Maps\" link", type: string }
           # A photo is a plain path until it's given a crop in /dash, at which

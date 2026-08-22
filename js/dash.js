@@ -400,7 +400,7 @@ function renderStorePanel() {
   panel.innerHTML = '';
   DATA.store = DATA.store || {
     title: '', rating: 0, reviews: 0, category: '', years: '',
-    address: '', about: '', mapsUrl: '', photos: [],
+    address: '', email: '', instagramUrl: '', about: '', mapsUrl: '', photos: [],
   };
   const st = DATA.store;
   // A photo is a bare path until it's been cropped, then { url, x, y }. Edit
@@ -438,6 +438,8 @@ function renderStorePanel() {
   field('Category line', 'category', 'e.g. "Clothing store in Glebe, New South Wales".');
   field('Years open', 'years', 'Takes the place of Maps\' "Open" — e.g. "2025 – 2026".');
   field('Address', 'address');
+  field('Email', 'email', "Shown under the store's own Contact tab — this is Knots' address, not the studio's.");
+  field('Instagram URL', 'instagramUrl', 'e.g. https://instagram.com/knots.raw — the handle is read from the link.');
   field('About', 'about', 'Shown under the About tab.', 'textarea');
   field('"View on Google Maps" link', 'mapsUrl');
 

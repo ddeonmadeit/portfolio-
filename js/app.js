@@ -418,47 +418,152 @@ const PLAY_ICON_SVG =
   '<circle cx="28" cy="28" r="25" fill="none" stroke="currentColor" stroke-width="3.5"/>' +
   '<path d="M23 18.5 39 28l-16 9.5z" fill="currentColor"/></svg>';
 
+/* The audio element is NEVER routed through Web Audio.
+
+   It used to be: createMediaElementSource() tapped the signal so an
+   AnalyserNode could drive the waveform. But that call moves the element's
+   entire output inside the AudioContext, and on iOS the context is bound to
+   the audio session — background Safari, take a call, or switch tracks fast
+   and the session is interrupted. WebKit resumes it in a bad state, which is
+   where the screech, the double-start and the sped-up, pitched-up playback
+   all came from. There is also no way to detach a MediaElementSourceNode, so
+   every track ever played stayed wired into the graph for good.
+
+   So playback is now a bare <audio> element straight to the speakers: the
+   platform's own pipeline, no resampling, no graph to corrupt, correct
+   behaviour when the app is backgrounded. The waveform still follows the
+   real music — the file is decoded once, offline, into a small per-song
+   envelope of band energies, and the wave reads that envelope at the current
+   playhead. Same picture as before, none of the fragility. */
+
 const player = {
-  ctx: null,       // shared AudioContext, created on the first tap (a gesture,
-                   // which is what unlocks audio on iOS)
-  analyser: null,
-  bins: null,
   current: null,   // the entry whose audio owns the speakers right now
-  entries: [],     // { track, item, wave, audio, source }
+  entries: [],     // { track, item, wave, audio, env }
+  gen: 0,          // bumped on every tap, so a slow play() can tell it's stale
 };
 
-function ensureAudioGraph() {
-  if (!player.ctx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return; // no Web Audio — tracks still play, waves just idle
-    player.ctx = new AC();
-    player.analyser = player.ctx.createAnalyser();
-    player.analyser.fftSize = 256;
-    player.analyser.smoothingTimeConstant = 0.7;
-    player.bins = new Uint8Array(player.analyser.frequencyBinCount);
-    player.analyser.connect(player.ctx.destination);
+// Envelope resolution. 30 per second is finer than the eye reads on a wave
+// this size, and a four-minute song still costs well under 100KB.
+const ENV_FPS = 30;
+const ENV_BANDS = 4;
+const envCache = new Map(); // url -> Promise<Float32Array | null>
+
+// Split into bass / low-mid / high-mid / treble with three one-pole lowpasses
+// and take the differences between them. A full FFT would buy precision the
+// wave cannot show, for far more work; this runs over a whole song in a few
+// tens of milliseconds.
+const BAND_CUTOFFS = [120, 800, 4000];
+
+async function analyseBuffer(buf) {
+  const sr = buf.sampleRate;
+  const n = buf.length;
+  if (!n) return null;
+  // yields to the event loop between slices, so scanning a four-minute song
+  // never shows up as a dropped frame in the wave
+  const SLICE = 1 << 18; // power of two so the mask below is exact
+  const breathe = () => new Promise(r => setTimeout(r, 0));
+
+  // mix to mono up front so the filters run once, not once per channel
+  const chs = [];
+  for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+  const frames = Math.max(1, Math.ceil((n / sr) * ENV_FPS));
+  const env = new Float32Array(frames * ENV_BANDS);
+  const sums = new Float64Array(ENV_BANDS);
+  const perFrame = sr / ENV_FPS;
+
+  // one-pole coefficients: y += (x - y) * k
+  const k = BAND_CUTOFFS.map(f => 1 - Math.exp(-2 * Math.PI * f / sr));
+  let lp0 = 0, lp1 = 0, lp2 = 0;
+  let frame = 0, count = 0;
+
+  for (let i = 0; i < n; i++) {
+    let x = 0;
+    for (let c = 0; c < chs.length; c++) x += chs[c][i];
+    x /= chs.length;
+
+    lp0 += (x - lp0) * k[0];
+    lp1 += (x - lp1) * k[1];
+    lp2 += (x - lp2) * k[2];
+
+    const b0 = lp0;         // < 120Hz
+    const b1 = lp1 - lp0;   // 120 - 800
+    const b2 = lp2 - lp1;   // 800 - 4k
+    const b3 = x - lp2;     // > 4k
+    sums[0] += b0 * b0; sums[1] += b1 * b1;
+    sums[2] += b2 * b2; sums[3] += b3 * b3;
+    count++;
+
+    if (count >= perFrame && frame < frames) {
+      for (let b = 0; b < ENV_BANDS; b++) {
+        env[frame * ENV_BANDS + b] = Math.sqrt(sums[b] / count);
+        sums[b] = 0;
+      }
+      count = 0; frame++;
+    }
+    if ((i & (SLICE - 1)) === SLICE - 1) await breathe();
   }
-  // suspended until a user gesture — every call here happens inside one
-  if (player.ctx.state === 'suspended') player.ctx.resume().catch(() => {});
+  if (count && frame < frames) {
+    for (let b = 0; b < ENV_BANDS; b++) env[frame * ENV_BANDS + b] = Math.sqrt(sums[b] / count);
+  }
+
+  // Normalise each band against its own loud-but-not-peak level, so a quiet
+  // master and a hot one both fill the wave, and one stray transient can't
+  // flatten everything after it. Device volume no longer changes the picture
+  // either — an improvement on reading the live output.
+  for (let b = 0; b < ENV_BANDS; b++) {
+    const col = [];
+    for (let f = 0; f < frames; f++) col.push(env[f * ENV_BANDS + b]);
+    col.sort((x, y) => x - y);
+    const ref = col[Math.floor(col.length * 0.95)] || col[col.length - 1] || 1;
+    const scale = ref > 1e-6 ? 0.9 / ref : 0;
+    for (let f = 0; f < frames; f++) {
+      const v = env[f * ENV_BANDS + b] * scale;
+      // same expansion the live analyser used, to keep hits reading as hits
+      env[f * ENV_BANDS + b] = Math.min(1, Math.pow(v, 1.35));
+    }
+  }
+  return env;
 }
 
-// Four frequency bands of whatever is playing right now, each 0..1.
-// Bin width is sampleRate/fftSize ≈ 172Hz at 44.1k.
-const BANDS = [[0, 3], [3, 9], [9, 26], [26, 88]]; // bass, low-mid, high-mid, treble
-const levelsOut = [0, 0, 0, 0];
-function audioLevels() {
-  if (!player.analyser) return null;
-  player.analyser.getByteFrequencyData(player.bins);
-  BANDS.forEach(([a, b], i) => {
-    // the loudest bin in the band, not the average — averages smear a kick or
-    // a hat across empty bins and flatten the swing
-    let mx = 0;
-    for (let j = a; j < b; j++) if (player.bins[j] > mx) mx = player.bins[j];
-    // byte values are dB-mapped and sit compressed near the top; expanding
-    // them restores the contrast between a hit and the space after it
-    levelsOut[i] = Math.pow(mx / 255, 1.7);
-  });
-  return levelsOut;
+// Decoded in an OfflineAudioContext, which never touches the audio hardware,
+// so analysing a song can't disturb whatever is playing. The AudioBuffer is
+// dropped as soon as the envelope is out of it.
+function loadEnvelope(url) {
+  if (envCache.has(url)) return envCache.get(url);
+  const job = (async () => {
+    try {
+      const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!OAC) return null;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const bytes = await res.arrayBuffer();
+      const oac = new OAC(1, 1, 44100);
+      const buf = await new Promise((resolve, reject) => {
+        // Safari still wants the callback form
+        const ret = oac.decodeAudioData(bytes, resolve, reject);
+        if (ret && typeof ret.then === 'function') ret.then(resolve, reject);
+      });
+      return await analyseBuffer(buf);
+    } catch {
+      return null; // no envelope — the wave keeps its idle motion
+    }
+  })();
+  envCache.set(url, job);
+  return job;
+}
+
+// What the wave asks for each frame: the four band levels at the playhead.
+function levelsFor(entry) {
+  return () => {
+    const env = entry.env;
+    const a = entry.audio;
+    if (!env || !a || a.paused) return null;
+    const f = Math.floor(a.currentTime * ENV_FPS);
+    const frames = env.length / ENV_BANDS;
+    if (!(f >= 0) || f >= frames) return null;
+    const at = f * ENV_BANDS;
+    return [env[at], env[at + 1], env[at + 2], env[at + 3]];
+  };
 }
 
 // Organic scribble waveform on a canvas, laid out like a spectrum: the four
@@ -535,38 +640,76 @@ function updateMusicUI() {
   });
 }
 
+function makeAudio(entry) {
+  const a = new Audio();
+  a.preload = 'metadata';
+  a.playsInline = true;
+  a.src = entry.track.file;
+  entry.audio = a;
+  ['play', 'pause', 'ended'].forEach(ev => a.addEventListener(ev, updateMusicUI));
+  // Back to the start once, so the next tap begins the song rather than
+  // resuming a finished one. Setting currentTime is enough — no reload, and
+  // nothing that could re-trigger playback.
+  a.addEventListener('ended', () => { try { a.currentTime = 0; } catch {} });
+
+  // The envelope only feeds the drawing, so it waits until the song is
+  // actually playing — fetching and decoding it up front would compete with
+  // playback for bandwidth on the one tap where latency is felt.
+  a.addEventListener('playing', () => {
+    if (entry.env || entry.envPending) return;
+    entry.envPending = true;
+    loadEnvelope(entry.track.file).then((env) => { entry.env = env; });
+  }, { once: true });
+  return a;
+}
+
+// Stop whatever is playing and rewind it, so switching tracks always starts
+// the new song cleanly instead of leaving a half-played one behind.
+function stopEntry(entry) {
+  const a = entry && entry.audio;
+  if (!a) return;
+  try { a.pause(); a.currentTime = 0; } catch {}
+}
+
 function onTrackClick(entry) {
-  ensureAudioGraph();
+  // Every tap invalidates any play() still in flight. Without this, tapping
+  // two tracks quickly lets the first one's promise resolve after the second
+  // has started and both end up audible.
+  const gen = ++player.gen;
 
-  // one voice at a time
-  if (player.current && player.current !== entry) player.current.audio?.pause();
+  if (!entry.audio) makeAudio(entry);
 
-  if (!entry.audio) {
-    const a = new Audio();
-    a.src = entry.track.file;
-    a.preload = 'auto';
-    entry.audio = a;
-    ['play', 'pause', 'ended'].forEach(ev => a.addEventListener(ev, updateMusicUI));
-    a.addEventListener('ended', () => { a.currentTime = 0; });
-    // Route through the analyser so the waveform sees the real signal. Once
-    // connected, the element's sound flows only through the graph — if Web
-    // Audio isn't available the element just plays directly and the wave
-    // falls back to its idle motion.
-    if (player.ctx) {
-      try {
-        entry.source = player.ctx.createMediaElementSource(a);
-        entry.source.connect(player.analyser);
-      } catch {}
-    }
+  // Tapping the track that's already playing just pauses it, in place.
+  if (player.current === entry && !entry.audio.paused) {
+    entry.audio.pause();
+    updateMusicUI();
+    return;
   }
 
+  if (player.current && player.current !== entry) stopEntry(player.current);
   player.current = entry;
-  if (entry.audio.paused) entry.audio.play().catch(() => {});
-  else entry.audio.pause();
+
+  const a = entry.audio;
+  const p = a.play();
+  if (p && typeof p.catch === 'function') {
+    p.then(() => {
+      // A newer tap landed while this was starting — undo it.
+      if (player.gen !== gen) stopEntry(entry);
+      updateMusicUI();
+    }).catch(() => {
+      updateMusicUI();
+    });
+  }
   updateMusicUI();
 }
 
 function fillMusic(block) {
+  // Rebuilding the section would otherwise leave the old entries — and any
+  // element still playing through them — with no way to reach them again.
+  player.entries.forEach(stopEntry);
+  player.entries = [];
+  player.current = null;
+
   block.classList.add('music-section');
   block.append(el('h3', 'section-title', 'Music'));
 
@@ -622,12 +765,13 @@ function fillMusic(block) {
     btn.type = 'button';
     btn.setAttribute('aria-label', `Play ${track.title || 'track'}`);
     btn.innerHTML = PLAY_ICON_SVG;
-    const wave = buildWave(audioLevels);
+    const entry = { track, item, wave: null, audio: null, env: null };
+    const wave = buildWave(levelsFor(entry));
+    entry.wave = wave;
     btn.append(wave.canvas);
     item.append(btn, el('p', 'track-name', track.title || ''));
     trackRow.append(item);
 
-    const entry = { track, item, wave, audio: null, source: null };
     player.entries.push(entry);
     btn.addEventListener('click', () => onTrackClick(entry));
   });

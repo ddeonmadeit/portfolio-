@@ -985,6 +985,15 @@ function fillStore(block) {
   card.append(tabsRow, panels);
   selectTab('overview');
 
+  if (STORE.mapsUrl) {
+    const viewGoogle = el('a', 'store-view-google');
+    viewGoogle.href = STORE.mapsUrl;
+    viewGoogle.target = '_blank';
+    viewGoogle.rel = 'noopener';
+    viewGoogle.textContent = 'View on Google';
+    card.append(viewGoogle);
+  }
+
   block.append(card);
 }
 

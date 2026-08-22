@@ -632,6 +632,27 @@ video::-webkit-media-controls-start-playback-button { display: none !important; 
 a.store-contact-value { transition: color 0.3s var(--ease); }
 a.store-contact-value:hover { color: var(--accent); }
 
+/* sits under the tabs, closing out the card the way the Maps listing itself
+   would link back out to the app */
+.store-view-google {
+  display: block;
+  width: fit-content;
+  margin: 28px auto 0;
+  padding: 10px 22px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(253, 249, 243, 0.7);
+  text-decoration: none;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.store-view-google:hover, .store-view-google:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 @media (max-width: 640px) {
   .store-grid { grid-template-columns: repeat(auto-fill, minmax(108px, 1fr)); }
 }

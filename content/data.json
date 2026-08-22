@@ -53,20 +53,6 @@
       ]
     },
     {
-      "id": "fashion",
-      "title": "Fashion",
-      "projectIds": [
-        "void-pavilion",
-        "knots-leather-jacket-campaign",
-        "knots-aw24-capsule-campaign",
-        "jk",
-        "brutalist-system",
-        "g-3",
-        "h",
-        "fa"
-      ]
-    },
-    {
       "id": "graphics",
       "title": "Graphics",
       "projectIds": [
@@ -83,19 +69,6 @@
         "mix-and-matcha",
         "smoke-or-die",
         "sdl-creations-logo"
-      ]
-    },
-    {
-      "id": "video",
-      "title": "Video",
-      "projectIds": [
-        "after-hours",
-        "brutalist-system",
-        "atelier-noir",
-        "d",
-        "g-2",
-        "g",
-        "thread-study"
       ]
     }
   ],
@@ -723,7 +696,7 @@
   },
   "store": {
     "title": "Knots | Natural Streetwear",
-    "rating": 5.0,
+    "rating": 5,
     "reviews": 9,
     "category": "Clothing store in Glebe, New South Wales",
     "years": "2025 – 2026",

@@ -68,7 +68,8 @@
         "knots-emblem",
         "mix-and-matcha",
         "smoke-or-die",
-        "sdl-creations-logo"
+        "sdl-creations-logo",
+        "digital-art-for-exhibition"
       ]
     }
   ],
@@ -671,6 +672,34 @@
       "embedUrl": "",
       "loopStart": 0,
       "loopEnd": 0
+    },
+    {
+      "id": "digital-art-for-exhibition",
+      "title": "Digital Art Collection For Exhibition",
+      "category": "",
+      "year": "2022",
+      "role": "Digital Artist / World Building ",
+      "cover": "assets/1787362205189-0-img-5170.jpeg",
+      "coverType": "image",
+      "aspect": "1/1",
+      "coverX": 50,
+      "coverY": 50,
+      "loopStart": 0,
+      "loopEnd": 0,
+      "previewStart": 0,
+      "previewEnd": 0,
+      "summary": "This was a collection of digital art pieces I made for display in the St Andrew’s Cathedral School art exhibition in 2022.",
+      "narrative": "",
+      "gallery": [
+        {
+          "url": "assets/1787362205216-1-img-5171.jpeg",
+          "type": "image"
+        },
+        {
+          "url": "assets/1787362205335-2-img-5169.webp",
+          "type": "image"
+        }
+      ]
     }
   ],
   "music": {

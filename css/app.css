@@ -177,7 +177,8 @@ img { display: block; max-width: 100%; }
 /* Instagram + knotsss icon links — same sunset-gradient-through-a-mask
    treatment as the masthead logo, just smaller and inline. No border,
    no background box; the icon shape itself is the whole link target. */
-.icon-row { display: flex; align-items: center; justify-content: center; gap: 20px; }
+.icon-row { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; row-gap: 16px; }
+#links-label { margin-top: 26px; }
 .icon-link {
   width: 24px; height: 24px;
   display: block;

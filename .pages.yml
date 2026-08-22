@@ -32,6 +32,17 @@ content:
           - { name: phone, label: "Phone (empty hides it)", type: string }
           - { name: instagramUrl, label: "Instagram URL (empty hides the icon)", type: string }
           - { name: knotsssUrl, label: "knotsss URL (empty hides the icon)", type: string }
+          - name: links
+            label: "Footer links (icon-only row under Contact)"
+            type: object
+            list: true
+            fields:
+              - name: platform
+                label: Platform
+                type: select
+                options:
+                  values: [spotify, apple-music, youtube, soundcloud, instagram, tiktok, deezer, iheartradio]
+              - { name: url, label: URL, type: string }
 
       - name: store
         label: Store (the Maps-style listing)

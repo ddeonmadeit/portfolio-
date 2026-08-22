@@ -237,6 +237,40 @@ function fillStatic() {
   }
 
   buildIconRow($('#contact-icon-row'));
+
+  const linksLabel = $('#links-label');
+  const links = SITE.links || [];
+  linksLabel.textContent = 'LISTEN';
+  linksLabel.hidden = !links.length;
+  buildLinksRow($('#links-icon-row'), links);
+}
+
+// Every symbol here, one per platform: what actually appears is nothing
+// but the mark, no wordmark or badge, styled through the same
+// gradient-through-a-mask treatment as the Instagram/knotsss icons above.
+const PLATFORM_ICONS = {
+  spotify:      { file: 'icon-spotify.png',      label: 'Spotify' },
+  'apple-music':{ file: 'icon-apple-music.png',  label: 'Apple Music' },
+  youtube:      { file: 'icon-youtube.png',      label: 'YouTube' },
+  soundcloud:   { file: 'icon-soundcloud.png',   label: 'SoundCloud' },
+  instagram:    { file: 'icon-instagram.png',    label: 'Instagram' },
+  tiktok:       { file: 'icon-tiktok.png',       label: 'TikTok' },
+  deezer:       { file: 'icon-deezer.png',       label: 'Deezer' },
+  iheartradio:  { file: 'icon-iheartradio.png',  label: 'iHeartRadio' },
+};
+
+function buildLinksRow(container, links) {
+  container.innerHTML = '';
+  links.forEach(({ platform, url }) => {
+    const meta = PLATFORM_ICONS[platform];
+    if (!meta || !url) return;
+    const a = el('a', 'icon-link');
+    a.style.maskImage = `url('assets/${meta.file}')`;
+    a.style.webkitMaskImage = `url('assets/${meta.file}')`;
+    a.href = url; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', meta.label);
+    container.append(a);
+  });
 }
 
 function buildIconRow(container) {

@@ -30,7 +30,41 @@
     "email": "ddeonmadeit@gmail.com",
     "phone": "+61451887907",
     "instagramUrl": "https://instagram.com/deonmadeit",
-    "knotsssUrl": "https://knotsss.com"
+    "knotsssUrl": "https://knotsss.com",
+    "links": [
+      {
+        "platform": "spotify",
+        "url": "https://open.spotify.com/artist/3AjGZU5094PCu9vuMjU5h2?si=vCjwvYfySXmiLhBG-IJuXw"
+      },
+      {
+        "platform": "apple-music",
+        "url": "https://music.apple.com/au/artist/deon/1538247212"
+      },
+      {
+        "platform": "youtube",
+        "url": "https://www.youtube.com/channel/UCV0uBGaVUDyd5id8hQ43Jow"
+      },
+      {
+        "platform": "soundcloud",
+        "url": "https://soundcloud.com/deonnofficial"
+      },
+      {
+        "platform": "instagram",
+        "url": "https://www.instagram.com/deonisdeon"
+      },
+      {
+        "platform": "tiktok",
+        "url": "https://vm.tiktok.com/ZSVG2vka/"
+      },
+      {
+        "platform": "deezer",
+        "url": "https://www.deezer.com/en/artist/57585092"
+      },
+      {
+        "platform": "iheartradio",
+        "url": "https://www.iheart.com/artist/deon-danielian-33260808/"
+      }
+    ]
   },
   "sections": [
     {

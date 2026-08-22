@@ -751,6 +751,51 @@ function renderTextPanel() {
   addSoft.addEventListener('click', () => { site.softwares.push(''); renderSoftwares(); });
   softField.append(addSoft);
   panel.append(softField);
+
+  // links — the footer's row of streaming/social icons, each a platform
+  // picked from a fixed set (so it always resolves to a real glyph) plus a URL
+  const LINK_PLATFORMS = [
+    ['spotify', 'Spotify'], ['apple-music', 'Apple Music'], ['youtube', 'YouTube'],
+    ['soundcloud', 'SoundCloud'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'],
+    ['deezer', 'Deezer'], ['iheartradio', 'iHeartRadio'],
+  ];
+  site.links = site.links || [];
+  const linksField = el('div', 'field list-field');
+  linksField.append(el('label', null, 'Footer links'));
+  linksField.append(el('div', 'field-hint', 'Shown as icon-only links under Contact — no text, just the platform mark.'));
+  const linksUl = el('ul');
+  linksField.append(linksUl);
+  const renderLinks = () => {
+    linksUl.innerHTML = '';
+    site.links.forEach((link, i) => {
+      const li = el('li');
+      li.style.display = 'flex'; li.style.gap = '8px';
+      const select = el('select');
+      LINK_PLATFORMS.forEach(([value, label]) => {
+        const opt = el('option', null, label);
+        opt.value = value;
+        if (link.platform === value) opt.selected = true;
+        select.append(opt);
+      });
+      if (!link.platform) link.platform = LINK_PLATFORMS[0][0];
+      select.addEventListener('change', () => { link.platform = select.value; });
+      const input = el('input');
+      input.type = 'text'; input.value = link.url || ''; input.placeholder = 'https://…';
+      input.style.flex = '1';
+      input.addEventListener('input', () => { link.url = input.value.trim(); });
+      const rm = el('button', 'icon-btn icon-btn-danger', '✕');
+      rm.type = 'button';
+      rm.addEventListener('click', () => { site.links.splice(i, 1); renderLinks(); });
+      li.append(select, input, rm);
+      linksUl.append(li);
+    });
+  };
+  renderLinks();
+  const addLink = el('button', 'btn btn-sm btn-ghost', '+ Add link');
+  addLink.type = 'button';
+  addLink.addEventListener('click', () => { site.links.push({ platform: LINK_PLATFORMS[0][0], url: '' }); renderLinks(); });
+  linksField.append(addLink);
+  panel.append(linksField);
 }
 
 /* ============================================================

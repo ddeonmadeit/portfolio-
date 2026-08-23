@@ -1037,11 +1037,13 @@ function renderSections() {
 
   const pending = [];
   let firstDone = false;
-  let musicSeated = false;
-  let storeSeated = false;
+  let lastVisible = null; // the block View more/less anchors itself under
   const hasStore = () => !!(STORE && (STORE.title || (STORE.photos || []).length));
+  const fashionSection = SECTIONS.find(s => s.id === 'fashion');
 
   SECTIONS.forEach((section) => {
+    if (section.id === 'fashion') return; // seated explicitly below, not through this loop
+
     const items = (section.projectIds || [])
       .map(id => PROJECT_BY_ID[id])
       .filter(Boolean);
@@ -1056,26 +1058,37 @@ function renderSections() {
     if (!firstDone) {
       fillSection(block, section, items, true);
       firstDone = true;
+      lastVisible = block;
 
-      // Music sits directly after the first section, ahead of every project
-      // category, and joins the same reveal chain as the rest.
+      // Music and Fashion always show, right under the first section —
+      // everything past them is what View more/less controls.
       if (MUSIC && (MUSIC.tracks || []).length) {
         const musicBlock = el('section', 'section-block');
-        musicBlock.hidden = true;
         archive.append(musicBlock);
-        pending.push({ block: musicBlock, music: true });
-        musicSeated = true;
+        fillMusic(musicBlock);
+        lastVisible = musicBlock;
       }
 
-      // The store rides with the album rather than trailing the project
-      // categories: it's a place, not a piece of work, and buried at the
-      // very end of the chain nobody tapped far enough to reach it.
+      if (fashionSection) {
+        const fashionItems = (fashionSection.projectIds || [])
+          .map(id => PROJECT_BY_ID[id])
+          .filter(Boolean);
+        if (fashionItems.length) {
+          const fashionBlock = el('section', 'section-block');
+          archive.append(fashionBlock);
+          fillSection(fashionBlock, fashionSection, fashionItems, true);
+          lastVisible = fashionBlock;
+        }
+      }
+
+      // The store rides behind Music/Fashion rather than trailing every
+      // project category — a place, not a piece of work, so it's the first
+      // thing View more reveals rather than the last.
       if (hasStore()) {
         const storeBlock = el('section', 'section-block');
         storeBlock.hidden = true;
         archive.append(storeBlock);
         pending.push({ block: storeBlock, store: true });
-        storeSeated = true;
       }
     } else {
       block.hidden = true;
@@ -1084,45 +1097,61 @@ function renderSections() {
   });
 
   // No project sections at all but music exists — show it anyway.
-  if (!musicSeated && MUSIC && (MUSIC.tracks || []).length) {
+  if (!firstDone && MUSIC && (MUSIC.tracks || []).length) {
     const musicBlock = el('section', 'section-block');
     archive.append(musicBlock);
     fillMusic(musicBlock);
+    lastVisible = musicBlock;
   }
 
   // No project sections at all — nothing to reveal behind, so show it.
-  if (!storeSeated && hasStore()) {
+  if (!firstDone && hasStore()) {
     const storeBlock = el('section', 'section-block');
     archive.append(storeBlock);
     fillStore(storeBlock);
+    lastVisible = storeBlock;
   }
 
   if (!pending.length) return;
 
-  // One button that walks down the page: it reveals the next section, then
-  // re-seats itself underneath it, until there is nothing left to show.
+  // Walks forward through the hidden sections one at a time; once the last
+  // one is showing, it turns into View less and collapses them all back
+  // under Music/Fashion in one step, ready to walk forward again.
   const more = el('button', 'more-btn');
   more.type = 'button';
-  more.append(el('span', 'more-label', 'View more'));
+  const moreLabel = el('span', 'more-label', 'View more');
+  more.append(moreLabel);
 
   let next = 0;
-  const seat = () => {
-    if (next >= pending.length) { more.remove(); return; }
-    const above = next === 0 ? archive.firstElementChild : pending[next - 1].block;
-    above.after(more);
+
+  const seatCollapsed = () => { lastVisible.after(more); };
+
+  const revealNext = () => {
+    const entry = pending[next++];
+    if (!entry.filled) {
+      if (entry.store) fillStore(entry.block);
+      else fillSection(entry.block, entry.section, entry.items, false);
+      entry.filled = true;
+    }
+    entry.block.hidden = false;
+    if (!REDUCED) entry.block.classList.add('reveal');
+    if (next >= pending.length) moreLabel.textContent = 'View less';
+    entry.block.after(more);
+  };
+
+  const collapseAll = () => {
+    pending.forEach(entry => { entry.block.hidden = true; });
+    next = 0;
+    moreLabel.textContent = 'View more';
+    seatCollapsed();
   };
 
   more.addEventListener('click', () => {
-    const entry = pending[next++];
-    if (entry.music) fillMusic(entry.block);
-    else if (entry.store) fillStore(entry.block);
-    else fillSection(entry.block, entry.section, entry.items, false);
-    entry.block.hidden = false;
-    if (!REDUCED) entry.block.classList.add('reveal');
-    seat();
+    if (next >= pending.length) collapseAll();
+    else revealNext();
   });
 
-  seat();
+  seatCollapsed();
 }
 
 /* ---------------- project detail ---------------- */

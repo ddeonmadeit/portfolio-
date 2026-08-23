@@ -49,14 +49,6 @@
         "url": "https://soundcloud.com/deonnofficial"
       },
       {
-        "platform": "instagram",
-        "url": "https://www.instagram.com/deonisdeon"
-      },
-      {
-        "platform": "tiktok",
-        "url": "https://vm.tiktok.com/ZSVG2vka/"
-      },
-      {
         "platform": "deezer",
         "url": "https://www.deezer.com/en/artist/57585092"
       },
@@ -84,6 +76,20 @@
         "g-2",
         "knots-leather-jacket-campaign",
         "jk"
+      ]
+    },
+    {
+      "id": "fashion",
+      "title": "Fashion",
+      "projectIds": [
+        "void-pavilion",
+        "knots-leather-jacket-campaign",
+        "knots-aw24-capsule-campaign",
+        "jk",
+        "brutalist-system",
+        "g-3",
+        "h",
+        "fa"
       ]
     },
     {

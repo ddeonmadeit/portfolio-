@@ -48,6 +48,12 @@
   --radius:    0.25rem;
   --ease:      cubic-bezier(0.16, 1, 0.3, 1);
   --pad:       clamp(20px, 6vw, 64px);
+  /* Below this, the layout is untouched — full-bleed, edge to edge, exactly
+     as tuned for phones and tablets. Above it, the page stops stretching:
+     without a cap, a fixed-aspect-ratio grid tile grows with viewport width
+     and its height follows in lockstep, so an ultra-wide window turns each
+     tile into something taller than the screen. */
+  --content-max: 1200px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -255,7 +261,7 @@ img { display: block; max-width: 100%; }
    Content, titles and per-section project order all come from
    content/data.json, edited at /dash.
    ============================================================ */
-.archive { display: flex; flex-direction: column; }
+.archive { display: flex; flex-direction: column; max-width: var(--content-max); margin-inline: auto; }
 .section-block { padding-top: 34px; }
 .section-block:first-child { padding-top: 0; }
 .section-title {
@@ -665,6 +671,8 @@ a.store-contact-value:hover { color: var(--accent); }
   margin-top: clamp(72px, 16vw, 160px);
   border-top: 1px solid var(--border);
   padding: clamp(48px, 10vw, 96px) var(--pad) 32px;
+  max-width: var(--content-max);
+  margin-inline: auto;
 }
 .studio-name {
   --stroke: 1.1px;

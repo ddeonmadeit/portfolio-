@@ -1081,14 +1081,13 @@ function renderSections() {
         }
       }
 
-      // The store rides behind Music/Fashion rather than trailing every
-      // project category — a place, not a piece of work, so it's the first
-      // thing View more reveals rather than the last.
+      // The store always shows too, right after Music/Fashion — it's a
+      // place people should be able to find without hunting for it.
       if (hasStore()) {
         const storeBlock = el('section', 'section-block');
-        storeBlock.hidden = true;
         archive.append(storeBlock);
-        pending.push({ block: storeBlock, store: true });
+        fillStore(storeBlock);
+        lastVisible = storeBlock;
       }
     } else {
       block.hidden = true;
@@ -1116,7 +1115,7 @@ function renderSections() {
 
   // Walks forward through the hidden sections one at a time; once the last
   // one is showing, it turns into View less and collapses them all back
-  // under Music/Fashion in one step, ready to walk forward again.
+  // under Music/Fashion/Store in one step, ready to walk forward again.
   const more = el('button', 'more-btn');
   more.type = 'button';
   const moreLabel = el('span', 'more-label', 'View more');
